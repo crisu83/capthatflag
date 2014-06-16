@@ -16,11 +16,8 @@ app.use('/static', express.static(webRoot));
 
 // handle authentication under /auth
 app.post('/auth', function (req, res) {
-    var profile = {
-        id: uuid.v4()
-    };
-
-    var token = jwt.sign(profile, config.secret, { expiresInMinutes: 60 });
+    var profile = {id: uuid.v4()}
+        , token = jwt.sign(profile, config.secret, { expiresInMinutes: 3600 });
 
     res.json({token: token});
 });

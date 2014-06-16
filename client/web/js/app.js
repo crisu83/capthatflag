@@ -8,7 +8,7 @@
         , cursorKeys
         , player
         , players = {}
-        , tileSize = 32;
+        , config = {};
 
     // moves an object in the given direction
     function moveObject(object, direction) {
@@ -16,30 +16,36 @@
             , y = object.y;
 
         if (direction === 'up') {
-            y -= tileSize;
+            y -= config.tileSize;
         } else if (direction === 'right') {
-            x += tileSize;
+            x += config.tileSize;
         } else if (direction === 'down') {
-            y += tileSize
+            y += config.tileSize
         } else if (direction === 'left') {
-            x -= tileSize
+            x -= config.tileSize
         } else {
             // do nothing for now
+        }
+
+        if (x < 0) {
+            x = 0;
+        } else if (x > config.gameWidth - config.tileSize) {
+            x = config.gameWidth - config.tileSize;
+        }
+        if (y < 0) {
+            y = 0;
+        } else if (y > config.gameHeight - config.tileSize) {
+            y = config.gameHeight - config.tileSize;
         }
 
         object.setPosition(x, y);
     }
 
     // creates a new player
-    function createPlayer(x, y, image, clientId) {
+    function createPlayer(x, y, image) {
         var player = new Player(x, y, image);
-
         var sprite = playerGroup.create(player.x, player.y, player.image);
-        sprite.body.collideWorldBounds = true;
-
         player.sprite = sprite;
-        player.clientId = clientId;
-
         return player;
     }
 
@@ -54,7 +60,7 @@
     }
 
     function numberToTile(number) {
-        return Math.ceil((number + 1) / tileSize) * tileSize;
+        return Math.ceil((number + 1) / config.tileSize) * config.tileSize;
     }
 
     // connects to the game server and sets up event handlers
@@ -64,6 +70,15 @@
         // event handler for when the player is connected to the server
         socket.on('connect', function () {
             console.log('secure connection established');
+        });
+
+        // event handler for configuring the client
+        socket.on('configure', function (configState) {
+            console.log('configuring client', configState)
+
+            config = configState;
+
+            console.log(config.tileSize);
 
             player = createPlayer(
                 numberToTile(game.world.randomX)
@@ -71,11 +86,12 @@
                 , Math.round(Math.random()) === 0 ? 'male' : 'female'
             );
 
+            // let the other players know that the player joined
             socket.emit('join', player.toJSON());
         });
 
         // event handler for when the game state is initialized
-        socket.on('init', function (playerStates) {
+        socket.on('init state', function (playerStates) {
             console.log('initializing game state', playerStates);
 
             var clientId, playerState;
@@ -130,7 +146,7 @@
     }
 
     // create the actual game
-    var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
+    var game = new Phaser.Game(config.gameWidth, config.gameHeight, Phaser.AUTO, '', {
         preload: preload
         , create: create
         , update: update
@@ -155,37 +171,44 @@
         $.post('/auth').done(connect);
     }
 
-    var inputInterval = 100 // 250ms
-        , lastInputAt = null;
-
     // updates the game state
     function update() {
         if (player) {
-            // todo: figure out if phaser supports input intervals
-            var now = new Date().getTime();
+            // todo: prevent players from overlapping
 
-            if (!lastInputAt || now - inputInterval > lastInputAt) {
-                var direction = null;
+            // handle the user input
+            handleInput(player);
+        }
+    }
 
-                if (cursorKeys.up.isDown) {
-                    direction = 'up'
-                } else if (cursorKeys.right.isDown) {
-                    direction = 'right';
-                } else if (cursorKeys.down.isDown) {
-                    direction = 'down';
-                } else if (cursorKeys.left.isDown) {
-                    direction = 'left';
-                }
+    var inputInterval = 100
+        , lastInputAt = null;
 
-                if (direction) {
-                    // move the player to avoid issues with lag
-                    // and let all other players know that the player moved
-                    moveObject(player, direction);
-                    socket.emit('move', {direction: direction});
-                }
+    function handleInput(player) {
+        // todo: figure out if phaser supports input intervals
+        var now = new Date().getTime();
 
-                lastInputAt = now;
+        if (!lastInputAt || now - inputInterval > lastInputAt) {
+            var direction = null;
+
+            if (cursorKeys.up.isDown) {
+                direction = 'up'
+            } else if (cursorKeys.right.isDown) {
+                direction = 'right';
+            } else if (cursorKeys.down.isDown) {
+                direction = 'down';
+            } else if (cursorKeys.left.isDown) {
+                direction = 'left';
             }
+
+            if (direction) {
+                // move the player to avoid issues with lag
+                // and let all other players know that the player moved
+                moveObject(player, direction);
+                socket.emit('move', {direction: direction});
+            }
+
+            lastInputAt = now;
         }
     }
 

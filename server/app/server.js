@@ -15,12 +15,6 @@ var io = socketIo.listen(server);
 // set up authorization
 io.use(jwt.authorize({secret: config.secret, handshake: true}));
 
-function createPlayer(clientId, state) {
-    var player = new Player(state.x, state.y, state.image);
-    player.clientId = clientId;
-    return player;
-};
-
 // whether to enable debugging
 var debug = true;
 
@@ -28,13 +22,16 @@ var debug = true;
 // (clientId => Player)
 var players = {};
 
-var gameWidth = 800
-    , gameHeight = 600
-    , tileSize = 32;
-
 // event handler for when a client connects to the server
 io.on('connection', function (socket) {
     console.log('- client \'%s\' connected', socket.decoded_token.id);
+
+    // pass over the configuration to the client
+    socket.emit('configure', {
+        gameWidth: config.gameWidth
+        , gameHeight: config.gameHeight
+        , tileSize: config.tileSize
+    });
 
     var clientId = socket.decoded_token.id
         , player = null;
@@ -45,64 +42,78 @@ io.on('connection', function (socket) {
             console.log('\tplayer join', clientId, playerState);
         }
 
+        // create an array with the state of all existing players
         var playerStates = [];
-
         for (var id in players) {
             playerStates.push(players[id].toJSON());
         }
 
-        // let the newly joined player know of other existing players
-        socket.emit('init', playerStates);
+        // let the newly joined player know of other players
+        socket.emit('init state', playerStates);
 
         // create the player on the server and save it in the store
-        player = createPlayer(clientId, playerState);
+        player = new Player(playerState.x, playerState.y, playerState.image);
+        player.clientId = clientId;
         players[clientId] = player;
 
         // let other players know that the player joined
         socket.broadcast.emit('join', player.toJSON());
     });
 
+    // moves an object on the server
     function moveObject(object, direction) {
         if (direction === 'up') {
-            object.y -= tileSize;
+            object.y -= config.tileSize;
         } else if (direction === 'right') {
-            object.x += tileSize;
+            object.x += config.tileSize;
         } else if (direction === 'down') {
-            object.y += tileSize;
+            object.y += config.tileSize;
         } else if (direction === 'left') {
-            object.x -= tileSize;
+            object.x -= config.tileSize;
         }
 
         if (object.x < 0) {
             object.x = 0;
-        } else if (object.x > gameWidth - tileSize) {
-            object.x = gameWidth - tileSize;
+        } else if (object.x > config.gameWidth - config.tileSize) {
+            object.x = config.gameWidth - config.tileSize;
         }
         if (object.y < 0) {
             object.y = 0;
-        } else if (object.y > gameHeight - tileSize) {
-            object.y = gameHeight - tileSize;
+        } else if (object.y > config.gameHeight - config.tileSize) {
+            object.y = config.gameHeight - config.tileSize;
         }
     }
 
+    var actionInterval = 50
+        , lastActionAt = null;
+
     // event handler for when a player moving
     socket.on('move', function (moveState) {
-        if (debug) {
-            console.log('\tplayer move', clientId, moveState);
+        var now = new Date().getTime();
+
+        if (!lastActionAt || now - actionInterval > lastActionAt) {
+            if (debug) {
+                console.log('\tplayer move', clientId, moveState);
+            }
+
+            // move the player here in order to avoid cheating
+            moveObject(player, moveState.direction);
+
+            // let other clients know that the player moved
+            socket.broadcast.emit('move', player.toJSON());
+
+            // let the player know its correct position so that the position
+            // can be corrected in case the server disagrees with the client
+            // this could happen if the player tries to hack the client
+            socket.emit('correct move', player.toJSON());
+
+            lastActionAt = now;
         }
-
-        // move the player here in order to avoid cheating
-        moveObject(player, moveState.direction);
-
-        // let other clients know that the player moved
-        socket.broadcast.emit('move', player.toJSON());
-
-        // let the player know the correct position
-        socket.emit('correct move', player.toJSON());
     });
 
     // event handler for when a client disconnects from the server
     socket.on('disconnect', function () {
+        // remove the player from the store
         delete players[clientId];
 
         // let other clients know that the player quit
