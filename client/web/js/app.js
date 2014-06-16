@@ -1,6 +1,6 @@
-(function ($) {
+'use strict';
 
-    // todo: some of the settings should be fetched from the server (i.e. tileSize)
+(function ($) {
 
     // globals
     var socket
@@ -148,7 +148,7 @@
     }
 
     // connects to the game server and sets up event handlers
-    function connect(data) {
+    function connectToSocket(data) {
         console.log('connecting to server ...');
 
         socket = io.connect('', {query: 'token=' + data.token});
@@ -228,6 +228,7 @@
     }
 
     // perform authentication and connect to the server
-    $.post('/auth').done(connect);
+    $.post('/auth')
+        .done(connectToSocket);
 
 })(jQuery);
