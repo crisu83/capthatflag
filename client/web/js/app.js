@@ -1,27 +1,33 @@
 (function ($) {
 
+    // todo: some of the settings should be fetched from the server (i.e. tileSize)
+
     // globals
     var socket
         , playerGroup
         , cursorKeys
         , player
         , players = {}
-        , movementSpeed = 100
         , tileSize = 32;
 
-    // moves a sprite in the given direction
-    function moveSprite(sprite, direction) {
+    // moves an object in the given direction
+    function moveObject(object, direction) {
+        var x = object.x
+            , y = object.y;
+
         if (direction === 'up') {
-            sprite.y -= tileSize;
+            y -= tileSize;
         } else if (direction === 'right') {
-            sprite.x += tileSize;
+            x += tileSize;
         } else if (direction === 'down') {
-            sprite.y += tileSize
+            y += tileSize
         } else if (direction === 'left') {
-            sprite.x -= tileSize
+            x -= tileSize
         } else {
             // do nothing for now
         }
+
+        object.setPosition(x, y);
     }
 
     // creates a new player
@@ -62,7 +68,7 @@
             player = createPlayer(
                 numberToTile(game.world.randomX)
                 , numberToTile(game.world.randomY)
-                , Math.floor(Math.random() * 1) ? 'male' : 'female'
+                , Math.round(Math.random()) === 0 ? 'male' : 'female'
             );
 
             socket.emit('join', player.toJSON());
@@ -88,19 +94,34 @@
 
         // event handler for when a player moves
         socket.on('move', function (playerState) {
-            console.log('player move', playerState);
-
             if (players[playerState.clientId]) {
+                console.log('player move', playerState);
+
                 var player = players[playerState.clientId];
-                player.sprite.position.setTo(playerState.x, playerState.y);
+                player.setPosition(playerState.x, playerState.y);
             }
         });
 
+        // event handler for correcting the player position
+        socket.on('correct move', function (playerState) {
+            // correct the player position if it is different from the server
+            if (player.x !== playerState.x || player.y !== playerState.y) {
+                console.log('correcting player position', {
+                    cx: player.x
+                    , cy: player.y
+                    , sx: playerState.x
+                    , sy: playerState.y
+                });
+
+                player.setPosition(playerState.x, playerState.y)
+            }
+        })
+
         // event handler for when a player quits the game
         socket.on('quit', function (clientId) {
-            console.log('player quit', clientId);
-
             if (players[clientId]) {
+                console.log('player quit', clientId);
+
                 var player = players[clientId];
                 delete players[clientId];
                 player.sprite.destroy();
@@ -159,7 +180,7 @@
                 if (direction) {
                     // move the player to avoid issues with lag
                     // and let all other players know that the player moved
-                    moveSprite(player.sprite, direction);
+                    moveObject(player, direction);
                     socket.emit('move', {direction: direction});
                 }
 

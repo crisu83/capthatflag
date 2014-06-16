@@ -1,6 +1,6 @@
 'use strict';
 
-var Player = function (x, y, image) {
+var Player = function(x, y, image) {
     this.x = x;
     this.y = y;
     this.image = image;
@@ -8,7 +8,16 @@ var Player = function (x, y, image) {
     this.sprite = null;
 };
 
-Player.prototype.toJSON = function () {
+Player.prototype.setPosition = function(x, y) {
+    this.x = x;
+    this.y = y;
+
+    if (this.sprite) {
+        this.sprite.position.setTo(x, y);
+    }
+}
+
+Player.prototype.toJSON = function() {
     return {
         x: this.x
         , y: this.y

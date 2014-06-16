@@ -96,6 +96,9 @@ io.on('connection', function (socket) {
 
         // let other clients know that the player moved
         socket.broadcast.emit('move', player.toJSON());
+
+        // let the player know the correct position
+        socket.emit('correct move', player.toJSON());
     });
 
     // event handler for when a client disconnects from the server
