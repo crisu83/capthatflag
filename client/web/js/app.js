@@ -1,88 +1,110 @@
 (function ($) {
 
+    // globals
     var socket
-        , player
         , playerGroup
         , cursorKeys
-        , playerState
-        , otherPlayers = {};
+        , player
+        , players = {};
 
+    // returns a random integer between min and max
     function random(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    function run(data) {
+    // connects to the game server
+    function connect(data) {
         socket = io.connect('', {query: 'token=' + data.token});
 
+        function createPlayer(x, y, image, id) {
+            var player = new Player(x, y, image, id);
+
+            var sprite = playerGroup.create(player.x, player.y, player.image);
+            sprite.body.immovable = true;
+            sprite.body.collideWorldBounds = true;
+
+            player.sprite = sprite;
+
+            return player;
+        }
+
+        // event handler for when the player is connected to the server
         socket.on('connect', function () {
             console.log('secure connection established');
 
-            playerState = {
-                x: game.world.randomX
-                , y: game.world.randomY
-                , image: random(0, 1) ? 'male' : 'female'
-                , token: data.token
-            };
+            player = createPlayer(
+                game.world.randomX
+                , game.world.randomY
+                , random(0, 1) ? 'male' : 'female'
+            );
 
-            player = playerGroup.create(
+            socket.emit('join', player.toJSON());
+        });
+
+        // event handler for when the game state is initialized
+        socket.on('init', function (playerStates) {
+            console.log('initializing game state', playerStates);
+
+            var clientId, playerState;
+            for (clientId in playerStates) {
+                playerState = playerStates[clientId];
+                players[playerState.id] = createPlayer(
+                    playerState.x
+                    , playerState.y
+                    , playerState.image
+                    , playerState.id
+                );
+            }
+        });
+
+        // event handler for when a new player joins the game
+        socket.on('join', function (playerState) {
+            console.log('player joined', playerState);
+
+            players[playerState.id] = createPlayer(
                 playerState.x
                 , playerState.y
                 , playerState.image
+                , playerState.id
             );
-
-            player.body.collideWorldBounds = true;
-
-            socket.emit('join', playerState);
         });
 
-        function addPlayer(state) {
-            sprite = playerGroup.create(state.x, state.y, state.image);
-            otherPlayers[state.token] = sprite;
-        }
+        // event handler for when a player moves
+        socket.on('move', function (playerState) {
+            console.log('player move', playerState);
 
-        socket.on('init', function (states) {
-            console.log('initializing game state');
-
-            for (var token in states) {
-                addPlayer(states[token]);
+            if (players[playerState.id]) {
+                var player = players[playerState.id];
+                player.sprite.position.setTo(state.x, state.y);
             }
         });
 
-        socket.on('join', function (state) {
-            console.log('player joined', state.token);
+        // event handler for when a player quits the game
+        socket.on('quit', function (id) {
+            console.log('player quit', id);
 
-            addPlayer(state);
-        });
-
-        socket.on('move', function (state) {
-            if (otherPlayers[state.token]) {
-                var sprite = otherPlayers[state.token];
-                sprite.position.setTo(state.x, state.y);
-            }
-        });
-
-        socket.on('quit', function (token) {
-            console.log('player quit', token);
-
-            if (otherPlayers[token]) {
-                var sprite = otherPlayers[token];
-                delete otherPlayers[token];
-                sprite.destroy();
+            if (players[id]) {
+                var player = players[id];
+                delete players[id];
+                player.sprite.destroy();
             }
         });
     }
 
+    // create the actual game
     var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
         preload: preload
         , create: create
         , update: update
     });
 
+    // does pre-loading for the game
     function preload() {
         game.load.image('male', 'static/images/male.png');
         game.load.image('female', 'static/images/female.png');
     }
 
+    // creates the game
     function create() {
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -92,32 +114,21 @@
 
         cursorKeys = game.input.keyboard.createCursorKeys();
 
-        $.post('/auth').done(run);
+        $.post('/auth').done(connect);
     }
 
+    // updates the game state
     function update() {
-        if (player) {
-            player.body.velocity.x = 0;
-            player.body.velocity.y = 0;
-
-            if (cursorKeys.up.isDown) {
-                player.body.velocity.y = -150;
-            } else if (cursorKeys.right.isDown) {
-                player.body.velocity.x = 150;
-            } else if (cursorKeys.down.isDown) {
-                player.body.velocity.y = 150;
-            } else if (cursorKeys.left.isDown) {
-                player.body.velocity.x = -150;
-            } else {
-                // do nothing for now ...
-            }
-
-            if (player.body.velocity.x !== 0 || player.body.velocity.y !== 0) {
-                playerState.x = player.x;
-                playerState.y = player.y;
-
-                socket.emit('move', playerState);
-            }
+        if (cursorKeys.up.isDown) {
+            socket.emit('move', {direction: 'up'});
+        } else if (cursorKeys.right.isDown) {
+            socket.emit('move', {direction: 'right'});
+        } else if (cursorKeys.down.isDown) {
+            socket.emit('move', {direction: 'down'});
+        } else if (cursorKeys.left.isDown) {
+            socket.emit('move', {direction: 'left'});
+        } else {
+            // do nothing for now ...
         }
     }
 
