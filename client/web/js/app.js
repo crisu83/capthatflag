@@ -5,37 +5,64 @@
         , playerGroup
         , cursorKeys
         , player
-        , players = {};
+        , players = {}
+        , movementSpeed = 100
+        , tileSize = 32;
 
-    // returns a random integer between min and max
-    function random(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+    // moves a sprite in the given direction
+    function moveSprite(sprite, direction) {
+        if (direction === 'up') {
+            sprite.y -= tileSize;
+        } else if (direction === 'right') {
+            sprite.x += tileSize;
+        } else if (direction === 'down') {
+            sprite.y += tileSize
+        } else if (direction === 'left') {
+            sprite.x -= tileSize
+        } else {
+            // do nothing for now
+        }
     }
 
-    // connects to the game server
+    // creates a new player
+    function createPlayer(x, y, image, clientId) {
+        var player = new Player(x, y, image);
+
+        var sprite = playerGroup.create(player.x, player.y, player.image);
+        sprite.body.collideWorldBounds = true;
+
+        player.sprite = sprite;
+        player.clientId = clientId;
+
+        return player;
+    }
+
+    // create a new player from a state object
+    function createPlayerFromState(playerState) {
+        return createPlayer(
+            playerState.x
+            , playerState.y
+            , playerState.image
+            , playerState.clientId
+        );
+    }
+
+    function numberToTile(number) {
+        return Math.ceil((number + 1) / tileSize) * tileSize;
+    }
+
+    // connects to the game server and sets up event handlers
     function connect(data) {
         socket = io.connect('', {query: 'token=' + data.token});
-
-        function createPlayer(x, y, image, id) {
-            var player = new Player(x, y, image, id);
-
-            var sprite = playerGroup.create(player.x, player.y, player.image);
-            sprite.body.immovable = true;
-            sprite.body.collideWorldBounds = true;
-
-            player.sprite = sprite;
-
-            return player;
-        }
 
         // event handler for when the player is connected to the server
         socket.on('connect', function () {
             console.log('secure connection established');
 
             player = createPlayer(
-                game.world.randomX
-                , game.world.randomY
-                , random(0, 1) ? 'male' : 'female'
+                numberToTile(game.world.randomX)
+                , numberToTile(game.world.randomY)
+                , Math.floor(Math.random() * 1) ? 'male' : 'female'
             );
 
             socket.emit('join', player.toJSON());
@@ -48,12 +75,7 @@
             var clientId, playerState;
             for (clientId in playerStates) {
                 playerState = playerStates[clientId];
-                players[playerState.id] = createPlayer(
-                    playerState.x
-                    , playerState.y
-                    , playerState.image
-                    , playerState.id
-                );
+                players[playerState.clientId] = createPlayerFromState(playerState);
             }
         });
 
@@ -61,31 +83,26 @@
         socket.on('join', function (playerState) {
             console.log('player joined', playerState);
 
-            players[playerState.id] = createPlayer(
-                playerState.x
-                , playerState.y
-                , playerState.image
-                , playerState.id
-            );
+            players[playerState.clientId] = createPlayerFromState(playerState);
         });
 
         // event handler for when a player moves
         socket.on('move', function (playerState) {
             console.log('player move', playerState);
 
-            if (players[playerState.id]) {
-                var player = players[playerState.id];
-                player.sprite.position.setTo(state.x, state.y);
+            if (players[playerState.clientId]) {
+                var player = players[playerState.clientId];
+                player.sprite.position.setTo(playerState.x, playerState.y);
             }
         });
 
         // event handler for when a player quits the game
-        socket.on('quit', function (id) {
-            console.log('player quit', id);
+        socket.on('quit', function (clientId) {
+            console.log('player quit', clientId);
 
-            if (players[id]) {
-                var player = players[id];
-                delete players[id];
+            if (players[clientId]) {
+                var player = players[clientId];
+                delete players[clientId];
                 player.sprite.destroy();
             }
         });
@@ -117,18 +134,37 @@
         $.post('/auth').done(connect);
     }
 
+    var inputInterval = 100 // 250ms
+        , lastInputAt = null;
+
     // updates the game state
     function update() {
-        if (cursorKeys.up.isDown) {
-            socket.emit('move', {direction: 'up'});
-        } else if (cursorKeys.right.isDown) {
-            socket.emit('move', {direction: 'right'});
-        } else if (cursorKeys.down.isDown) {
-            socket.emit('move', {direction: 'down'});
-        } else if (cursorKeys.left.isDown) {
-            socket.emit('move', {direction: 'left'});
-        } else {
-            // do nothing for now ...
+        if (player) {
+            // todo: figure out if phaser supports input intervals
+            var now = new Date().getTime();
+
+            if (!lastInputAt || now - inputInterval > lastInputAt) {
+                var direction = null;
+
+                if (cursorKeys.up.isDown) {
+                    direction = 'up'
+                } else if (cursorKeys.right.isDown) {
+                    direction = 'right';
+                } else if (cursorKeys.down.isDown) {
+                    direction = 'down';
+                } else if (cursorKeys.left.isDown) {
+                    direction = 'left';
+                }
+
+                if (direction) {
+                    // move the player to avoid issues with lag
+                    // and let all other players know that the player moved
+                    moveSprite(player.sprite, direction);
+                    socket.emit('move', {direction: direction});
+                }
+
+                lastInputAt = now;
+            }
         }
     }
 

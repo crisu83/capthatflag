@@ -1,10 +1,10 @@
 'use strict';
 
-var Player = function (x, y, image, id) {
+var Player = function (x, y, image) {
     this.x = x;
     this.y = y;
     this.image = image;
-    this.id = id;
+    this.clientId = null;
     this.sprite = null;
 };
 
@@ -13,7 +13,7 @@ Player.prototype.toJSON = function () {
         x: this.x
         , y: this.y
         , image: this.image
-        , id: this.id
+        , clientId: this.clientId
     };
 };
 
