@@ -28,7 +28,9 @@ io.on('connection', function (socket) {
 
     // pass over the configuration to the client
     socket.emit('configure', {
-        gameWidth: config.gameWidth
+        canvasWidth: config.canvasWidth
+        , canvasHeight: config.canvasHeight
+        , gameWidth: config.gameWidth
         , gameHeight: config.gameHeight
         , tileSize: config.tileSize
     });
@@ -37,7 +39,7 @@ io.on('connection', function (socket) {
         , player = null;
 
     // event handler for when a player joining the game
-    socket.on('join', function (playerState) {
+    socket.on('player join', function (playerState) {
         if (debug) {
             console.log('\tplayer join', clientId, playerState);
         }
@@ -57,7 +59,7 @@ io.on('connection', function (socket) {
         players[clientId] = player;
 
         // let other players know that the player joined
-        socket.broadcast.emit('join', player.toJSON());
+        socket.broadcast.emit('player join', player.toJSON());
     });
 
     // moves an object on the server
@@ -88,7 +90,7 @@ io.on('connection', function (socket) {
         , lastActionAt = null;
 
     // event handler for when a player moving
-    socket.on('move', function (moveState) {
+    socket.on('player move', function (moveState) {
         var now = new Date().getTime();
 
         if (!lastActionAt || now - actionInterval > lastActionAt) {
@@ -100,12 +102,12 @@ io.on('connection', function (socket) {
             moveObject(player, moveState.direction);
 
             // let other clients know that the player moved
-            socket.broadcast.emit('move', player.toJSON());
+            socket.broadcast.emit('player move', player.toJSON());
 
             // let the player know its correct position so that the position
             // can be corrected in case the server disagrees with the client
-            // this could happen if the player tries to hack the client
-            socket.emit('correct move', player.toJSON());
+            // (this could happen if the player tries to hack the client)
+            socket.emit('correct player position', player.toJSON());
 
             lastActionAt = now;
         }
@@ -117,7 +119,7 @@ io.on('connection', function (socket) {
         delete players[clientId];
 
         // let other clients know that the player quit
-        socket.broadcast.emit('quit', clientId);
+        socket.broadcast.emit('player quit', clientId);
 
         console.log('- client \'%s\' disconnected', socket.decoded_token.id);
     });
