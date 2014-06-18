@@ -1,8 +1,8 @@
 {
-  "name": "dungeon-server",
+  "name": "dungeon",
   "version": "0.1.0",
   "description": "A fast-paced multiplayer action role playing game.",
-  "main": "app/app.js",
+  "main": "server/app/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,10 +17,21 @@
   },
   "homepage": "https://github.com/crisu83/dungeon-game",
   "dependencies": {
+    "express": "~4.4.3",
     "socket.io": "~1.0.4",
     "lodash": "~2.4.1",
     "node-uuid": "~1.4.1",
     "socketio-jwt": "~2.3.1",
-    "jsonwebtoken": "~0.4.0"
+    "jsonwebtoken": "~0.4.0",
+    "grunt": "~0.4.5",
+    "load-grunt-tasks": "~0.5.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-contrib-copy": "~0.5.0",
+    "grunt-glue-js": "0.0.4",
+    "gluejs": "~2.3.9",
+    "grunt-stitch": "~0.1.0",
+    "grunt-contrib-concat": "~0.4.0",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-requirejs": "~0.4.4"
   }
 }

@@ -23,13 +23,14 @@ Requirements
 - Renders the game state in real time (doesn't wait for the server)
 - Emits events to the server and attaches to server events (no broadcasting)
 - Renders tile-based maps (JSON + png)
+- Uses RequireJS as r.js can convert CommonJS modules to AMD modules
 
 ### Game objects
 
 - Maintains the state of the game
-- Can be serialized into JSON
-- Serialized objects are passed over the network
-- CommonJS modules packaged using glue.js for the client
+- Base class under shared, client and server classes under respective directory
+- Base classes packaged using r.js for the client
+- Serialized objects are passed over the network (JSON)
 
 ### Gameplay
 

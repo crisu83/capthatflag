@@ -15,11 +15,11 @@
 </head>
 <body>
     <script type="text/javascript" src="socket.io/socket.io.js"></script>
-    <script type="text/javascript" src="static/js/lib/jquery.js"></script>
-    <script type="text/javascript" src="static/js/lib/lodash.js"></script>
-    <script type="text/javascript" src="static/js/lib/phaser.js"></script>
-    <script type="text/javascript" src="static/js/lib/pew.js"></script>
-    <script type="text/javascript" src="static/js/player.js"></script>
-    <script type="text/javascript" src="static/js/app.js"></script>
+    <script type="text/javascript" src="static/js/lib/requirejs/require.js"></script>
+    <script type="text/javascript">
+        require(['require', 'static/js/config.js'], function(require) {
+            require(['main']);
+        });
+    </script>
 </body>
 </html>
