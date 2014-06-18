@@ -9,19 +9,19 @@ Requirements
 ### Server
 
 - Built on-top of ExpressJS and Socket.io
-- Authoritative server (to prevent cheating)
+- Authoritative server (as much as possible)
 - Runs logic that cannot be run on the client
 - Must be able to handle events from up to 100 clients
 - Uses oddment tables for mobs and items
-- Attaches to client events and broadcasts events to one or multiple clients
+- Attaches to client events; emits and broadcasts events to clients
 - Single point of configuration (configuration sent to clients)
 
 ### Client
 
 - Built on-top of the Phaser framework (http://phaser.io)
-- Runs physics (probably using arcade physics)
-- Renders the game state in real time
-- Emits events to the server and attaches to server events
+- Runs physics (probably using the arcade physics system)
+- Renders the game state in real time (doesn't wait for the server)
+- Emits events to the server and attaches to server events (no broadcasting)
 - Renders tile-based maps (JSON + png)
 
 ### Game objects
@@ -29,6 +29,7 @@ Requirements
 - Maintains the state of the game
 - Can be serialized into JSON
 - Serialized objects are passed over the network
+- CommonJS modules packaged using glue.js for the client
 
 ### Gameplay
 
