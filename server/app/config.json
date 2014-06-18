@@ -1,9 +1,9 @@
 {
     "port": 3000
     , "secret": "topSecretSequenceOfCharacters"
-    , "canvasWidth": 800
-    , "canvasHeight": 600
-    , "gameWidth": 1400
-    , "gameHeight": 1400
+    , "canvasWidth": 480
+    , "canvasHeight": 320
+    , "gameWidth": 480
+    , "gameHeight": 320
     , "tileSize": 32
 }

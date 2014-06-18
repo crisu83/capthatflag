@@ -6,24 +6,41 @@ A fast-paced multiplayer action role playing game written in JavaScript.
 Requirements
 ------------
 
-### Architecture
+### Server
 
-- Server runs all the game logic
-- Client renders the current state and fires events to the server
-- Game objects shared between the server and client
+- Built on-top of ExpressJS and Socket.io
+- Authoritative server (to prevent cheating)
+- Runs logic that cannot be run on the client
 - Must be able to handle events from up to 100 clients
-- Tile based maps (JSON + png)
-- Oddment tables for mobs and items
+- Uses oddment tables for mobs and items
+- Attaches to client events and broadcasts events to one or multiple clients
+- Single point of configuration (configuration sent to clients)
+
+### Client
+
+- Built on-top of the Phaser framework (http://phaser.io)
+- Runs physics (probably using arcade physics)
+- Renders the game state in real time
+- Emits events to the server and attaches to server events
+- Renders tile-based maps (JSON + png)
+
+### Game objects
+
+- Maintains the state of the game
+- Can be serialized into JSON
+- Serialized objects are passed over the network
 
 ### Gameplay
 
-- Fast-paced
-- Easy to learn
+- Fast-paced ARPG
+- Easy to play and quick to learn
+- Players can join at any point
 - Multiplayer with up to 100 players
 - Genuine role playing experience
 - Randomly generated maps
-- Reveal map when in field of vision
+- Reveal map using line of sight
 - Random mobs and item drops
-- Runs on mobile devices
-- Combat log
-- Game chat (maybe)
+- Runs on mobile devices (tablet and phone)
+- Combat log (server updates and clients read)
+- Multiple game rooms (maybe)
+- In-game chat (maybe)

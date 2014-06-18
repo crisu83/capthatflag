@@ -36,7 +36,7 @@ io.on('connection', function (socket) {
     });
 
     var clientId = socket.decoded_token.id
-        , player = null;
+        , player = new Player();
 
     // event handler for when a player joining the game
     socket.on('player join', function (playerState) {
@@ -53,63 +53,30 @@ io.on('connection', function (socket) {
         // let the newly joined player know of other players
         socket.emit('init state', playerStates);
 
-        // create the player on the server and save it in the store
-        player = new Player(playerState.x, playerState.y, playerState.image);
+        player.fromJSON(playerState);
         player.clientId = clientId;
         players[clientId] = player;
 
         // let other players know that the player joined
         socket.broadcast.emit('player join', player.toJSON());
+
+        // pass the client id to the client
+        socket.emit('assign client id', clientId);
     });
 
-    // moves an object on the server
-    function moveObject(object, direction) {
-        if (direction === 'up') {
-            object.y -= config.tileSize;
-        } else if (direction === 'right') {
-            object.x += config.tileSize;
-        } else if (direction === 'down') {
-            object.y += config.tileSize;
-        } else if (direction === 'left') {
-            object.x -= config.tileSize;
-        }
-
-        if (object.x < 0) {
-            object.x = 0;
-        } else if (object.x > config.gameWidth - config.tileSize) {
-            object.x = config.gameWidth - config.tileSize;
-        }
-        if (object.y < 0) {
-            object.y = 0;
-        } else if (object.y > config.gameHeight - config.tileSize) {
-            object.y = config.gameHeight - config.tileSize;
-        }
-    }
-
-    var actionInterval = 50
-        , lastActionAt = null;
-
     // event handler for when a player moving
-    socket.on('player move', function (moveState) {
-        var now = new Date().getTime();
+    socket.on('player move', function (playerState) {
+        // validates a move from point a to point b
+        function validateMove(sx, sy, dx, dy) {
+            // todo: figure out how to validate the move
+            return true; // for now all moves are valid
+        }
 
-        if (!lastActionAt || now - actionInterval > lastActionAt) {
-            if (debug) {
-                console.log('\tplayer move', clientId, moveState);
-            }
+        var oldState = player.toJSON();
 
-            // move the player here in order to avoid cheating
-            moveObject(player, moveState.direction);
-
-            // let other clients know that the player moved
+        if (validateMove(oldState.x, oldState.y, playerState.x, playerState.y)) {
+            player.fromJSON(playerState);
             socket.broadcast.emit('player move', player.toJSON());
-
-            // let the player know its correct position so that the position
-            // can be corrected in case the server disagrees with the client
-            // (this could happen if the player tries to hack the client)
-            socket.emit('correct player position', player.toJSON());
-
-            lastActionAt = now;
         }
     });
 
