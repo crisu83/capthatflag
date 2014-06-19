@@ -1,210 +1,196 @@
 define([
     'phaser'
+    , 'shared/utils'
     , 'dungeon/objects/player'
-], function (Phaser, Player) {
+], function (Phaser, utils, Player) {
     'use strict';
 
     // runs the game
     function run(socket, config) {
-        // scope variables
-        var playerGroup
-            , cursorKeys
-            , player
-            , players = {};
+        // create the "gameplay" state
+        var GameplayState = utils.inherit(Phaser.State, {
+            socket: null
+            , cursorKeys: null
+            , player: null
+            , players: {}
+            , playerGroup: null
+            // constructor
+            , constructor: function(socket) {
+                this.socket = socket;
+            }
+            // loads assets
+            , preload: function(game) {
+                console.log('loading game assets ...');
 
-        // creates a new player
-        function createPlayer(sprite) {
-            // configure the player sprite
-            game.physics.enable(sprite, Phaser.Physics.ARCADE);
-            sprite.physicsBodyType = Phaser.Physics.ARCADE;
-            sprite.body.collideWorldBounds = true;
-            sprite.body.immovable = true;
+                // create the player object
+                this.player = new Player();
+                this.player.socket = this.socket;
+                this.player.preload(game);
 
-            // create the actual player and associate it with its sprite
-            var player = new Player(sprite.x, sprite.y, sprite.key);
-            player.sprite = sprite;
+                console.log('done');
+            }
+            // creates the game
+            , create: function(game) {
+                console.log('creating game ...');
 
-            return player;
-        }
+                // start the physics system
+                game.physics.startSystem(Phaser.Physics.ARCADE);
 
-        // performs pre-loading for the game
-        function preload() {
-            console.log('loading game assets ...');
+                // define the world bounds
+                game.world.setBounds(0, 0, config.gameWidth, config.gameHeight);
 
-            // pre-load sprite images
-            game.load.image('male', 'static/images/male.png');
-            game.load.image('female', 'static/images/female.png');
-            game.load.image('smoke', 'static/images/smoke.png');
+                // set the background color for the stage
+                game.stage.backgroundColor = '#000';
 
-            console.log('done');
-        }
+                // create the player sprite and move it to a random position.
+                var sprite = game.add.sprite(
+                        game.world.randomX
+                        , game.world.randomY
+                        , Math.round(Math.random()) === 0 ? 'male' : 'female'
+                    );
 
-        // creates the game
-        function create() {
-            console.log('creating game ...');
+                // configure the player sprite
+                game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
-            // start the physics system
-            game.physics.startSystem(Phaser.Physics.ARCADE);
+                // set the player sprite and run creation logic
+                this.player.setSprite(sprite);
+                this.player.create(game);
 
-            // define the world bounds
-            game.world.setBounds(0, 0, config.gameWidth, config.gameHeight);
+                // let the server know of the player
+                this.socket.emit('player.join', this.player.toJSON());
 
-            // set the background color for the stage
-            game.stage.backgroundColor = '#000';
+                // create a sprite group for players
+                this.playerGroup = game.add.group();
 
-            var sprite = game.add.sprite(
-                game.world.randomX
-                , game.world.randomY
-                , Math.round(Math.random()) === 0 ? 'male' : 'female'
-            );
+                // lock the camera on the player
+                game.camera.follow(this.player.sprite, Phaser.Camera.FOLLOW_LOCKON);
 
-            // create the player in a random position
-            player = createPlayer(sprite);
+                // create cursor keys to be able to handle user input
+                this.cursorKeys = game.input.keyboard.createCursorKeys();
 
-            // run player creation logic
-            player.create(game);
+                console.log('done');
 
-            // create a sprite group for players
-            playerGroup = game.add.group();
+                // initialize event handlers
+                this.initEventHandlers(game);
+            }
+            , update: function(game) {
+                // todo: fix collision so that players cannot overlap each other
 
-            // lock the camera on the player
-            game.camera.follow(player.sprite, Phaser.Camera.FOLLOW_LOCKON);
+                // enable collision between players
+                game.physics.arcade.collide(this.player.sprite, this.playerGroup);
 
-            // create cursor keys to be able to handle user input
-            cursorKeys = game.input.keyboard.createCursorKeys();
+                // handle the user input
+                if (this.cursorKeys.up.isDown) {
+                    this.player.sprite.body.velocity.y = -this.player.runSpeed;
+                }
+                if (this.cursorKeys.right.isDown) {
+                    this.player.sprite.body.velocity.x = this.player.runSpeed;
+                }
+                if (this.cursorKeys.down.isDown) {
+                    this.player.sprite.body.velocity.y = this.player.runSpeed;
+                }
+                if (this.cursorKeys.left.isDown) {
+                    this.player.sprite.body.velocity.x = -this.player.runSpeed;
+                }
 
-            console.log('done');
+                // reset velocities when corresponding cursor keys are released
+                if (this.cursorKeys.left.isUp && this.cursorKeys.right.isUp) {
+                    this.player.sprite.body.velocity.x = 0;
+                }
+                if (this.cursorKeys.up.isUp && this.cursorKeys.down.isUp) {
+                    this.player.sprite.body.velocity.y = 0;
+                }
 
-            // initialize event handlers
-            initEventHandlers();
-        }
+                this.player.update(game);
+            }
+            // sets up event handlers for the game
+            , initEventHandlers: function(game) {
+                console.log('initializing event handlers ...');
 
-        // sets up event handlers for the game
-        function initEventHandlers() {
-            console.log('initializing event handlers ...');
+                var self = this;
 
-            // let the server know of the player
-            socket.emit('player.join', player.toJSON());
+                // assign the client id to the player
+                this.socket.on('client.assignId', function (clientId) {
+                    self.player.clientId = clientId;
+                });
 
-            // assign the client id to the player
-            socket.on('client.assignId', function (clientId) {
-                player.clientId = clientId;
-            });
+                // event handler for when the game state is initialized
+                this.socket.on('state.initialize', function (playerStates) {
+                    console.log('initializing game state ...', playerStates);
 
-            // event handler for when the game state is initialized
-            socket.on('state.initialize', function (playerStates) {
-                console.log('initializing game state ...', playerStates);
+                    var sprite, playerState, player;
+                    for (var clientId in playerStates) {
+                        if (playerStates.hasOwnProperty(clientId)) {
+                            playerState = playerStates[clientId];
 
-                var sprite, playerState, player;
-                for (var clientId in playerStates) {
-                    if (playerStates.hasOwnProperty(clientId)) {
-                        playerState = playerStates[clientId];
-                        sprite = playerGroup.create(
+                            sprite = self.playerGroup.create(
+                                playerState.x
+                                , playerState.y
+                                , playerState.image
+                            );
+
+                            game.physics.enable(sprite, Phaser.Physics.ARCADE);
+
+                            player = new Player();
+                            player.socket = self.socket;
+                            player.setSprite(sprite);
+                            self.players[clientId] = player;
+                        }
+                    }
+
+                    console.log('done');
+                });
+
+                // event handler for when a new player joins the game
+                this.socket.on('player.join', function (playerState) {
+                    console.log('player joined', playerState);
+
+                    var sprite = self.playerGroup.create(
                             playerState.x
                             , playerState.y
                             , playerState.image
-                        );
-                        player = createPlayer(sprite);
-                        players[clientId] = player;
+                        )
+                        , player;
+
+                    game.physics.enable(sprite, Phaser.Physics.ARCADE);
+
+                    player = new Player();
+                    player.socket = self.socket;
+                    player.setSprite(sprite);
+                    self.players[playerState.clientId] = player;
+                });
+
+                // event handler for when a player moves
+                this.socket.on('player.move', function (playerState) {
+                    if (self.players[playerState.clientId]) {
+                        console.log('player moved', playerState);
+
+                        var player = self.players[playerState.clientId];
+                        player.fromJSON(playerState);
+                        player.sprite.x = playerState.x;
+                        player.sprite.y = playerState.y;
                     }
-                }
+                });
+
+                // event handler for when a player quits the game
+                this.socket.on('player.quit', function (clientId) {
+                    if (self.players[clientId]) {
+                        console.log('player quit', clientId);
+
+                        var player = self.players[clientId];
+                        delete self.players[clientId];
+                        player.sprite.destroy();
+                    }
+                });
 
                 console.log('done');
-            });
-
-            // event handler for when a new player joins the game
-            socket.on('player.join', function (playerState) {
-                console.log('player joined', playerState);
-
-                var sprite = playerGroup.create(
-                    playerState.x
-                    , playerState.y
-                    , playerState.image
-                );
-                var player = createPlayer(sprite);
-                players[playerState.clientId] = player;
-            });
-
-            // event handler for when a player moves
-            socket.on('player.move', function (playerState) {
-                if (players[playerState.clientId]) {
-                    console.log('player moved', playerState);
-
-                    var player = players[playerState.clientId];
-                    player.fromJSON(playerState);
-                    player.sprite.x = playerState.x;
-                    player.sprite.y = playerState.y;
-                }
-            });
-
-            // event handler for when a player quits the game
-            socket.on('player.quit', function (clientId) {
-                if (players[clientId]) {
-                    console.log('player quit', clientId);
-
-                    var player = players[clientId];
-                    delete players[clientId];
-                    player.sprite.destroy();
-                }
-            });
-
-            console.log('done');
-        }
-
-        // updates game logic
-        function update() {
-            // todo: fix collision so that players cannot overlap each other
-
-            // enable collision between players
-            // game.physics.arcade.collide(player.sprite, playerGroup);
-
-            // handle the user input
-            if (cursorKeys.up.isDown) {
-                player.sprite.body.velocity.y = -player.runSpeed;
             }
-            if (cursorKeys.right.isDown) {
-                player.sprite.body.velocity.x = player.runSpeed;
-            }
-            if (cursorKeys.down.isDown) {
-                player.sprite.body.velocity.y = player.runSpeed;
-            }
-            if (cursorKeys.left.isDown) {
-                player.sprite.body.velocity.x = -player.runSpeed;
-            }
-
-            // reset velocities when corresponding cursor keys are released
-            if (cursorKeys.left.isUp && cursorKeys.right.isUp) {
-                player.sprite.body.velocity.x = 0;
-            }
-            if (cursorKeys.up.isUp && cursorKeys.down.isUp) {
-                player.sprite.body.velocity.y = 0;
-            }
-
-            // let the server know if we moved
-            if (player.sprite.body.velocity.x !== 0 || player.sprite.body.velocity.y !== 0) {
-                player.dustEmitter.visible = true;
-                socket.emit('player.move', player.toJSON());
-            } else {
-                player.dustEmitter.visible = false;
-            }
-
-            // update the state with the correct position
-            player.x = player.sprite.body.x;
-            player.y = player.sprite.body.y;
-
-            // todo: the offsets should probably not be hard coded
-            player.dustEmitter.emitX = player.sprite.x + 16;
-            player.dustEmitter.emitY = player.sprite.y + 28;
-        }
+        });
 
         // create the actual game
-        var game = new Phaser.Game(
-            config.canvasWidth
-            , config.canvasHeight
-            , Phaser.AUTO
-            , ''
-            , {preload: preload, create: create, update: update}
-        );
+        var game = new Phaser.Game(config.canvasWidth, config.canvasHeight, Phaser.AUTO);
+        game.state.add('gameplay', new GameplayState(socket));
+        game.state.start('gameplay');
     }
 
     return {
