@@ -14,11 +14,13 @@ define([
 
         // creates a new player
         function createPlayer(sprite) {
+            // configure the player sprite
             game.physics.enable(sprite, Phaser.Physics.ARCADE);
             sprite.physicsBodyType = Phaser.Physics.ARCADE;
             sprite.body.collideWorldBounds = true;
             sprite.body.immovable = true;
 
+            // create the actual player and associate it with its sprite
             var player = new Player(sprite.x, sprite.y, sprite.key);
             player.sprite = sprite;
 
@@ -32,6 +34,7 @@ define([
             // pre-load sprite images
             game.load.image('male', 'static/images/male.png');
             game.load.image('female', 'static/images/female.png');
+            game.load.image('smoke', 'static/images/smoke.png');
 
             console.log('done');
         }
@@ -40,10 +43,14 @@ define([
         function create() {
             console.log('creating game ...');
 
+            // start the physics system
             game.physics.startSystem(Phaser.Physics.ARCADE);
 
             // define the world bounds
             game.world.setBounds(0, 0, config.gameWidth, config.gameHeight);
+
+            // set the background color for the stage
+            game.stage.backgroundColor = '#000';
 
             var sprite = game.add.sprite(
                 game.world.randomX
@@ -54,12 +61,16 @@ define([
             // create the player in a random position
             player = createPlayer(sprite);
 
+            // run player creation logic
+            player.create(game);
+
             // create a sprite group for players
             playerGroup = game.add.group();
 
             // lock the camera on the player
             game.camera.follow(player.sprite, Phaser.Camera.FOLLOW_LOCKON);
 
+            // create cursor keys to be able to handle user input
             cursorKeys = game.input.keyboard.createCursorKeys();
 
             console.log('done');
@@ -142,24 +153,26 @@ define([
 
         // updates game logic
         function update() {
+            // todo: fix collision so that players cannot overlap each other
+
             // enable collision between players
-            game.physics.arcade.collide(player.sprite, playerGroup);
+            // game.physics.arcade.collide(player.sprite, playerGroup);
 
             // handle the user input
-            var speed = 100;
-
             if (cursorKeys.up.isDown) {
-                player.sprite.body.velocity.y = -speed;
+                player.sprite.body.velocity.y = -player.runSpeed;
             }
             if (cursorKeys.right.isDown) {
-                player.sprite.body.velocity.x = speed;
+                player.sprite.body.velocity.x = player.runSpeed;
             }
             if (cursorKeys.down.isDown) {
-                player.sprite.body.velocity.y = speed;
+                player.sprite.body.velocity.y = player.runSpeed;
             }
             if (cursorKeys.left.isDown) {
-                player.sprite.body.velocity.x = -speed;
+                player.sprite.body.velocity.x = -player.runSpeed;
             }
+
+            // reset velocities when corresponding cursor keys are released
             if (cursorKeys.left.isUp && cursorKeys.right.isUp) {
                 player.sprite.body.velocity.x = 0;
             }
@@ -167,14 +180,21 @@ define([
                 player.sprite.body.velocity.y = 0;
             }
 
+            // let the server know if we moved
+            if (player.sprite.body.velocity.x !== 0 || player.sprite.body.velocity.y !== 0) {
+                player.dustEmitter.visible = true;
+                socket.emit('player.move', player.toJSON());
+            } else {
+                player.dustEmitter.visible = false;
+            }
+
             // update the state with the correct position
             player.x = player.sprite.body.x;
             player.y = player.sprite.body.y;
 
-            // let the server know if we moved
-            if (player.sprite.body.velocity.x !== 0 || player.sprite.body.velocity.y !== 0) {
-                socket.emit('player.move', player.toJSON());
-            }
+            // todo: the offsets should probably not be hard coded
+            player.dustEmitter.emitX = player.sprite.x + 16;
+            player.dustEmitter.emitY = player.sprite.y + 28;
         }
 
         // create the actual game
