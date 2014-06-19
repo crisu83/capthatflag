@@ -9,7 +9,7 @@ function inherit(parent, props) {
     if (props && _.has(props, 'constructor')) {
         child = props.constructor;
     } else {
-        child = function() { return parent.apply(this, arguments) };
+        child = function() { return parent.apply(this, arguments); };
     }
     child.prototype = Object.create(parent.prototype);
     if (props) {

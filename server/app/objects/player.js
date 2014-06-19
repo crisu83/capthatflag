@@ -13,6 +13,7 @@ var Player = utils.inherit(PlayerBase, {
             , y: this.y
             , image: this.image
             , clientId: this.clientId
+            ,
         };
     }
 });

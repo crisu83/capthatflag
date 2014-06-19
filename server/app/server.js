@@ -1,3 +1,5 @@
+/* jshint camelcase:false */
+
 var app = require('./app')
     , socketIo = require('socket.io')
     , jwt = require('socketio-jwt')
@@ -38,7 +40,7 @@ io.on('connection', function (socket) {
             , gameWidth: config.gameWidth
             , gameHeight: config.gameHeight
             , tileSize: config.tileSize
-        })
+        });
     });
 
     // event handler for when a player joining the game
@@ -50,7 +52,9 @@ io.on('connection', function (socket) {
         // create an array with the state of all existing players
         var playerStates = [];
         for (var id in players) {
-            playerStates.push(players[id].toJSON());
+            if (players.hasOwnProperty(id)) {
+                playerStates.push(players[id].toJSON());
+            }
         }
 
         // let the newly joined player know of other players

@@ -33,7 +33,7 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         clean: {
-            scripts: 'client/web/js',
+            client: 'client/web/js',
             build: 'client/build'
         },
         copy: {
@@ -67,8 +67,35 @@ module.exports = function(grunt) {
                 ]
             }
         },
+        jshint: {
+            files: [
+                'client/app/**/*.js',
+                'server/app/**/*.js',
+                'shared/**/*.js',
+                'Gruntfile.js'
+            ],
+            options: {
+                'curly': true, // require curly braces
+                'eqeqeq': true, // use === and !==
+                'forin': true, // use hasOwnProperty in for in loops
+                'latedef': true, // prevent variables being used before defined
+                'newcap': true, // captialize constructor functions
+                'noarg': true, // prevent arguments.caller and arguments.callee
+                'eqnull': true, // do not use === null
+                'evil': true, // no eval
+                'expr': true, // check expressions
+                'laxcomma': true, // comma-first style coding
+                'node': true, // node.js
+                'trailing': true, // no trailing white-space
+                'undef': true, // warn about undefined variables
+                //'unused': true, // warn about unused variables
+                'camelcase': true, // camel case variable and function names
+                'indent': 4, // indent length
+                'predef': ['define']
+            }
+        },
         requirejs: {
-            app: {
+            client: {
                 options: {
                     mainConfigFile: 'client/app/config.js',
                     baseUrl: './',
@@ -82,18 +109,21 @@ module.exports = function(grunt) {
             }
         },
         watch: {
-            scripts: {
+            client: {
                 files: [
                     'client/app/**/*.js',
-                    'Gruntfile.js',
                     'shared/**/*.js'
                 ],
                 tasks: ['build']
+            },
+            lint: {
+                files: ['<%= jshint.files %>'],
+                tasks: ['jshint']
             }
         }
     });
 
     grunt.registerTask('default', []);
-    grunt.registerTask('build', ['copy', 'clean:scripts', 'requirejs', 'clean:build']);
+    grunt.registerTask('build', ['jshint', 'copy', 'clean:client', 'requirejs', 'clean:build']);
 
 };

@@ -86,14 +86,16 @@ define([
 
                 var sprite, playerState, player;
                 for (var clientId in playerStates) {
-                    playerState = playerStates[clientId];
-                    sprite = playerGroup.create(
-                        playerState.x
-                        , playerState.y
-                        , playerState.image
-                    );
-                    player = createPlayer(sprite);
-                    players[clientId] = player;
+                    if (playerStates.hasOwnProperty(clientId)) {
+                        playerState = playerStates[clientId];
+                        sprite = playerGroup.create(
+                            playerState.x
+                            , playerState.y
+                            , playerState.image
+                        );
+                        player = createPlayer(sprite);
+                        players[clientId] = player;
+                    }
                 }
 
                 console.log('done');
@@ -153,7 +155,7 @@ define([
                 player.sprite.body.velocity.x = speed;
             }
             if (cursorKeys.down.isDown) {
-                player.sprite.body.velocity.y = speed
+                player.sprite.body.velocity.y = speed;
             }
             if (cursorKeys.left.isDown) {
                 player.sprite.body.velocity.x = -speed;
@@ -170,8 +172,7 @@ define([
             player.y = player.sprite.body.y;
 
             // let the server know if we moved
-            if (player.sprite.body.velocity.x !== 0
-                || player.sprite.body.velocity.y !== 0) {
+            if (player.sprite.body.velocity.x !== 0 || player.sprite.body.velocity.y !== 0) {
                 socket.emit('player.move', player.toJSON());
             }
         }
@@ -188,5 +189,5 @@ define([
 
     return {
         run: run
-    }
+    };
 });
