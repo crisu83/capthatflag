@@ -65,7 +65,28 @@ module.exports = function(grunt) {
                         filter: 'isFile'
                     }
                 ]
+            },
+            assets: {
+                files: [
+                    {
+                        expand: true,
+                        cwd: 'client/assets',
+                        src: ['**/*.{png,json}'],
+                        dest: 'client/web/assets',
+                        filter: 'isFile'
+                    }
+                ]
             }
+        },
+        imagemin: {
+            client: {
+                files: [{
+                    expand: true,
+                    cwd: 'client/assets/images',
+                    src: ['**/*.{png,jpg,gif}'],
+                    dest: 'client/web/images'
+                }]
+            },
         },
         jshint: {
             files: [
@@ -95,13 +116,25 @@ module.exports = function(grunt) {
             }
         },
         requirejs: {
-            client: {
+            dev: {
                 options: {
                     mainConfigFile: 'client/app/config.js',
                     baseUrl: './',
                     appDir: 'client/build/',
                     dir: 'client/web/js',
                     optimize: 'none',
+                    removeCombined: true,
+                    useStrict: true,
+                    cjsTranslate: true
+                }
+            },
+            dist: {
+                options: {
+                    mainConfigFile: 'client/app/config.js',
+                    baseUrl: './',
+                    appDir: 'client/build/',
+                    dir: 'client/web/js',
+                    optimize: 'uglify2',
                     removeCombined: true,
                     useStrict: true,
                     cjsTranslate: true
@@ -128,6 +161,24 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('default', []);
-    grunt.registerTask('build', ['jshint', 'copy', 'clean:client', 'requirejs', 'clean:build']);
+    grunt.registerTask('build', [
+        'jshint',
+        'copy:build',
+        'copy:shared',
+        'copy:assets',
+        'clean:client',
+        'requirejs:dev',
+        'clean:build'
+    ]);
+    grunt.registerTask('dist', [
+        'jshint',
+        'copy:build',
+        'copy:shared',
+        'copy:assets',
+        'clean:client',
+        'requirejs:dist',
+        'clean:build',
+        'imagemin:client'
+    ]);
 
 };

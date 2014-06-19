@@ -1,0 +1,85 @@
+{
+	"frames": {
+		"dungeon-floor-1.png": {
+			"frame": {"x":33, "y":66, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-floor-2.png": {
+			"frame": {"x":99, "y":0, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-floor-3.png": {
+			"frame": {"x":66, "y":99, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-floor-4.png": {
+			"frame": {"x":66, "y":66, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-floor-5.png": {
+			"frame": {"x":66, "y":33, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-floor-6.png": {
+			"frame": {"x":66, "y":0, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-floor-7.png": {
+			"frame": {"x":33, "y":99, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-floor-arrow-down.png": {
+			"frame": {"x":99, "y":33, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-floor-arrow-up.png": {
+			"frame": {"x":99, "y":33, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-stairs-arch.png": {
+			"frame": {"x":33, "y":33, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-stairs-down.png": {
+			"frame": {"x":33, "y":0, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-stairs-up.png": {
+			"frame": {"x":0, "y":99, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-wall-1.png": {
+			"frame": {"x":0, "y":66, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-wall-2.png": {
+			"frame": {"x":0, "y":33, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		},
+		"dungeon-wall-3.png": {
+			"frame": {"x":0, "y":0, "w":32, "h":32},
+			"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+			"sourceSize": {"w":32,"h":32}
+		}
+
+	},
+	"meta": {
+		"image": "dungeon.png",
+		"size": {"w": 132, "h": 132},
+		"scale": "1"
+	}
+}

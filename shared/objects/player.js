@@ -1,9 +1,10 @@
 'use strict';
 
-var utils = require('../utils');
+var utils = require('../utils')
+    , Entity = require('./entity');
 
 // base player class
-var Player = utils.inherit(null, {
+var Player = utils.inherit(Entity, {
     x: null
     , y: null
     , image: null
