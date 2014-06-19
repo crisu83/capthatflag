@@ -114,7 +114,11 @@ module.exports = function(grunt) {
                     'client/app/**/*.js',
                     'shared/**/*.js'
                 ],
-                tasks: ['build']
+                tasks: ['build'],
+                options: {
+                    livereload: true,
+                    spawn: false
+                }
             },
             lint: {
                 files: ['<%= jshint.files %>'],
