@@ -79,7 +79,7 @@ module.exports = function(grunt) {
             }
         },
         imagemin: {
-            client: {
+            assets: {
                 files: [{
                     expand: true,
                     cwd: 'client/assets/images',
@@ -178,7 +178,7 @@ module.exports = function(grunt) {
         'clean:client',
         'requirejs:dist',
         'clean:build',
-        'imagemin:client'
+        'imagemin:assets'
     ]);
 
 };
