@@ -3,6 +3,7 @@
 var app = require('./app')
     , socketIo = require('socket.io')
     , jwt = require('socketio-jwt')
+    , uuid = require('node-uuid')
     , config = require('./config.json')
     , Player = require('./objects/player');
 
@@ -14,22 +15,41 @@ var server = app.listen(config.port, function() {
 // initialize socket.io
 var io = socketIo.listen(server);
 
-// set up authorization
-io.use(jwt.authorize({secret: config.secret, handshake: true}));
-
 // whether to enable debugging
 var debug = true;
 
-// player storage, the real player state will be kept here
+// player storage, the canonical player state will be kept here
 // (clientId => Player)
 var players = {};
 
-// event handler for when a client connects to the server
-io.on('connection', function (socket) {
-    console.log('- client \'%s\' connected', socket.decoded_token.id);
+// create a namespace for socket communication
+var dungeon = io.of('/dungeon-game');
 
+// set up authorization
+dungeon.use(jwt.authorize({secret: config.secret, handshake: true}));
+
+// generate a random room id
+var roomId = uuid.v4();
+
+// event handler for when a client connects to the server
+dungeon.on('connection', function (socket) {
+    // assign some scope variables
     var clientId = socket.decoded_token.id
         , player = new Player();
+
+    // todo: add support for multiple socket rooms
+
+    // join a room
+    socket.join(roomId);
+
+    console.log(
+        '- client \'%s\' connected to room \'%s\''
+        , socket.decoded_token.id
+        , roomId
+    );
+
+    // let the client know to which room they have connected
+    socket.emit('client.joinRoom', roomId);
 
     // event handler for when a client asks for its configuration
     socket.on('client.requestConfig', function () {
