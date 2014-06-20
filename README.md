@@ -6,6 +6,8 @@ A fast-paced multiplayer action role playing game written in JavaScript.
 Requirements
 ------------
 
+A high level overview of the game structure:
+
 ### Server
 
 - Built on-top of ExpressJS and Socket.io
@@ -46,3 +48,23 @@ Requirements
 - Combat log (server updates and clients read)
 - Multiple game rooms (maybe)
 - In-game chat (maybe)
+
+To-dos
+------
+
+Things to do, in order of priority:
+
+- Basic server __DONE__
+- Basic client __DONE__
+- Enable socket communication __DONE__
+- Player game object __DONE__
+- Make clients aware of other clients __DONE__
+- Base for shared game objects (server, client) __DONE__
+- Support for multiple game states (menu, gameplay, etc.)
+- Tile-based maps __DONE__
+- Socket namespacing and multiple socket rooms __DONE__
+- Some monster game objects
+- PVE combat (run logic on server)
+- Oddment tables for item drops (run logic on server)
+- Generate random maps
+-
