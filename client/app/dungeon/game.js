@@ -2,25 +2,33 @@ define([
     'phaser'
     , 'shared/utils'
     , 'dungeon/objects/player'
-], function (Phaser, utils, Player) {
+    , 'dungeon/components/input'
+    , 'dungeon/components/io'
+    , 'dungeon/components/sprite'
+], function (Phaser, utils, Player, InputComponent, IoComponent, SpriteComponent) {
     'use strict';
 
     // runs the game
     function run(socket, config) {
         // create the "gameplay" state
         var GameplayState = utils.inherit(Phaser.State, {
-            socket: null
-            , cursorKeys: null
-            , player: null
-            , players: {}
+            player: null
+            , players: null
             , playerGroup: null
             // constructor
-            , constructor: function(socket) {
-                this.socket = socket;
+            , constructor: function() {
+                this.players = {};
             }
             // loads assets
             , preload: function(game) {
                 console.log('loading game assets ...');
+
+                /*
+                socket.on('game.loadTilemap', function(tilemap) {
+                    game.load.tilemap(tilemap.name, null, tilemap.data, tilemap.type);
+                    game.load.image(tilemap.name, tilemap.image);
+                });
+                */
 
                 game.load.tilemap(
                     'dungeon'
@@ -30,10 +38,12 @@ define([
                 );
 
                 game.load.image('dungeon', 'static/assets/images/tiles/dungeon.png');
+                
+                game.load.image('male', 'static/assets/images/sprites/player/male.png');
+                game.load.image('female', 'static/assets/images/sprites/player/female.png');
 
                 // create the player object
                 this.player = new Player();
-                this.player.socket = this.socket;
                 this.player.preload(game);
 
                 console.log('done');
@@ -51,14 +61,15 @@ define([
                 // set the background color for the stage
                 game.stage.backgroundColor = '#000';
 
-                var map = game.add.tilemap('dungeon')
-                    , layer
-                    , sprite;
+                var map, layer, sprite, cursorKeys;
 
+                // set up our dungeon
+                map = game.add.tilemap('dungeon')
                 map.addTilesetImage('dungeon', 'dungeon');
                 layer = map.createLayer('Floor1');
                 layer.resizeWorld();
 
+                // todo: enable the player to choose the appearance
                 // create the player sprite and move it to a random position.
                 sprite = game.add.sprite(
                         game.world.randomX
@@ -66,24 +77,28 @@ define([
                         , Math.round(Math.random()) === 0 ? 'male' : 'female'
                     );
 
-                // configure the player sprite
                 game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
-                // set the player sprite and run creation logic
-                this.player.setSprite(sprite);
-                this.player.create(game);
+                // todo: move this into the sprite component (show how)
+                sprite.physicsBodyType = Phaser.Physics.ARCADE;
+                sprite.body.collideWorldBounds = true;
+                sprite.body.immovable = true;
+
+                cursorKeys = game.input.keyboard.createCursorKeys();
+
+                // add components to the player
+                this.player.addComponent(new InputComponent(cursorKeys));
+                this.player.addComponent(new IoComponent(socket));
+                this.player.addComponent(new SpriteComponent(sprite));
 
                 // let the server know of the player
-                this.socket.emit('player.join', this.player.toJSON());
+                socket.emit('player.join', this.player.toJSON());
 
                 // create a sprite group for players
                 this.playerGroup = game.add.group();
 
                 // lock the camera on the player
                 game.camera.follow(this.player.sprite, Phaser.Camera.FOLLOW_LOCKON);
-
-                // create cursor keys to be able to handle user input
-                this.cursorKeys = game.input.keyboard.createCursorKeys();
 
                 console.log('done');
 
@@ -97,12 +112,12 @@ define([
                 var self = this;
 
                 // assign the client id to the player
-                this.socket.on('client.assignId', function (clientId) {
+                socket.on('client.assignId', function (clientId) {
                     self.player.clientId = clientId;
                 });
 
                 // event handler for when the game state is initialized
-                this.socket.on('state.initialize', function (playerStates) {
+                socket.on('client.initializeState', function (playerStates) {
                     console.log('initializing game state ...', playerStates);
 
                     var i, playerState, player;
@@ -116,7 +131,7 @@ define([
                 });
 
                 // event handler for when a new player joins the game
-                this.socket.on('player.join', function (playerState) {
+                socket.on('player.join', function (playerState) {
                     console.log('player joined', playerState);
 
                     var player = self.createPlayerFromState(playerState, game);
@@ -124,23 +139,25 @@ define([
                 });
 
                 // event handler for when a player moves
-                this.socket.on('player.move', function (playerState) {
+                socket.on('player.move', function (playerState) {
                     if (self.players[playerState.clientId]) {
                         console.log('player moved', playerState);
 
-                        var player = self.players[playerState.clientId];
-                        player.fromJSON(playerState);
+                        var player, sprite;
+                        player = self.players[playerState.clientId];
+                        sprite = player.getComponent('sprite');
+                        sprite.setPosition(playerState.x, playerState.y);
                     }
                 });
 
                 // event handler for when a player quits the game
-                this.socket.on('player.quit', function (clientId) {
+                socket.on('player.quit', function (clientId) {
                     if (self.players[clientId]) {
                         console.log('player quit', clientId);
 
                         var player = self.players[clientId];
                         delete self.players[clientId];
-                        player.sprite.destroy();
+                        player.die();
                     }
                 });
 
@@ -153,49 +170,36 @@ define([
                 // enable collision between players
                 game.physics.arcade.collide(this.player.sprite, this.playerGroup);
 
-                // handle the user input
-                this.handleInput(game);
-
                 // update player logic
                 this.player.update(game);
             }
-            // handles user input
-            , handleInput: function(game) {
-                if (this.cursorKeys.up.isDown) {
-                    this.player.sprite.body.velocity.y = -this.player.runSpeed;
-                }
-                if (this.cursorKeys.right.isDown) {
-                    this.player.sprite.body.velocity.x = this.player.runSpeed;
-                }
-                if (this.cursorKeys.down.isDown) {
-                    this.player.sprite.body.velocity.y = this.player.runSpeed;
-                }
-                if (this.cursorKeys.left.isDown) {
-                    this.player.sprite.body.velocity.x = -this.player.runSpeed;
-                }
-
-                // reset velocities when corresponding cursor keys are released
-                if (this.cursorKeys.left.isUp && this.cursorKeys.right.isUp) {
-                    this.player.sprite.body.velocity.x = 0;
-                }
-                if (this.cursorKeys.up.isUp && this.cursorKeys.down.isUp) {
-                    this.player.sprite.body.velocity.y = 0;
-                }
+            // todo: move this logic to a factory (or similar)
+            // creates a new player
+            , createPlayer: function() {
+                var player = new Player();
+                player.socket = this.socket;
+                return player;
             }
             // creates a new player from the given state
             , createPlayerFromState: function(playerState, game) {
-                var sprite = this.playerGroup.create(
-                        playerState.x
-                        , playerState.y
-                        , playerState.image
-                    )
-                    , player;
+                var sprite, player;
+
+                sprite = this.playerGroup.create(
+                    playerState.x
+                    , playerState.y
+                    , playerState.image
+                );
 
                 game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
-                player = new Player();
-                player.socket = this.socket;
-                player.setSprite(sprite);
+                // todo: move this into the sprite component (show how)
+                sprite.physicsBodyType = Phaser.Physics.ARCADE;
+                sprite.body.collideWorldBounds = true;
+                sprite.body.immovable = true;
+
+                player = this.createPlayer(sprite, game);
+                player.addComponent(new IoComponent(socket));
+                player.addComponent(new SpriteComponent(sprite));
 
                 return player;
             }

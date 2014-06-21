@@ -59,12 +59,19 @@ Things to do, in order of priority:
 - Enable socket communication __DONE__
 - Player game object __DONE__
 - Make clients aware of other clients __DONE__
+- Object inheritance __DONE__
 - Base for shared game objects (server, client) __DONE__
-- Support for multiple game states (menu, gameplay, etc.)
+- Support for multiple game states (menu, gameplay, etc.) __DONE__
 - Tile-based maps __DONE__
-- Socket namespacing and multiple socket rooms __DONE__
+- Use namespace for socket communication __DONE__
+- Component support for entities (maybe) __DONE__
+- Spawn maps on the server and send it the to clients
+- Spawn entities on the server and send them to the clients
+- Object multi-inheritance (maybe)
+- Some chest game objects
 - Some monster game objects
-- PVE combat (run logic on server)
 - Oddment tables for item drops (run logic on server)
+- PVE combat (run logic on server)
+- Multiple socket rooms
 - Generate random maps
--
+- ...
