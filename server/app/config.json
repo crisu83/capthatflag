@@ -5,5 +5,4 @@
     , "canvasHeight": 320
     , "gameWidth": 480
     , "gameHeight": 320
-    , "tileSize": 32
 }
