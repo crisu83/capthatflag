@@ -7,6 +7,7 @@ var utils = require('./utils')
 // base entity class
 var Entity = utils.inherit(Node, {
     key: 'entity'
+    , id: null
     , x: null
     , y: null
     , width: null
@@ -65,7 +66,8 @@ var Entity = utils.inherit(Node, {
     // converts this entity to a json object
     , toJSON: function() {
         return {
-            x: this.x
+            id: this.id
+            , x: this.x
             , y: this.y
             , width: this.width
             , height: this.height

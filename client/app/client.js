@@ -16,19 +16,17 @@ require([
         });
 
         // event handler for configuring the client
-        socket.on('client.configure', function(config) {
+        socket.on('client.init', function(config) {
             // remove the canvas if it was already created
             // this may happen if the server gets restarted mid-game
-            if ($('canvas').length) {
-                $('canvas').remove();
-            }
+            $('canvas').remove();
 
             // run the game
-            game.run(socket, config, true);
+            game.run(socket, config);
         });
 
         // event handler for when the client joins a room
-        socket.on('room.join', function(roomId) {
+        socket.on('client.joinRoom', function(roomId) {
             console.log('joined room', roomId);
         });
     });
