@@ -16,7 +16,7 @@ global.window.CanvasRenderingContext2D = 'foo'; // let Phaser know that we have 
 global.window.Element = undefined;
 global.navigator = {userAgent: 'Custom'}; // could be anything
 
-// fake the xml http request object because Phaser uses it (sigh)
+// fake the xml http request object because Phaser.Loader uses it
 global.XMLHttpRequest = function() {};
 
 // load an expose PIXI in order to finally load Phaser
