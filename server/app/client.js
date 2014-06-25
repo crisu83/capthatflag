@@ -2,7 +2,6 @@
 
 var utils = require('../../shared/utils')
     , shortid = require('shortid')
-    , Phaser = require('./phaser')
     , Player = require('./dungeon/objects/player')
     , config = require('./config.json');
 
@@ -38,7 +37,7 @@ var Client = utils.inherit(null, {
             , gameHeight: config.gameHeight
             , mapKey: this.room.mapKey
             , mapData: JSON.stringify(this.room.mapData)
-            , mapType: Phaser.Tilemap.TILED_JSON
+            , mapType: 1 // Phaser.Tilemap.TILED_JSON
             , mapImage: this.room.mapImage
             , mapSrc: this.room.mapSrc
             , mapLayer: this.room.mapLayer
@@ -60,8 +59,6 @@ var Client = utils.inherit(null, {
         this.socket.emit('client.entitySpawn', entityStates);
 
         this.player = new Player();
-        this.player.x = this.room.game.world.randomX;
-        this.player.y = this.room.game.world.randomY;
         this.player.image = 'male';
         this.player.clientId = this.id;
 

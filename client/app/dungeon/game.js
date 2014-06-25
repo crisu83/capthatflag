@@ -80,7 +80,7 @@ define([
 
                     var sprite, player, cursorKeys;
 
-                    sprite = game.add.sprite(playerState.x, playerState.y, playerState.image);
+                    sprite = game.add.sprite(game.world.randomX, game.world.randomY, playerState.image);
 
                     game.physics.enable(sprite, Phaser.Physics.ARCADE);
                     sprite.physicsBodyType = Phaser.Physics.ARCADE;

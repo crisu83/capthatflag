@@ -2,7 +2,6 @@
 
 var utils = require('../../shared/utils')
     , shortid = require('shortid')
-    , Phaser = require('./phaser')
     , Client = require('./client')
     , config = require('./config.json');
 
@@ -24,19 +23,6 @@ var Room = utils.inherit(null, {
     // initializes this room
     , init: function() {
         var self = this;
-
-        var RoomState = utils.inherit(Phaser.State, {
-            // creates the game
-            create: function(game) {
-                console.log(' game created for room %s', self.id);
-
-                // todo: initialize the physics system etc.
-            }
-        });
-
-        // create the game for this room
-        this.game = new Phaser.Game(config.canvasWidth, config.canvasHeight, Phaser.HEADLESS);
-        this.game.state.add('room', new RoomState(), true/* autostart */);
 
         // event handler for when a client connects
         this.io.on('connection', this.onConnection.bind(this));
