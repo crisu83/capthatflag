@@ -46,7 +46,7 @@ var Room = utils.inherit(null, {
         var id, worldState = [];
         for (id in this.entities) {
             if (this.entities.hasOwnProperty(id)) {
-                worldState.push(this.entities[id].toJSON());
+                worldState.push(this.entities[id].serialize());
             }
         }
 

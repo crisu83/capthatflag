@@ -62,7 +62,7 @@ var Client = utils.inherit(null, {
 
         console.log('   player %s created for client %s', player.getAttr('id'), this.id);
 
-        this.socket.emit('player.create', player.toJSON());
+        this.socket.emit('player.create', player.serialize());
 
         this.room.addEntity(player.getAttr('id'), player);
 
@@ -72,13 +72,13 @@ var Client = utils.inherit(null, {
         this.player = player;
 
         // just a single call for now
-        this.synchronize();
+        this.syncClient();
     }
-    , synchronize: function() {
-        this.socket.emit('client.synchronize', this.room.getWorldState());
+    , syncClient: function() {
+        this.socket.emit('client.sync', this.room.getWorldState());
     }
     // event handler for when the player moves
-    , onPlayerMove: function(moveState) {
+    , onPlayerMove: function(input) {
         // todo: update the player state on the server
     }
     // event handler for when this client disconnects

@@ -22,10 +22,16 @@ var Entity = utils.inherit(Node, {
     }
     // updates the logic for this entity
     , update: function(game) {
-        // update the components (that are already sorted)
+        // update the components (already sorted)
         for (var i = 0; i < this.components.items.length; i++) {
             this.components.get(i).update(game);
         }
+    }
+    // updates the state of the this entity
+    , sync: function(state) {
+        // update attributes and trigger the sync event
+        this.setAttrs(state);
+        this.trigger('entity.sync', this.serialize());
     }
     // returns a specific attribute for this entity
     , getAttr: function(name) {
@@ -66,12 +72,8 @@ var Entity = utils.inherit(Node, {
         this.trigger('entity.die');
     }
     // serializes this entity to a json object
-    , toJSON: function() {
+    , serialize: function() {
         return this.attributes;
-    }
-    // sets attributes for this entity from a json object
-    , fromJSON: function(json) {
-        this.attributes = json;
     }
 });
 

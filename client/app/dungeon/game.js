@@ -52,7 +52,7 @@ define([
                 // bind event handlers
                 socket.on('player.create', this.onPlayerCreate.bind(this));
                 socket.on('player.leave', this.onPlayerLeave.bind(this));
-                socket.on('client.synchronize', this.onSynchronize.bind(this));
+                socket.on('client.sync', this.onSync.bind(this));
 
                 // let the server know that client is ready
                 socket.emit('client.ready');
@@ -80,38 +80,39 @@ define([
                 this.entities[playerState.id] = entity;
             }
             // event handler for synchronizing
-            , onSynchronize: function(worldState) {
+            , onSync: function(worldState) {
                 console.log('updating world state', worldState);
 
                 if (this.player) {
-                    var entityState, entity, sprite, actor;
+                    var entityState, entity;
                     for (var i = 0; i < worldState.length; i++) {
                         entityState = worldState[i];
 
                         // if the entity does not exist, we need to create it
                         if (!this.entities[entityState.id]) {
-                            entity = new Entity(entityState);
-                            sprite = this.game.add.sprite(entityState.x, entityState.y, entityState.image);
-
-                            if (entity.physics >= 0) {
-                                this.game.physics.enable(sprite, entity.physics);
-                                sprite.physicsBodyType = entity.physics;
-                                sprite.body.collideWorldBounds = true;
-                                sprite.body.immovable = true;
-                            }
-
-                            entity.addComponent(new ActorComponent(sprite));
-
-                            this.entities[entityState.id] = entity;
+                            this.entities[entityState.id] = this.createEntity(entityState);
                         } else {
                             entity = this.entities[entityState.id];
-                            actor = entity.getComponent('actor');
-                            if (actor) {
-                                actor.setPosition(entityState.x, entityState.y);
-                            }
+                            entity.sync(entityState);
                         }
                     }
                 }
+            }
+            // creates an entity from a serialized entity
+            , createEntity: function(entityState) {
+                var entity = new Entity(entityState)
+                    , sprite = this.game.add.sprite(entityState.x, entityState.y, entityState.image);
+
+                if (entity.physics >= 0) {
+                    this.game.physics.enable(sprite, entity.physics);
+                    sprite.physicsBodyType = entity.physics;
+                    sprite.body.collideWorldBounds = true;
+                    sprite.body.immovable = true;
+                }
+
+                entity.addComponent(new ActorComponent(sprite));
+
+                return entity;
             }
             // event handler for when a player leaves
             , onPlayerLeave: function (id) {

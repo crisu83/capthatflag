@@ -17,7 +17,12 @@ define([
         // initializes this component
         , init: function() {
             // bind event listeners
+            this.owner.on('entity.sync', this.onEntitySync.bind(this));
             this.owner.on('entity.die', this.onEntityDie.bind(this));
+        }
+        // event handler for when the entity is synchronized
+        , onEntitySync: function(entityState) {
+            this.setPosition(entityState.x, entityState.y);
         }
         // event handler for when the entity dies
         , onEntityDie: function() {
