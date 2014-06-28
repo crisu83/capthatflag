@@ -1,7 +1,7 @@
 'use strict';
 
 var utils = require('../../../shared/utils')
-    , Room = require('./rooms/dungeon');
+    , Room = require('../room');
 
 function run(io) {
     // todo: add support for different rooms

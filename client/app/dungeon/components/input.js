@@ -3,47 +3,49 @@ define([
     , 'shared/utils'
     , 'shared/component'
 ], function(Phaser, utils, ComponentBase) {
+    'use strict';
+
     // input component class
     var InputComponent = utils.inherit(ComponentBase, {
-        phase: ComponentBase.prototype.phases.LOGIC
+        key: 'input'
+        , phase: ComponentBase.prototype.phases.INPUT
+        , input: null
         , cursorKeys: null
         , sprite: null
         // consturctor
-        , constructor: function(cursorKeys) {
-            this.key = 'input';
-            this.cursorKeys = cursorKeys;
+        , constructor: function(input) {
+            this.input = input;
+            this.cursorKeys = this.input.keyboard.createCursorKeys();
         }
         // updates the logic for this component
         , update: function(game) {
             ComponentBase.prototype.update.apply(this, arguments);
 
-            var vx = 0, vy = 0;
+            var actor = this.owner.getComponent('actor');
+            if (actor) {
+                var io = this.owner.getComponent('io')
+                    , step = (game.time.elapsed * this.owner.getAttr('speed')) / 1000
+                    , direction;
 
-            if (this.cursorKeys.up.isDown) {
-                vy = -this.owner.speed;
-            }
-            if (this.cursorKeys.right.isDown) {
-                vx = this.owner.speed;
-            }
-            if (this.cursorKeys.down.isDown) {
-                vy = this.owner.speed;
-            }
-            if (this.cursorKeys.left.isDown) {
-                vx = -this.owner.speed;
-            }
+                if (this.cursorKeys.up.isDown) {
+                    actor.sprite.y -= step;
+                    direction = 'up';
+                }
+                if (this.cursorKeys.right.isDown) {
+                    actor.sprite.x += step;
+                    direction = 'right';
+                }
+                if (this.cursorKeys.down.isDown) {
+                    actor.sprite.y += step;
+                    direction = 'down';
+                }
+                if (this.cursorKeys.left.isDown) {
+                    actor.sprite.x -= step;
+                    direction = 'left';
+                }
 
-            // reset velocities when corresponding cursor keys are released
-            if (this.cursorKeys.left.isUp && this.cursorKeys.right.isUp) {
-                vx = 0;
+                // todo: send the input to the server
             }
-            if (this.cursorKeys.up.isUp && this.cursorKeys.down.isUp) {
-                vy = 0;
-            }
-
-            // Note that this was too slow to do with events
-            var sprite = this.owner.getComponent('sprite');
-            sprite.sprite.body.velocity.x = vx;
-            sprite.sprite.body.velocity.y = vy;
         }
     });
 

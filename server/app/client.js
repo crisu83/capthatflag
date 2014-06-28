@@ -2,7 +2,7 @@
 
 var utils = require('../../shared/utils')
     , shortid = require('shortid')
-    , Player = require('./dungeon/objects/player')
+    , EntityFactory = require('./entityFactory')
     , config = require('./config.json');
 
 var Client = utils.inherit(null, {
@@ -30,56 +30,64 @@ var Client = utils.inherit(null, {
 
         // send the configuration to the client
         this.socket.emit('client.init', {
+            // client identifier
             id: this.id
+            // game configuration
             , canvasWidth: config.canvasWidth
             , canvasHeight: config.canvasHeight
             , gameWidth: config.gameWidth
             , gameHeight: config.gameHeight
-            , mapKey: this.room.mapKey
-            , mapData: JSON.stringify(this.room.mapData)
-            , mapType: 1 // Phaser.Tilemap.TILED_JSON
-            , mapImage: this.room.mapImage
-            , mapSrc: this.room.mapSrc
-            , mapLayer: this.room.mapLayer
+            // map configuration
+            , mapKey: this.room.tilemap.key
+            , mapData: JSON.stringify(require(this.room.tilemap.data))
+            , mapType: this.room.tilemap.type
+            , mapImage: this.room.tilemap.image
+            , mapSrc: this.room.tilemap.src
+            , mapLayer: this.room.tilemap.layers[0]
         });
 
-        // event handler for when the client is ready
+        // bind event handlers
         this.socket.on('client.ready', this.onReady.bind(this));
-
-        // event handler for when the client is disconnected from the server
         this.socket.on('disconnect', this.onDisconnect.bind(this));
     }
     , onReady: function() {
-        var entityStates = [];
-        for (var id in this.room.entities) {
-            if (this.room.entities.hasOwnProperty(id)) {
-                entityStates.push(this.room.entities[id].toJSON());
-            }
-        }
-        this.socket.emit('client.entitySpawn', entityStates);
+        var player = EntityFactory.create('player');
 
-        this.player = new Player();
-        this.player.image = 'male';
-        this.player.clientId = this.id;
+        player.setAttrs({
+            id: shortid.generate()
+            , clientId: this.id
+            , x: Math.abs(Math.random() * (config.gameWidth - player.getAttr('width')))
+            , y: Math.abs(Math.random() * (config.gameHeight - player.getAttr('height')))
+        });
 
-        this.room.entities[this.player.id] = this.player;
+        console.log('   player %s created for client %s', player.getAttr('id'), this.id);
 
-        this.socket.emit('client.playerCreate', this.player.toJSON());
+        this.socket.emit('player.create', player.toJSON());
 
-        this.socket.broadcast.emit('client.playerJoin', this.player.toJSON());
+        this.room.addEntity(player.getAttr('id'), player);
 
-        this.socket.on('client.entityMove', this.onEntityMove.bind(this));
+        // bind event handlers
+        this.socket.on('player.move', this.onPlayerMove.bind(this));
+
+        this.player = player;
+
+        // just a single call for now
+        this.synchronize();
     }
-    , onEntityMove: function(entityState) {
-        this.socket.broadcast.emit('client.entityMove', entityState);
+    , synchronize: function() {
+        this.socket.emit('client.synchronize', this.room.getWorldState());
     }
+    // event handler for when the player moves
+    , onPlayerMove: function(moveState) {
+        // todo: update the player state on the server
+    }
+    // event handler for when this client disconnects
     , onDisconnect: function() {
-        var player = this.room.entities[this.player.id];
-        delete this.room.entities[this.player.id];
-        player.die();
+        this.player.die();
+        this.room.removeEntity(this.player.getAttr('id'));
 
         // let other clients know that this client has left the room
-        this.socket.broadcast.emit('client.playerLeave', this.player.id);
+        this.socket.broadcast.emit('player.leave', this.player.getAttr('id'));
 
         console.log('  client %s disconnected from room %s', this.id, this.room.id);
     }

@@ -7,32 +7,18 @@ var utils = require('./utils')
 // base entity class
 var Entity = utils.inherit(Node, {
     key: 'entity'
+    // todo: consider using Object.defineProperty for these
     , id: null
-    , x: null
-    , y: null
-    , width: null
-    , height: null
-    , speed: 0
-    , image: null
+    , attributes: null
     , components: null
     // constructor
-    , constructor: function(x, y, image) {
+    , constructor: function(attrs) {
         Node.apply(this);
 
-        this.x = x;
-        this.y = y;
-        this.image = image;
+        this.attributes = attrs || {};
         this.components = new SortedList(function(a, b) {
             return a.phase < b.phase;
         });
-    }
-    // load assets for this entity
-    , preload: function(game) {
-
-    }
-    // runs creation logic for this entity
-    , create: function(game) {
-
     }
     // updates the logic for this entity
     , update: function(game) {
@@ -41,13 +27,29 @@ var Entity = utils.inherit(Node, {
             this.components.get(i).update(game);
         }
     }
+    // returns a specific attribute for this entity
+    , getAttr: function(name) {
+        return this.attributes[name];
+    }
+    // sets a specific attribute for this entity
+    , setAttr: function(name, value) {
+        this.attributes[name] = value;
+    }
+    // sets multiple attributes at once for this entity
+    , setAttrs: function(attrs) {
+        for (var name in attrs) {
+            if (attrs.hasOwnProperty(name)) {
+                this.attributes[name] = attrs[name];
+            }
+        }
+    }
     // adds a component to this entity
     , addComponent: function(component) {
         component.owner = this;
         component.init();
         this.components.add(component);
     }
-    // get a component that belongs to this entity
+    // returns a specific component for this entity
     , getComponent: function(key) {
         var i, component;
         for (i = 0; i < this.components.size(); i++) {
@@ -59,31 +61,17 @@ var Entity = utils.inherit(Node, {
 
         return null;
     }
-    // kills off this entity
+    // kills this entity
     , die: function() {
         this.trigger('entity.die');
     }
-    // converts this entity to a json object
+    // serializes this entity to a json object
     , toJSON: function() {
-        return {
-            id: this.id
-            , x: this.x
-            , y: this.y
-            , width: this.width
-            , height: this.height
-            , speed: this.speed
-            , image: this.image
-        };
+        return this.attributes;
     }
-
-    // sets properties for this entity from a json object
+    // sets attributes for this entity from a json object
     , fromJSON: function(json) {
-        this.x = json.x;
-        this.y = json.y;
-        this.width = json.width;
-        this.height = json.height;
-        this.speed = json.speed;
-        this.image = json.image;
+        this.attributes = json;
     }
 });
 

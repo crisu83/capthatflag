@@ -18,9 +18,10 @@ var Component = utils.inherit(Node, {
     // available component phases
     , phases: {
         LOGIC: 1
-        , PHYSICS: 2
+        , INPUT: 2
         , MOVEMENT: 3
-        , IO: 4
+        , NETWORK: 4
+        , PHYSICS: 5
     }
 });
 

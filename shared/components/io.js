@@ -3,13 +3,13 @@
 var utils = require('../utils')
     , ComponentBase = require('../component');
 
-// socket component class
+// io component class
 var IoComponent = utils.inherit(ComponentBase, {
-    phase: ComponentBase.prototype.phases.IO
+    key: 'io'
+    , phase: ComponentBase.prototype.phases.NETWORK
     , socket: null
     // constructor
     , constructor: function(socket) {
-        this.key = 'io';
         this.socket = socket;
     }
 });

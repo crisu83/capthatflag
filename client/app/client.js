@@ -7,8 +7,8 @@ require([
 
     // authenticate with the server
     $.post('/auth').done(function(data) {
-        // connect to the socket using the token we got from the server
-        var socket = io.connect('/dungeon', {query: 'token=' + data.token});
+        // connect to the socket namespace using the token we got from the server
+        var socket = io.connect(data.namespace, {query: 'token=' + data.token});
 
         // event handler for when the client is connected to the server
         socket.on('connect', function() {
