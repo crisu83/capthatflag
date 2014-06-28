@@ -1,6 +1,7 @@
 'use strict';
 
-var utils = require('../../shared/utils')
+var _ = require('lodash')
+    , utils = require('../../shared/utils')
     , shortid = require('shortid')
     , EntityFactory = require('./entityFactory')
     , config = require('./config.json');
@@ -51,11 +52,14 @@ var Client = utils.inherit(null, {
         this.socket.on('disconnect', this.onDisconnect.bind(this));
     }
     , onReady: function() {
-        var player = EntityFactory.create('player');
+        var player = EntityFactory.create(this.socket, 'player')
+            , id = shortid.generate();
 
         player.setAttrs({
-            id: shortid.generate()
+            id: id
             , clientId: this.id
+            // todo: add some logic for where to spawn the player
+            // spawn the player at a random location for now
             , x: Math.abs(Math.random() * (config.gameWidth - player.getAttr('width')))
             , y: Math.abs(Math.random() * (config.gameHeight - player.getAttr('height')))
         });
@@ -64,27 +68,54 @@ var Client = utils.inherit(null, {
 
         this.socket.emit('player.create', player.serialize());
 
-        this.room.addEntity(player.getAttr('id'), player);
+        this.room.addEntity(id, player);
 
         // bind event handlers
-        this.socket.on('player.move', this.onPlayerMove.bind(this));
+        this.socket.on('entity.update', this.onEntityUpdate.bind(this));
 
         this.player = player;
+    }
+    // synchronizes this client with the server
+    , sync: function(worldState) {
+        this.socket.emit('client.sync', worldState);
+    }
+    // event handler for when an entity is updated
+    , onEntityUpdate: function(state) {
+        var newState = _.pick(state, ['timestamp', 'x', 'y']);
 
-        // just a single call for now
-        this.syncClient();
-    }
-    , syncClient: function() {
-        this.socket.emit('client.sync', this.room.getWorldState());
-    }
-    // event handler for when the player moves
-    , onPlayerMove: function(input) {
-        // todo: update the player state on the server
+        if (state.input) {
+            var step = (state.elapsed / 1000) * this.player.getAttr('speed');
+
+            // reset the state to the last known state on the server
+            newState.x = this.player.getAttr('x');
+            newState.y = this.player.getAttr('y');
+
+            // do the move on the server to to ensure that it is done correctly
+            for (var i = 0; i < state.input.length; i++) {
+                if (state.input[i] === 'up') {
+                    newState.y -= step;
+                } else if (state.input[i] === 'down') {
+                    newState.y += step;
+                }
+                if (state.input[i] === 'left') {
+                    newState.x -= step;
+                } else if (state.input[i] === 'right') {
+                    newState.x += step;
+                }
+            }
+        }
+
+        // update the player state on the server
+        // and send the correct state the the client
+        this.player.setAttrs(newState);
+        this.socket.emit('entity.recon', newState);
     }
     // event handler for when this client disconnects
     , onDisconnect: function() {
+        this.connected = false;
+
+        // kill off the player
         this.player.die();
-        this.room.removeEntity(this.player.getAttr('id'));
 
         // let other clients know that this client has left the room
         this.socket.broadcast.emit('player.leave', this.player.getAttr('id'));

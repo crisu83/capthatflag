@@ -12,6 +12,7 @@ var Room = utils.inherit(null, {
     , tilemap: null
     , clients: null
     , entities: null
+    , lastTick: null
     // constructor
     , constructor: function(io) {
         this.id = shortid.generate();
@@ -27,6 +28,10 @@ var Room = utils.inherit(null, {
     , init: function() {
         // event handler for when a client connects
         this.io.on('connection', this.onConnection.bind(this));
+
+        // start the game loop for this room with the configured tick rate
+        console.log(' starting game loop for room %s', this.id);
+        setTimeout(this.gameLoop.bind(this), 1000 / config.ticksPerSecond);
     }
     , onConnection: function(socket) {
         /* jshint camelcase:false */
@@ -40,6 +45,31 @@ var Room = utils.inherit(null, {
             client.init();
             this.clients[clientId] = client;
         }
+    }
+    // the game loop for this room
+    , gameLoop: function() {
+        var now = +new Date()
+            , elapsed, worldState;
+
+        this.lastTick = this.lastTick || now;
+        elapsed = now - this.lastTick;
+
+        // update the entities in this room
+        for (var entityId in this.entities) {
+            if (this.entities.hasOwnProperty(entityId)) {
+                this.entities[entityId].update(elapsed);
+            }
+        }
+
+        // synchronize all clients connect to this room.
+        worldState = this.getWorldState();
+        for (var clientId in this.clients) {
+            if (this.clients.hasOwnProperty(clientId)) {
+                this.clients[clientId].sync(worldState);
+            }
+        }
+
+        this.lastTick = now;
     }
     // returns the current world state
     , getWorldState: function() {
@@ -55,7 +85,12 @@ var Room = utils.inherit(null, {
     // adds an entity to this room
     , addEntity: function(id, entity) {
         console.log('   entity %s added to room %s', id, this.id);
+        entity.on('entity.die', this.onEntityDeath.bind(this));
         this.entities[id] = entity;
+    }
+    // event handler for removing an entity
+    , onEntityDeath: function(entity) {
+        this.removeEntity(entity.getAttr('id'));
     }
     // returns a specific entity in this room
     , getEntity: function(id) {

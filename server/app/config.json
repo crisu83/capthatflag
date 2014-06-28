@@ -2,6 +2,7 @@
     "port": 3001
     , "appSecret": "topSecretSequenceOfCharacters"
     , "tokenExpiresMinutes": 5
+    , "ticksPerSecond": 10
     , "socketNamespace": "/dungeon"
     , "canvasWidth": 480
     , "canvasHeight": 320

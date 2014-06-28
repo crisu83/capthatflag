@@ -18,33 +18,41 @@ define([
             this.cursorKeys = this.input.keyboard.createCursorKeys();
         }
         // updates the logic for this component
-        , update: function(game) {
+        , update: function(elapsed) {
             ComponentBase.prototype.update.apply(this, arguments);
 
             var actor = this.owner.getComponent('actor');
             if (actor) {
-                var io = this.owner.getComponent('io')
-                    , step = (game.time.elapsed * this.owner.getAttr('speed')) / 1000
-                    , direction;
+                var x = actor.sprite.x
+                    , y = actor.sprite.y
+                    , input = []
+                    , step, state;
+
+                step = (elapsed / 1000) * this.owner.getAttr('speed');
 
                 if (this.cursorKeys.up.isDown) {
-                    actor.sprite.y -= step;
-                    direction = 'up';
-                }
-                if (this.cursorKeys.right.isDown) {
-                    actor.sprite.x += step;
-                    direction = 'right';
-                }
-                if (this.cursorKeys.down.isDown) {
-                    actor.sprite.y += step;
-                    direction = 'down';
+                    y -= step;
+                    input.push('up');
+                } else if (this.cursorKeys.down.isDown) {
+                    y += step;
+                    input.push('down');
                 }
                 if (this.cursorKeys.left.isDown) {
-                    actor.sprite.x -= step;
-                    direction = 'left';
+                    x -= step;
+                    input.push('left');
+                } else if (this.cursorKeys.right.isDown) {
+                    x += step;
+                    input.push('right');
                 }
 
-                // todo: send the input to the server
+                // move the player immediately without waiting for the server
+                // to respond in order to avoid an unnecessary lag effect
+                if (input.length) {
+                    actor.setPosition(x, y);
+                }
+
+                // add the direction and delta time to the entity state
+                this.owner.setAttrs({input: input, elapsed: elapsed});
             }
         }
     });

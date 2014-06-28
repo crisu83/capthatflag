@@ -16,26 +16,28 @@ define([
         }
         // initializes this component
         , init: function() {
-            // bind event listeners
+            // bind event handlers
             this.owner.on('entity.sync', this.onEntitySync.bind(this));
-            this.owner.on('entity.die', this.onEntityDie.bind(this));
+            this.owner.on('entity.recon', this.onEntityRecon.bind(this));
+            this.owner.on('entity.die', this.onEntityDeath.bind(this));
         }
         // event handler for when the entity is synchronized
-        , onEntitySync: function(entityState) {
-            this.setPosition(entityState.x, entityState.y);
+        , onEntitySync: function(state) {
+            this.setPosition(state.x, state.y);
+        }
+        // event handler for when the entity is synchronized
+        , onEntityRecon: function(state) {
+            this.setPosition(state.x, state.y);
         }
         // event handler for when the entity dies
-        , onEntityDie: function() {
+        , onEntityDeath: function() {
             this.sprite.kill();
-        }
-        // returns whether the associated sprite is moving
-        , isMoving: function() {
-            return this.sprite.body && (this.sprite.body.velocity.x !== 0 || this.sprite.body.velocity.y !== 0);
         }
         // sets the position for this sprite
         , setPosition: function(x, y) {
-            this.sprite.x = x;
-            this.sprite.y = y;
+            // round the values to avoid sub-pixel rendering
+            this.sprite.x = Math.round(x);
+            this.sprite.y = Math.round(y);
         }
         // sets the velocity for this sprite, assuming that its body is enabled
         , setVelocity: function(vx, vy) {

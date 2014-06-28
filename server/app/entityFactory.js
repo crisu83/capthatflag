@@ -6,9 +6,9 @@ var _ = require('lodash')
 // entity factory static class
 var EntityFactory = {
     // creates a new entity
-    create: function(key) {
+    create: function(socket, key) {
         var data = this.loadData(key)
-            , entity = new Entity(data);
+            , entity = new Entity(socket, data);
 
         // todo: consider including components in the data and attaching them here
 

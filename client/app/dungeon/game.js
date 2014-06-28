@@ -1,11 +1,10 @@
 define([
     'phaser'
     , 'shared/utils'
-    , 'shared/entity'
-    , 'shared/components/io'
+    , 'dungeon/entity'
     , 'dungeon/components/actor'
     , 'dungeon/components/input'
-], function (Phaser, utils, Entity, IoComponent, ActorComponent, InputComponent) {
+], function (Phaser, utils, Entity, ActorComponent, InputComponent) {
     'use strict';
 
     // runs the game
@@ -61,20 +60,18 @@ define([
             , onPlayerCreate: function(playerState) {
                 console.log('creating player', playerState);
 
-                var entity, sprite;
+                var entity = new Entity(socket, playerState)
+                    , sprite = this.game.add.sprite(playerState.x, playerState.y, playerState.image)
+                    , physics = entity.getAttr('physics');
 
-                entity = new Entity(playerState);
-                sprite = this.game.add.sprite(playerState.x, playerState.y, playerState.image);
-
-                if (entity.physics >= 0) {
-                    this.game.physics.enable(sprite, entity.physics);
-                    sprite.physicsBodyType = entity.physics;
+                if (physics >= 0) {
+                    this.game.physics.enable(sprite, physics);
+                    sprite.physicsBodyType = physics;
                     sprite.body.collideWorldBounds = true;
                     sprite.body.immovable = true;
                 }
 
                 entity.addComponent(new ActorComponent(sprite));
-                entity.addComponent(new IoComponent(socket));
                 entity.addComponent(new InputComponent(this.game.input));
 
                 this.entities[playerState.id] = entity;
@@ -100,12 +97,13 @@ define([
             }
             // creates an entity from a serialized entity
             , createEntity: function(entityState) {
-                var entity = new Entity(entityState)
-                    , sprite = this.game.add.sprite(entityState.x, entityState.y, entityState.image);
+                var entity = new Entity(socket, entityState)
+                    , sprite = this.game.add.sprite(entityState.x, entityState.y, entityState.image)
+                    , physics = entity.getAttr('physics');
 
-                if (entity.physics >= 0) {
-                    this.game.physics.enable(sprite, entity.physics);
-                    sprite.physicsBodyType = entity.physics;
+                if (physics >= 0) {
+                    this.game.physics.enable(sprite, physics);
+                    sprite.physicsBodyType = physics;
                     sprite.body.collideWorldBounds = true;
                     sprite.body.immovable = true;
                 }
@@ -134,7 +132,7 @@ define([
                 // update entities
                 for (var id in this.entities) {
                     if (this.entities.hasOwnProperty(id)) {
-                        this.entities[id].update(game);
+                        this.entities[id].update(game.time.elapsed);
                     }
                 }
             }

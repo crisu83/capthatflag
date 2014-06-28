@@ -67,7 +67,8 @@ Things to do, in order of priority:
 - Spawn maps on the server and send it the to clients __DONE__
 - Spawn entities on the server and send them to the clients __DONE__
 - Server game loop (10-30 ticks per second)
-- Entity prediction, server reconciliation and entity interpolation
+- Entity prediction and server reconciliation
+- Entity interpolation
 - Some chest game objects
 - Some monster game objects
 - Oddment tables for item drops (run logic on server)

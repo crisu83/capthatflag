@@ -12,7 +12,7 @@ var Component = utils.inherit(Node, {
 
     }
     // updates the logic for this component
-    , update: function() {
+    , update: function(elapsed) {
 
     }
     // available component phases
