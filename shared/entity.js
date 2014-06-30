@@ -34,7 +34,7 @@ var Entity = utils.inherit(Node, {
     }
     // simulates the outcome for a state and returns the result
     , simulateState: function(state, attrs) {
-        attrs = attrs || this.attrs.get(['x', 'y']);
+        attrs = attrs || this.attrs.get();
 
         if (state.input && state.elapsed && state.speed) {
             var step = (state.elapsed / 1000) * state.speed;

@@ -2,7 +2,7 @@ define([
     'phaser'
     , 'shared/utils'
     , 'shared/entityHashmap'
-    , 'dungeon/entity'
+    , 'app/entity'
     , 'dungeon/components/actor'
     , 'dungeon/components/input'
 ], function (Phaser, utils, EntityHashmap, Entity, ActorComponent, InputComponent) {
