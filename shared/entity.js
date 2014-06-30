@@ -3,84 +3,58 @@
 var _ = require('lodash')
     , utils = require('./utils')
     , Node = require('./node')
-    , SortedList = require('./sortedList');
+    , EntityState = require('./entityState')
+    , EntityAttributes = require('./entityAttributes')
+    , EntityComponents = require('./entityComponents');
 
 // base entity class
 var Entity = utils.inherit(Node, {
     key: 'entity'
-    // todo: consider using Object.defineProperty for these
     , socket: null
-    , states: null
-    , attributes: null
+    , state: null
+    , attrs: null
     , components: null
     // constructor
     , constructor: function(socket, attrs) {
         Node.apply(this);
 
         this.socket = socket;
-        this.states = [];
-        this.attributes = attrs || {};
-        this.components = new SortedList(function(a, b) {
-            return a.phase < b.phase;
-        });
+        this.state = new EntityState();
+        this.attrs = new EntityAttributes(attrs);
+        this.components = new EntityComponents(this);
     }
     // updates the logic for this entity
     , update: function(elapsed) {
-        // update the components (already sorted)
-        for (var i = 0; i < this.components.items.length; i++) {
-            this.components.get(i).update(elapsed);
-        }
+        this.components.update(elapsed);
     }
-    // updates the state of the this entity
-    , sync: function(state) {
-        // update attributes and trigger the sync event
-        this.setAttrs(state);
-        this.trigger('entity.sync', this.serialize());
+    // applies a state to this entity
+    , applyState: function(state) {
+        var attrs = this.simulateState(state);
+        this.attrs.set(attrs);
     }
-    // adds a new state to this entity
-    , pushState: function(state) {
-        this.states.push(state);
-    }
-    // deletes a specific state for this entity
-    , deleteState: function(timestamp) {
-        for (var i = 0; i < this.states.length; i++) {
-            if (this.states[i].timestamp === timestamp) {
-                this.states.splice(i, 1);
+    // simulates the outcome for a state and returns the result
+    , simulateState: function(state, attrs) {
+        attrs = attrs || this.attrs.get(['x', 'y']);
+
+        if (state.input && state.elapsed && state.speed) {
+            var step = (state.elapsed / 1000) * state.speed;
+
+            // do the move on the server to to ensure that it is done correctly
+            for (var i = 0; i < state.input.length; i++) {
+                if (state.input[i] === 'up') {
+                    attrs.y -= step;
+                } else if (state.input[i] === 'down') {
+                    attrs.y += step;
+                }
+                if (state.input[i] === 'left') {
+                    attrs.x -= step;
+                } else if (state.input[i] === 'right') {
+                    attrs.x += step;
+                }
             }
         }
-    }
-    // returns a specific attribute for this entity
-    , getAttr: function(name) {
-        return this.attributes[name];
-    }
-    // sets a specific attribute for this entity
-    , setAttr: function(name, value) {
-        this.attributes[name] = value;
-    }
-    // sets multiple attributes at once for this entity
-    , setAttrs: function(attrs) {
-        for (var name in attrs) {
-            if (attrs.hasOwnProperty(name)) {
-                this.attributes[name] = attrs[name];
-            }
-        }
-    }
-    // adds a component to this entity
-    , addComponent: function(component) {
-        component.owner = this;
-        component.init();
-        this.components.add(component);
-    }
-    // returns a specific component for this entity
-    , getComponent: function(key) {
-        var i, component;
-        for (i = 0; i < this.components.size(); i++) {
-            component = this.components.get(i);
-            if (component.key === key) {
-                return component;
-            }
-        }
-        return null;
+
+        return attrs;
     }
     // kills this entity
     , die: function() {
@@ -88,7 +62,7 @@ var Entity = utils.inherit(Node, {
     }
     // serializes this entity to a json object
     , serialize: function() {
-        return this.attributes;
+        return this.attrs.get();
     }
 });
 

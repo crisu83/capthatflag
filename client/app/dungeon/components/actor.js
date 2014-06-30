@@ -18,15 +18,10 @@ define([
         , init: function() {
             // bind event handlers
             this.owner.on('entity.sync', this.onEntitySync.bind(this));
-            this.owner.on('entity.recon', this.onEntityRecon.bind(this));
             this.owner.on('entity.die', this.onEntityDeath.bind(this));
         }
         // event handler for when the entity is synchronized
         , onEntitySync: function(state) {
-            this.setPosition(state.x, state.y);
-        }
-        // event handler for when the entity is synchronized
-        , onEntityRecon: function(state) {
             this.setPosition(state.x, state.y);
         }
         // event handler for when the entity dies
@@ -38,13 +33,6 @@ define([
             // round the values to avoid sub-pixel rendering
             this.sprite.x = Math.round(x);
             this.sprite.y = Math.round(y);
-        }
-        // sets the velocity for this sprite, assuming that its body is enabled
-        , setVelocity: function(vx, vy) {
-            if (this.sprite.body) {
-                this.sprite.body.velocity.x = vx;
-                this.sprite.body.velocity.y = vy;
-            }
         }
     });
 

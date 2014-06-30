@@ -21,14 +21,13 @@ define([
         , update: function(elapsed) {
             ComponentBase.prototype.update.apply(this, arguments);
 
-            var actor = this.owner.getComponent('actor');
+            var actor = this.owner.components.get('actor');
             if (actor) {
                 var x = actor.sprite.x
                     , y = actor.sprite.y
-                    , input = []
-                    , step, state;
-
-                step = (elapsed / 1000) * this.owner.getAttr('speed');
+                    , speed = this.owner.attrs.get('speed')
+                    , step = (elapsed / 1000) * speed
+                    , input = [];
 
                 if (this.cursorKeys.up.isDown) {
                     y -= step;
@@ -45,14 +44,13 @@ define([
                     input.push('right');
                 }
 
-                // move the player immediately without waiting for the server
-                // to respond in order to avoid an unnecessary lag effect
+                // move the player immediately without waiting for the response
+                // from the server to avoid an unnecessary lag effect
+                // and save the input, speed and elapsed time in the entity state
                 if (input.length) {
                     actor.setPosition(x, y);
+                    this.owner.state.add({input: input, speed: speed, elapsed: elapsed});
                 }
-
-                // add the direction and delta time to the entity state
-                this.owner.setAttrs({input: input, elapsed: elapsed});
             }
         }
     });

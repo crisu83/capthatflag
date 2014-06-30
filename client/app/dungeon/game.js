@@ -1,10 +1,11 @@
 define([
     'phaser'
     , 'shared/utils'
+    , 'shared/entityHashmap'
     , 'dungeon/entity'
     , 'dungeon/components/actor'
     , 'dungeon/components/input'
-], function (Phaser, utils, Entity, ActorComponent, InputComponent) {
+], function (Phaser, utils, EntityHashmap, Entity, ActorComponent, InputComponent) {
     'use strict';
 
     // runs the game
@@ -16,7 +17,7 @@ define([
             entities: null
             // constructor
             , constructor: function() {
-                this.entities = {};
+                this.entities = new EntityHashmap();
             }
             // loads assets
             , preload: function(game) {
@@ -51,7 +52,6 @@ define([
                 // bind event handlers
                 socket.on('player.create', this.onPlayerCreate.bind(this));
                 socket.on('player.leave', this.onPlayerLeave.bind(this));
-                socket.on('client.sync', this.onSync.bind(this));
 
                 // let the server know that client is ready
                 socket.emit('client.ready');
@@ -62,7 +62,7 @@ define([
 
                 var entity = new Entity(socket, playerState)
                     , sprite = this.game.add.sprite(playerState.x, playerState.y, playerState.image)
-                    , physics = entity.getAttr('physics');
+                    , physics = entity.attrs.get('physics');
 
                 if (physics >= 0) {
                     this.game.physics.enable(sprite, physics);
@@ -71,70 +71,60 @@ define([
                     sprite.body.immovable = true;
                 }
 
-                entity.addComponent(new ActorComponent(sprite));
-                entity.addComponent(new InputComponent(this.game.input));
+                entity.components.add(new ActorComponent(sprite));
+                entity.components.add(new InputComponent(this.game.input));
 
-                this.entities[playerState.id] = entity;
+                this.entities.add(playerState.id, entity);
+
+                // now we are ready to synchronization the world with the server
+                socket.on('client.sync', this.onSync.bind(this));
             }
             // event handler for synchronizing
             , onSync: function(worldState) {
-                console.log('updating world state', worldState);
+                var entityState, entity, sprite, physics;
+                for (var i = 0; i < worldState.length; i++) {
+                    entityState = worldState[i];
+                    entity = this.entities.get(entityState.id);
 
-                if (this.player) {
-                    var entityState, entity;
-                    for (var i = 0; i < worldState.length; i++) {
-                        entityState = worldState[i];
+                    // if the entity does not exist, we need to create it
+                    if (!entity) {
+                        console.log('creating new entity', entityState);
+                        entity = new Entity(socket, entityState);
+                        sprite = this.game.add.sprite(entityState.x, entityState.y, entityState.image);
+                        physics = entity.attrs.get('physics');
 
-                        // if the entity does not exist, we need to create it
-                        if (!this.entities[entityState.id]) {
-                            this.entities[entityState.id] = this.createEntity(entityState);
-                        } else {
-                            entity = this.entities[entityState.id];
-                            entity.sync(entityState);
+                        if (physics >= 0) {
+                            this.game.physics.enable(sprite, physics);
+                            sprite.physicsBodyType = physics;
+                            sprite.body.collideWorldBounds = true;
+                            sprite.body.immovable = true;
                         }
+
+                        entity.components.add(new ActorComponent(sprite));
+
+                        this.entities.add(entityState.id, entity);
                     }
+
+                    // synchronize the state of the entity
+                    entity.sync(entityState);
                 }
-            }
-            // creates an entity from a serialized entity
-            , createEntity: function(entityState) {
-                var entity = new Entity(socket, entityState)
-                    , sprite = this.game.add.sprite(entityState.x, entityState.y, entityState.image)
-                    , physics = entity.getAttr('physics');
-
-                if (physics >= 0) {
-                    this.game.physics.enable(sprite, physics);
-                    sprite.physicsBodyType = physics;
-                    sprite.body.collideWorldBounds = true;
-                    sprite.body.immovable = true;
-                }
-
-                entity.addComponent(new ActorComponent(sprite));
-
-                return entity;
             }
             // event handler for when a player leaves
             , onPlayerLeave: function (id) {
                 console.log('player left', id);
 
-                if (this.entities[id]) {
-                    var player = this.entities[id];
-                    delete this.entities[id];
+                var player = this.entities.get(id);
+                if (player) {
                     player.die();
                 }
             }
             // updates game logic
             , update: function(game) {
-                // todo: fix collision so that players cannot overlap each other
+                // todo: add collision detection
 
-                // enable collision between players
-                //game.physics.arcade.collide(this.player.sprite, this.playerGroup);
+                var elapsed = game.time.elapsed;
 
-                // update entities
-                for (var id in this.entities) {
-                    if (this.entities.hasOwnProperty(id)) {
-                        this.entities[id].update(game.time.elapsed);
-                    }
-                }
+                this.entities.update(elapsed);
             }
         });
 

@@ -3,6 +3,8 @@
 var utils = require('../../shared/utils')
     , shortid = require('shortid')
     , Client = require('./client')
+    , ClientHashmap = require('./clientHashmap')
+    , EntityHashmap = require('../../shared/entityHashmap')
     , config = require('./config.json');
 
 var Room = utils.inherit(null, {
@@ -19,8 +21,8 @@ var Room = utils.inherit(null, {
         this.io = io;
         // todo: change this to not be hard-coded
         this.tilemap = require('../data/tilemaps/dungeon.json');
-        this.entities = {};
-        this.clients = {};
+        this.clients = new ClientHashmap();
+        this.entities = new EntityHashmap();
 
         console.log(' room %s created', this.id);
     }
@@ -31,77 +33,52 @@ var Room = utils.inherit(null, {
 
         // start the game loop for this room with the configured tick rate
         console.log(' starting game loop for room %s', this.id);
-        setTimeout(this.gameLoop.bind(this), 1000 / config.ticksPerSecond);
+        setInterval(this.gameLoop.bind(this), 1000 / config.ticksPerSecond);
     }
     , onConnection: function(socket) {
         /* jshint camelcase:false */
         var clientId = socket.decoded_token.id
-            , client = this.clients[clientId];
+            , client = this.clients.get(clientId);
 
         // make sure that we do not create the game multiple times in
         // the client, that will cause an infinite loop and jam the browser
         if (!client) {
             client = new Client(clientId, socket, this);
             client.init();
-            this.clients[clientId] = client;
+            this.clients.add(clientId, client);
         }
     }
     // the game loop for this room
     , gameLoop: function() {
         var now = +new Date()
-            , elapsed, worldState;
+            , elapsed;
 
         this.lastTick = this.lastTick || now;
         elapsed = now - this.lastTick;
 
         // update the entities in this room
-        for (var entityId in this.entities) {
-            if (this.entities.hasOwnProperty(entityId)) {
-                this.entities[entityId].update(elapsed);
-            }
-        }
-
-        // synchronize all clients connect to this room.
-        worldState = this.getWorldState();
-        for (var clientId in this.clients) {
-            if (this.clients.hasOwnProperty(clientId)) {
-                this.clients[clientId].sync(worldState);
-            }
-        }
+        // and synchronize the current state to all clients
+        this.entities.update(elapsed);
+        this.clients.sync(this.getCurrentState());
 
         this.lastTick = now;
     }
-    // returns the current world state
-    , getWorldState: function() {
-        var id, worldState = [];
-        for (id in this.entities) {
-            if (this.entities.hasOwnProperty(id)) {
-                worldState.push(this.entities[id].serialize());
+    // returns the current state of this room
+    , getCurrentState: function() {
+        var worldState = []
+            , entities = this.entities.get()
+            , state;
+
+        for (var id in entities) {
+            if (entities.hasOwnProperty(id)) {
+                state = entities[id].getCurrentState(true);
+                if (state) {
+                    worldState.push(state);
+                }
             }
         }
 
         return worldState;
-    }
-    // adds an entity to this room
-    , addEntity: function(id, entity) {
-        console.log('   entity %s added to room %s', id, this.id);
-        entity.on('entity.die', this.onEntityDeath.bind(this));
-        this.entities[id] = entity;
-    }
-    // event handler for removing an entity
-    , onEntityDeath: function(entity) {
-        this.removeEntity(entity.getAttr('id'));
-    }
-    // returns a specific entity in this room
-    , getEntity: function(id) {
-        return this.entities[id];
-    }
-    // removes an entity from this room
-    , removeEntity: function(id) {
-        if (this.entities[id]) {
-            console.log('   entity %s removed from room %s', id, this.id);
-            delete this.entities[id];
-        }
     }
 });
 

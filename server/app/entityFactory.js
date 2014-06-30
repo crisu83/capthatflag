@@ -1,7 +1,7 @@
 'use strict';
 
 var _ = require('lodash')
-    , Entity = require('../../shared/entity');
+    , Entity = require('./entity');
 
 // entity factory static class
 var EntityFactory = {
