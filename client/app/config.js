@@ -11,8 +11,7 @@ require.config({
         }
     },
     paths: {
-        app: '.',
-        dungeon: 'dungeon',
+        client: '.',
         shared: 'shared',
         lodash: 'lib/lodash/dist/lodash.compat',
         jquery: 'lib/jquery/dist/jquery',

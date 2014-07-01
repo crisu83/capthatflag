@@ -6,13 +6,15 @@ define([
     'use strict';
 
     /**
-     * Client-side entity class.
+     * Client entity class.
      * @class client.Entity
+     * @classdesc Entity class for the client.
      * @extends shared.Entity
      */
     var Entity = utils.inherit(EntityBase, {
         /**
          * Synchronizes the state of the this entity.
+         * @method client.Entity#sync
          * @param {object} state synchronized entity state
          */
         sync: function(state) {
@@ -33,7 +35,7 @@ define([
             this.trigger('entity.sync', [this.serialize()]);
         }
         /**
-         * @inheritdoc
+         * @override
          */
         , update: function(elapsed) {
             EntityBase.prototype.update.apply(this, arguments);

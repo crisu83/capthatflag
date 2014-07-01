@@ -6,13 +6,14 @@ var _ = require('lodash')
     , Entity;
 
 /**
- * Server-side entity class.
+ * Server entity class.
  * @class server.Entity
+ * @classdesc Entity class for the server.
  * @extends shared.Entity
  */
 Entity = utils.inherit(EntityBase, {
     /**
-     * @inheritdoc
+     * @override
      */
     update: function() {
         EntityBase.prototype.update.apply(this, arguments);

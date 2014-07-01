@@ -6,43 +6,40 @@ var utils = require('./utils')
 /**
  * Node class.
  * @class shared.Node
+ * @classdesc Node base class.
+ * @property {string} key - Node identifier.
+ * @property {object} _eventHandlers - Internal event handlers for the node.
  */
 Node = utils.inherit(null, {
-    /**
-     * Identifier for this node.
-     * @type {string}
-     */
     key: 'node'
-    /**
-     * Internal event handlers for this node.
-     * @type {object}
-     */
-    , eventHandlers: null
+    , _eventHandlers: null
     /**
      * Creates a new node.
      * @constructor
      */
     , constructor: function() {
-        this.eventHandlers = {};
+        this._eventHandlers = {};
     }
     /**
      * Adds an event handler to this node.
-     * @type {string} event event type
-     * @type {function} handler event handler
+     * @method shared.Node#on
+     * @param {string} event - Event type.
+     * @param {function} handler - Event handler.
      */
     , on: function(event, handler) {
-        this.eventHandlers[event] = this.eventHandlers[event] || [];
-        this.eventHandlers[event].push(handler);
+        this._eventHandlers[event] = this._eventHandlers[event] || [];
+        this._eventHandlers[event].push(handler);
     }
     /**
      * Triggers an event for this node.
-     * @type {string} event event type
-     * @type {array} params parameters to pass to the handlers
+     * @method shared.Node#trigger
+     * @param {string} event - Event type.
+     * @param {array} params - Parameters to call the handlers with.
      */
     , trigger: function(event, params) {
         if (this.eventHandlers[event]) {
-            for (var i = 0; i < this.eventHandlers[event].length; i++) {
-                this.eventHandlers[event][i].apply(this, params);
+            for (var i = 0; i < this._eventHandlers[event].length; i++) {
+                this._eventHandlers[event][i].apply(this, params);
             }
         }
     }

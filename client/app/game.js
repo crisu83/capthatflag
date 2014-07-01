@@ -2,28 +2,28 @@ define([
     'phaser'
     , 'shared/utils'
     , 'shared/entityHashmap'
-    , 'app/entity'
-    , 'dungeon/components/actor'
-    , 'dungeon/components/input'
+    , 'client/entity'
+    , 'client/components/actor'
+    , 'client/components/input'
 ], function (Phaser, utils, EntityHashmap, Entity, ActorComponent, InputComponent) {
     'use strict';
 
     /**
      * Runs the game.
-     * @param {Socket} socket socket interface
-     * @param {object} config game configuration
+     * @param {Socket} socket - Socket interface.
+     * @param {object} config - Game configuration.
      */
     function run(socket, config) {
         console.log('creating client', config);
 
         /**
          * Gameplay state class.
+         * @class client.GameplayState
+         * @classdesc Game state that runs the acutal game.
+         * @extends Phaser.State
+         * @property {dungeon.shared.EntityHashmap} entities - Map over entities in the state.
          */
         var GameplayState = utils.inherit(Phaser.State, {
-            /**
-             * Map over entities in this state.
-             * @type {EntityHashmap}
-             */
             entities: null
             /**
              * Creates a new game state.
@@ -34,7 +34,8 @@ define([
             }
             /**
              * Loads the game assets.
-             * @param {Phaser.Game} game game instance
+             * @method client.GameplayState#preload
+             * @param {Phaser.Game} game - Game instance.
              */
             , preload: function(game) {
                 console.log('loading assets ...');
@@ -47,7 +48,8 @@ define([
             }
             /**
              * Creates the game objects.
-             * @param {Phaser.Game} game game instance
+             * @method client.GameplayState#creeate
+             * @param {Phaser.Game} game - Game instance.
              */
             , create: function(game) {
                 console.log('creating game ...');
@@ -77,7 +79,8 @@ define([
             }
             /**
              * Event handler for creating the player.
-             * @param {object} playerState player state
+             * @method client.GameplayState#onPlayerCreate
+             * @param {object} playerState - Player state.
              */
             , onPlayerCreate: function(playerState) {
                 console.log('creating player', playerState);
@@ -103,7 +106,8 @@ define([
             }
             /**
              * Event handler for synchronizing the client with the server.
-             * @param {object} worldState world state
+             * @method client.GameplayState#onSync
+             * @param {object} worldState - World state.
              */
             , onSync: function(worldState) {
                 var entityState, entity, sprite, physics;
@@ -136,7 +140,8 @@ define([
             }
             /**
              * Event handler for when a player leaves.
-             * @param {string} id player identifier
+             * @method client.GameplayState#onPlayerLeave
+             * @param {string} id - Player identifier.
              */
             , onPlayerLeave: function (id) {
                 console.log('player left', id);
@@ -148,7 +153,8 @@ define([
             }
             /**
              * Updates the logic for this game.
-             * @param {Phaser.Game} game game instance
+             * @method client.GameplayState#update
+             * @param {Phaser.Game} game - Game instance.
              */
             , update: function(game) {
                 // todo: add collision detection

@@ -6,14 +6,15 @@ var _ = require('lodash')
 
 /**
  * Entity factory static class.
- * @type {object}
+ * @class server.EntityFactory
  */
 EntityFactory = {
     /**
      * Creates a new entity.
-     * @param {Socket} socket interface
-     * @param {string} key entity type
-     * @return {server.Entity} entity instance
+     * @method server.EntityFactory#create
+     * @param {Socket} socket - Socket interface.
+     * @param {string} key - Entity type.
+     * @return {server.Entity} Entity instance.
      */
     create: function(socket, key) {
         var data = this.loadData(key)
@@ -25,8 +26,9 @@ EntityFactory = {
     }
     /**
      * Loads data for a specific entity.
-     * @param {string} key entity type
-     * @return {object} entity data
+     * @method server.EntityFactory#loadData
+     * @param {string} key - Entity type.
+     * @return {object} Entity data.
      */
     , loadData: function(key) {
         // return a clone so that we get a different reference

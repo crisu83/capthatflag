@@ -8,31 +8,26 @@ var _ = require('lodash')
 /**
  * Entity components class.
  * @class shared.EntityComponents
+ * @classdesc Utility class for managing entity components.
+ * @property {shared.Entity} _enitty - Associated entity instance.
+ * @property {shared.SortedList} _components - Internal list of components.
  */
 EntityComponents = utils.inherit(null, {
-    /**
-     * Entity associated with this set of components.
-     * @type {shared.Entity}
-     */
-    entity: null
-    /**
-     * Internal set of components.
-     * @type {shared.SortedList}
-     */
-    , components: null
+    _entity: null
+    , _components: null
     /**
      * Creates a new set of entity components.
-     * @param {shared.Entity} entity associated entity instance
      * @constructor
+     * @param {shared.Entity} entity - Entity instance.
      */
     , constructor: function(entity) {
-        this.entity = entity;
-        this.components = new SortedList(function(a, b) {
+        this._entity = entity;
+        this._components = new SortedList(function(a, b) {
             return a.phase < b.phase;
         });
     }
     /**
-     * @inheritdoc
+     * @override
      */
     , update: function(elapsed) {
         for (var i = 0; i < this.components.items.length; i++) {
@@ -41,13 +36,13 @@ EntityComponents = utils.inherit(null, {
     }
     /**
      * Returns a specific component from this set of components.
-     * @param {string} key component key
-     * @return {shared.Component|null} component instance, or null if not found
+     * @method shared.EntityComponents#get
+     * @param {string} key - Component key.
+     * @return {shared.Component|null} Component instance, or null if not found.
      */
     , get: function(key) {
-        for (var i = 0, component; i < this.components.size(); i++) {
-            component = this.components.get(i);
-            if (component.key === key) {
+        for (var i = 0, component; i < this._components.size(); i++) {
+            if (this._components.get(i).key === key) {
                 return component;
             }
         }
@@ -55,12 +50,13 @@ EntityComponents = utils.inherit(null, {
     }
     /**
      * Adds a component item to this set of components.
-     * @param {shared.Component} component component to add
+     * @method shared.EntityComponents#add
+     * @param {shared.Component} component - Component to add.
      */
     , add: function(component) {
-        component.owner = this.entity;
+        component.owner = this._entity;
         component.init();
-        this.components.add(component);
+        this._components.add(component);
     }
 });
 

@@ -8,11 +8,12 @@ var _ = require('lodash')
 /**
  * Entity hashmap class.
  * @class shared.EntityHashmap
+ * @classmap Utility class for managing a large number of entities.
  * @extends shared.Hashmap
  */
 EntityHashmap = utils.inherit(HashmapBase, {
     /**
-     * @inheritdoc
+     * @override
      */
     update: function(elapsed) {
         for (var id in this.items) {
@@ -22,7 +23,7 @@ EntityHashmap = utils.inherit(HashmapBase, {
         }
     }
     /**
-     * @inheritdoc
+     * @override
      */
     , add: function(key, value) {
         value.on('entity.die', this.onEntityDeath.bind(this));
@@ -30,7 +31,8 @@ EntityHashmap = utils.inherit(HashmapBase, {
     }
     /**
      * Event handler for when an entity dies.
-     * @param {shared.Entity} entity entity instance
+     * @method shared.EntityHashmap#onEntityDeath
+     * @param {shared.Entity} entity - Entity instance.
      */
     , onEntityDeath: function(entity) {
         this.remove(entity.attrs.get('id'));

@@ -5,9 +5,10 @@ var utils = require('../../../shared/utils')
 
 /**
  * Runs the game.
- * @param {socketio.Server} io socket server instance
+ * @param {socketio.Server} io - Socket server instance.
  */
 function run(io) {
+
     // todo: add support for different rooms
 
     var room = new Room(io);

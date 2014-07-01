@@ -4,47 +4,48 @@ var utils = require('./utils')
     , Hashmap;
 
 /**
- * Hashmap class
+ * Hashmap class.
  * @class shared.Hashmap
+ * @classdesc Utility class for hashmaps.
+ * @property {object} _items - Internal items in this hashmap.
  */
 Hashmap = utils.inherit(null, {
-    /**
-     * Internal items in this hashmap.
-     * @type {object}
-     */
-    items: null
+    _items: null
     /**
      * Creates a new hashmap.
-     * @param {object} items initial items
      * @constructor
+     * @param {object} items initial items.
      */
     , constructor: function(items) {
-        this.items = items || {};
+        this._items = items || {};
     }
     /**
      * Adds an item to this hashmap.
-     * @param {string} key item key
-     * @param {object} value item value
+     * @method shared.Hashmap#add
+     * @param {string} key - Item key.
+     * @param {object} value - Item value.
      */
     , add: function(key, value) {
-        this.items[key] = value;
+        this._items[key] = value;
     }
     /**
      * Returns a specific item in this hasmap.
-     * @param {string} key item key
-     * @return {object} item, or null if not found
+     * @method shared.Hashmap#get
+     * @param {string} key - Item key.
+     * @return {object} Item, or null if not found.
      */
     , get: function(key) {
-        return key ? this.items[key] : this.items;
+        return key ? this._items[key] : this.items;
     }
     /**
      * Removes an item from this hashmap and returns it.
-     * @param {string} key item key
-     * @return {object} removed item
+     * @method shared.Hashmap#remove
+     * @param {string} key - Item key
+     * @return {object} Removed item.
      */
     , remove: function(key) {
-        var item = this.items[key];
-        delete this.items[key];
+        var item = this._items[key];
+        delete this._items[key];
         return item;
     }
 });

@@ -11,38 +11,24 @@ var _ = require('lodash')
 /**
  * Entity base class.
  * @class shared.Entity
+ * @classdesc Base class for both the client- and server-side entity classes.
  * @extends shared.Node
+ * @property {socketio.Socket} socket - Socket interface for this entity.
+ * @property {shared.EntityState} state - Entity state instance.
+ * @property {shared.EntityAttributes} attrs - Entity attributes instance.
+ * @property {shared.EntityComponents} components - Entity components instance.
  */
 Entity = utils.inherit(Node, {
-    /**
-     * @inheritdoc
-     */
     key: 'entity'
-    /**
-     * Socket interface for this entity.
-     * @type {Socket}
-     */
     , socket: null
-    /**
-     * Entity state instance.
-     * @type {shared.EntityState}
-     */
     , state: null
-    /**
-     * Entity attributes instance.
-     * @type {shared.EntityAttributes}
-     */
     , attrs: null
-    /**
-     * Entity components instance.
-     * @type {shared.EntityComponents}
-     */
     , components: null
     /**
      * Creates a new entity.
-     * @param {Socket} socket socket interface
-     * @param {object} attrs initial attributes
      * @constructor
+     * @param {socketio.Socket} socket - Socket interface.
+     * @param {object} attrs - Initial attributes.
      */
     , constructor: function(socket, attrs) {
         Node.apply(this);
@@ -54,14 +40,16 @@ Entity = utils.inherit(Node, {
     }
     /**
      * Updates the logic for this entity.
-     * @param {number} elapsed time elapsed since the previous update (ms)
+     * @method shared.Entity#update
+     * @param {number} elapsed - Time elapsed since the previous update (ms).
      */
     , update: function(elapsed) {
         this.components.update(elapsed);
     }
     /**
      * Applies a state to this entity.
-     * @param {object} state entity state to apply
+     * @method shared.Entity#applyState
+     * @param {object} state - Entity state to apply.
      */
     , applyState: function(state) {
         var attrs = this.simulateState(state);
@@ -69,8 +57,9 @@ Entity = utils.inherit(Node, {
     }
     /**
      * Simulates the outcome for a state and returns the result.
-     * @param {object} state entity state to simulate
-     * @param {object} attrs source attributes
+     * @method shared.Entity#simulateState
+     * @param {object} state - Entity state to simulate.
+     * @param {object} attrs - Initial attribute values, or null to use current values.
      */
     , simulateState: function(state, attrs) {
         attrs = attrs || this.attrs.get();
@@ -97,12 +86,14 @@ Entity = utils.inherit(Node, {
     }
     /**
      * Kills this entity.
+     * @method shared.Entity#die
      */
     , die: function() {
         this.trigger('entity.die', [this]);
     }
     /**
      * Serializes this entity to a JSON object.
+     * @method shared.Entity#serialize
      */
     , serialize: function() {
         return this.attrs.get();

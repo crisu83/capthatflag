@@ -6,7 +6,7 @@ var express = require('express')
     , socketioJwt = require('socketio-jwt')
     , jwt = require('jsonwebtoken')
     , shortid = require('shortid')
-    , game = require('./dungeon/game')
+    , game = require('./game')
     , config = require('./config.json')
     , webRoot, app, server, io;
 

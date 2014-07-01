@@ -7,11 +7,13 @@ var utils = require('../../shared/utils')
 /**
  * Client hashmap class.
  * @class server.ClientHashmap
+ * @classdesc Utility class for managing multiple client connections.
  * @extends shared.Hashmap
  */
 ClientHashmap = utils.inherit(HashmapBase, {
     /**
      * Synchronizes all the clients in this hashmap.
+     * @method server.ClientHashmap#sync
      * @param {object} state state to synchronize
      */
     sync: function(state) {
@@ -21,17 +23,6 @@ ClientHashmap = utils.inherit(HashmapBase, {
             }
         }
     }
-    /*
-    // adds an item to this collection
-    , add: function(key, value) {
-        value.on('client.disconnect', this.onClientDisconnect.bind(this));
-        HashmapBase.prototype.add.apply(this, arguments);
-    }
-    // event handler for when a client disconnects
-    , onClientDisconnect: function(client) {
-        this.remove(client.id);
-    }
-    */
 });
 
 module.exports = ClientHashmap;

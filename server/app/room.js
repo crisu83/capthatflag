@@ -11,42 +11,24 @@ var utils = require('../../shared/utils')
 /**
  * Room class.
  * @class server.Room
+ * @property {string} id - Indentifier for the room.
+ * @property {socketio.Server} io - Associated socket server instance.
+ * @property {object} tilemap - Associated tilemap data.
+ * @property {server.ClientHashmap} clients - Map of clients connected to the room.
+ * @property {shared.EntityHashmap} entities - Map of entities in the room.
+ * @property {number} lastTime - Timestamp for when the room logic was last updated.
  */
 Room = utils.inherit(null, {
-    /**
-     * Indentifier for this room.
-     * @type {string}
-     */
     id: null
-    /**
-     * Socket server instance associated with this room.
-     * @type {socketio.Server}
-     */
     , io: null
-    /**
-     * Tilemap data for this room.
-     * @type {object}
-     */
     , tilemap: null
-    /**
-     * Map of clients connected to this room.
-     * @type {server.ClientHashmap}
-     */
     , clients: null
-    /**
-     * Map of entities in this room.
-     * @type {shared.EntityHashmap}
-     */
     , entities: null
-    /**
-     * Timestamp for when the logic for this room was last updated.
-     * @type {number}
-     */
     , lastTick: null
     /**
      * Creates a new room.
-     * @param {socketio.Server} io socket server instance.
      * @constructor
+     * @param {socketio.Server} io - Socket server instance.
      */
     , constructor: function(io) {
         this.id = shortid.generate();
@@ -60,6 +42,7 @@ Room = utils.inherit(null, {
     }
     /**
      * Initializes this room.
+     * @method server.Room#init
      */
     , init: function() {
         // event handler for when a client connects
@@ -71,7 +54,8 @@ Room = utils.inherit(null, {
     }
     /**
      * Event handler for when a client connects to this room.
-     * @param {socketio.Socket} socket socket interface.
+     * @method server.Room#onConnection
+     * @param {socketio.Socket} socket - Socket interface.
      */
     , onConnection: function(socket) {
         /* jshint camelcase:false */
@@ -88,6 +72,7 @@ Room = utils.inherit(null, {
     }
     /**
      * Updates the logic for this room.
+     * @method server.Room#gameLoop
      */
     , gameLoop: function() {
         var now = +new Date()
@@ -105,7 +90,8 @@ Room = utils.inherit(null, {
     }
     /**
      * Returns the current state of this room.
-     * @return {object} current state
+     * @method server.Room#getCurrentState
+     * @return {object} Current state.
      */
     , getCurrentState: function() {
         var current = []

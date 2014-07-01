@@ -78,6 +78,19 @@ module.exports = function(grunt) {
                 ]
             }
         },
+        jsdoc : {
+            dist : {
+                src: [
+                    'client/app/**/*.js',
+                    'server/app/**/*.js',
+                    'shared/**/*.js'
+                ],
+                options : {
+                    destination : 'docs',
+                    template: 'node_modules/ink-docstrap/template'
+                }
+            }
+        },
         imagemin: {
             assets: {
                 files: [{

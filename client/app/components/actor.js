@@ -6,34 +6,26 @@ define([
     'use strict';
 
     /**
-     * Actor component class
-     * @class dungeon.components.ActorComponent
+     * Actor component class.
+     * @class client.components.ActorComponent
+     * @classdesc Component that adds support for a sprite to the entity.
      * @extends shared.Component
+     * @property {Phaser.Sprite} sprite - Associated sprite object.
      */
     var ActorComponent = utils.inherit(ComponentBase, {
-        /**
-         * @inheritdoc
-         */
         key: 'actor'
-        /**
-         * @inheritdoc
-         */
         , phase: ComponentBase.prototype.phases.MOVEMENT
-        /**
-         * Sprite object associated with this component.
-         * @type {Phaser.Sprite}
-         */
         , sprite: null
         /**
          * Creates a new component.
-         * @param {Phaser.Sprite} sprite sprite instance
          * @constructor
+         * @param {Phaser.Sprite} sprite sprite instance
          */
         , constructor: function(sprite) {
             this.sprite = sprite;
         }
         /**
-         * @inheritdoc
+         * @override
          */
         , init: function() {
             // bind event handlers
@@ -41,22 +33,25 @@ define([
             this.owner.on('entity.die', this.onEntityDeath.bind(this));
         }
         /**
-         * Event handler for when the entity is synchronized
-         * @param {object} state synchronized entity state
+         * Event handler for when the entity is synchronized.
+         * @method client.components.ActorComponent#onEntitySync
+         * @param {object} state - Synchronized entity state.
          */
         , onEntitySync: function(state) {
             this.setPosition(state.x, state.y);
         }
         /**
-         * Event handler for when the entity dies
+         * Event handler for when the entity dies.
+         * @method client.components.ActorComponent#onEntityDeath
          */
         , onEntityDeath: function() {
             this.sprite.kill();
         }
         /**
          * Sets the position for the associated sprite.
-         * @param {number} x coordinates on the x-axis
-         * @param {number} y coordinates on the y-axis
+         * @method client.components.ActorComponent#setPostiion
+         * @param {number} x - Coordinates on the x-axis.
+         * @param {number} y - Coordinates on the y-axis.
          */
         , setPosition: function(x, y) {
             // round the values to avoid sub-pixel rendering

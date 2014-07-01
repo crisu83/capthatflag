@@ -7,45 +7,45 @@ var _ = require('lodash')
 /**
  * Entity attributes class.
  * @class shared.EntityAttributes
+ * @classdesc Utility class for managing entity attributes.
+ * @property {object} _attributes - Internal attributes object literal.
  */
 EntityAttributes = utils.inherit(null, {
-    /**
-     * Internal attributes.
-     * @type {object}
-     */
-    attributes: null
+    _attributes: null
     /**
      * Creates a new set of entity attributes.
-     * @param {object} attrs initial attributes
      * @constructor
+     * @param {object} attrs - Initial attributes.
      */
     , constructor: function(attrs) {
-        this.attributes = attrs || {};
+        this._attributes = attrs || {};
     }
     /**
      * Returns all, multiple or a single value from these attributes.
-     * @param {string|array} name attribute(s) to get, omit to get all
-     * @return {string|array} attribute value(s)
+     * @method shared.EntityAttributes#get
+     * @param {string|array} name - Attribute(s) to get, omit to get all.
+     * @return {string|array} Attribute value(s).
      */
     , get: function(name) {
         if (!name) {
-            return _.clone(this.attributes);
+            return _.clone(this._attributes);
         } else if (typeof name !== 'string') {
-            return _.pick(this.attributes, name);
+            return _.pick(this._attributes, name);
         } else {
-            return this.attributes[name];
+            return this._attributes[name];
         }
     }
     /**
      * Sets multiple or a single value for these attributes.
-     * @param {array|string} name attribute(s) to set
-     * @param {string} value attribute value, omit if setting multiple values
+     * @method shared.EntityAttributes#set
+     * @param {array|string} name - Attribute(s) to set.
+     * @param {string} value - Attribute value, omit if when multiple values
      */
     , set: function(name, value) {
         if (typeof name !== 'string') {
-            _.extend(this.attributes, name);
+            _.extend(this._attributes, name);
         } else {
-            this.attributes[name] = value;
+            this._attributes[name] = value;
         }
     }
 });

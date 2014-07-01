@@ -10,40 +10,25 @@ var _ = require('lodash')
 
 /**
  * Client class.
- * @class shared.Client
+ * @class server.Client
  * @extends shared.Node
+ * @property {string} id - Identifier for the client.
+ * @property {socketio.Socket} socket - Socket interface for the client.
+ * @property {server.Room} room - Room instance that the client is connected to.
+ * @property {server.Entity} entity - Associated player entity instance.
  */
 Client = utils.inherit(Node, {
-    /**
-     * @inheritdoc
-     */
     key: 'client'
-    /**
-     * Identifier for this client.
-     * @type {string}
-     */
     , id: null
-    /**
-     * Socket interface for this client.
-     * @type {Socket}
-     */
     , socket: null
-    /**
-     * Room instance that this client is connected to.
-     * @type {server.Room}
-     */
     , room: null
-    /**
-     * Player entity associated with this client.
-     * @type {server.Entity}
-     */
     , player: null
     /**
      * Creates a new client.
+     * @constructor
      * @param {string} id client identifier
      * @param {Socket} socket socket interface
      * @param {server.Room} room instance
-     * @constructor
      */
     , constructor: function(id, socket, room) {
         Node.apply(this);
@@ -56,6 +41,7 @@ Client = utils.inherit(Node, {
     }
     /**
      * Initializes this client.
+     * @method server.Client#init
      */
     , init: function() {
         // create a socket for this room and join it
@@ -90,6 +76,7 @@ Client = utils.inherit(Node, {
     }
     /**
      * Event handler for when this client is ready.
+     * @method server.Client#onReady
      */
     , onReady: function() {
         var player = EntityFactory.create(this.socket, 'player')
@@ -117,20 +104,23 @@ Client = utils.inherit(Node, {
     }
     /**
      * Synchronizes this client with the server.
-     * @param {object} state state to synchronize
+     * @method server.Client#sync
+     * @param {object} state - State to synchronize.
      */
     , sync: function(state) {
         this.socket.emit('client.sync', state);
     }
     /**
      * Event handler for when an entity is updated.
-     * @param {object} state player state
+     * @method server.Client#onPlayerState
+     * @param {object} state - Player state.
      */
     , onPlayerState: function(state) {
         this.player.state.push(state);
     }
     /**
      * Event handler for when this client disconnects.
+     * @method server.Client#onDisconnect
      */
     , onDisconnect: function() {
         // remove the player

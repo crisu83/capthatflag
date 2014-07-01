@@ -6,40 +6,29 @@ define([
     'use strict';
 
     /**
-     * Input component class
-     * @class dungeon.components.InputComponent
+     * Input component class.
+     * @class client.components.InputComponent
+     * @classdesc Component that adds support for taking user input.
      * @extends shared.Component
+     * @property {Phaser.Input} - Associated input manager instance.
+     * @property {object} - Cursor keys object literal.
      */
     var InputComponent = utils.inherit(ComponentBase, {
-        /**
-         * @inheritdoc
-         */
         key: 'input'
-        /**
-         * @inheritdoc
-         */
         , phase: ComponentBase.prototype.phases.INPUT
-        /**
-         * Input manager associated with this component.
-         * @type {Phaser.Input}
-         */
         , input: null
-        /**
-         * Cursor keys object.
-         * @type {object}
-         */
         , cursorKeys: null
         /**
          * Creates a new component.
-         * @param {Phaser.Input} input input manager
          * @constructor
+         * @param {Phaser.Input} input - Input manager.
          */
         , constructor: function(input) {
             this.input = input;
             this.cursorKeys = this.input.keyboard.createCursorKeys();
         }
         /**
-         * @inheritdoc
+         * @override
          */
         , update: function(elapsed) {
             ComponentBase.prototype.update.apply(this, arguments);
