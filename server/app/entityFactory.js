@@ -1,11 +1,20 @@
 'use strict';
 
 var _ = require('lodash')
-    , Entity = require('./entity');
+    , Entity = require('./entity')
+    , EntityFactory;
 
-// entity factory static class
-var EntityFactory = {
-    // creates a new entity
+/**
+ * Entity factory static class.
+ * @type {object}
+ */
+EntityFactory = {
+    /**
+     * Creates a new entity.
+     * @param {Socket} socket interface
+     * @param {string} key entity type
+     * @return {server.Entity} entity instance
+     */
     create: function(socket, key) {
         var data = this.loadData(key)
             , entity = new Entity(socket, data);
@@ -14,7 +23,11 @@ var EntityFactory = {
 
         return entity;
     }
-    // loads data for a specific entity
+    /**
+     * Loads data for a specific entity.
+     * @param {string} key entity type
+     * @return {object} entity data
+     */
     , loadData: function(key) {
         // return a clone so that we get a different reference
         // to the data for each entity

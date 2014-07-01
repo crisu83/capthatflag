@@ -8,18 +8,34 @@ define([
 ], function (Phaser, utils, EntityHashmap, Entity, ActorComponent, InputComponent) {
     'use strict';
 
-    // runs the game
+    /**
+     * Runs the game.
+     * @param {Socket} socket socket interface
+     * @param {object} config game configuration
+     */
     function run(socket, config) {
         console.log('creating client', config);
 
-        // gameplay state class
+        /**
+         * Gameplay state class.
+         */
         var GameplayState = utils.inherit(Phaser.State, {
+            /**
+             * Map over entities in this state.
+             * @type {EntityHashmap}
+             */
             entities: null
-            // constructor
+            /**
+             * Creates a new game state.
+             * @constructor
+             */
             , constructor: function() {
                 this.entities = new EntityHashmap();
             }
-            // loads assets
+            /**
+             * Loads the game assets.
+             * @param {Phaser.Game} game game instance
+             */
             , preload: function(game) {
                 console.log('loading assets ...');
 
@@ -29,7 +45,10 @@ define([
                 game.load.image('player-male', 'static/assets/images/sprites/player/male.png');
                 game.load.image('player-female', 'static/assets/images/sprites/player/female.png');
             }
-            // creates the game
+            /**
+             * Creates the game objects.
+             * @param {Phaser.Game} game game instance
+             */
             , create: function(game) {
                 console.log('creating game ...');
 
@@ -56,7 +75,10 @@ define([
                 // let the server know that client is ready
                 socket.emit('client.ready');
             }
-            // event handler for creating the player
+            /**
+             * Event handler for creating the player.
+             * @param {object} playerState player state
+             */
             , onPlayerCreate: function(playerState) {
                 console.log('creating player', playerState);
 
@@ -79,7 +101,10 @@ define([
                 // now we are ready to synchronization the world with the server
                 socket.on('client.sync', this.onSync.bind(this));
             }
-            // event handler for synchronizing
+            /**
+             * Event handler for synchronizing the client with the server.
+             * @param {object} worldState world state
+             */
             , onSync: function(worldState) {
                 var entityState, entity, sprite, physics;
                 for (var i = 0; i < worldState.length; i++) {
@@ -109,7 +134,10 @@ define([
                     entity.sync(entityState);
                 }
             }
-            // event handler for when a player leaves
+            /**
+             * Event handler for when a player leaves.
+             * @param {string} id player identifier
+             */
             , onPlayerLeave: function (id) {
                 console.log('player left', id);
 
@@ -118,7 +146,10 @@ define([
                     player.die();
                 }
             }
-            // updates game logic
+            /**
+             * Updates the logic for this game.
+             * @param {Phaser.Game} game game instance
+             */
             , update: function(game) {
                 // todo: add collision detection
 

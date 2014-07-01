@@ -5,16 +5,45 @@ var _ = require('lodash')
     , Node = require('./node')
     , EntityState = require('./entityState')
     , EntityAttributes = require('./entityAttributes')
-    , EntityComponents = require('./entityComponents');
+    , EntityComponents = require('./entityComponents')
+    , Entity;
 
-// base entity class
-var Entity = utils.inherit(Node, {
+/**
+ * Entity base class.
+ * @class shared.Entity
+ * @extends shared.Node
+ */
+Entity = utils.inherit(Node, {
+    /**
+     * @inheritdoc
+     */
     key: 'entity'
+    /**
+     * Socket interface for this entity.
+     * @type {Socket}
+     */
     , socket: null
+    /**
+     * Entity state instance.
+     * @type {shared.EntityState}
+     */
     , state: null
+    /**
+     * Entity attributes instance.
+     * @type {shared.EntityAttributes}
+     */
     , attrs: null
+    /**
+     * Entity components instance.
+     * @type {shared.EntityComponents}
+     */
     , components: null
-    // constructor
+    /**
+     * Creates a new entity.
+     * @param {Socket} socket socket interface
+     * @param {object} attrs initial attributes
+     * @constructor
+     */
     , constructor: function(socket, attrs) {
         Node.apply(this);
 
@@ -23,16 +52,26 @@ var Entity = utils.inherit(Node, {
         this.attrs = new EntityAttributes(attrs);
         this.components = new EntityComponents(this);
     }
-    // updates the logic for this entity
+    /**
+     * Updates the logic for this entity.
+     * @param {number} elapsed time elapsed since the previous update (ms)
+     */
     , update: function(elapsed) {
         this.components.update(elapsed);
     }
-    // applies a state to this entity
+    /**
+     * Applies a state to this entity.
+     * @param {object} state entity state to apply
+     */
     , applyState: function(state) {
         var attrs = this.simulateState(state);
         this.attrs.set(attrs);
     }
-    // simulates the outcome for a state and returns the result
+    /**
+     * Simulates the outcome for a state and returns the result.
+     * @param {object} state entity state to simulate
+     * @param {object} attrs source attributes
+     */
     , simulateState: function(state, attrs) {
         attrs = attrs || this.attrs.get();
 
@@ -56,11 +95,15 @@ var Entity = utils.inherit(Node, {
 
         return attrs;
     }
-    // kills this entity
+    /**
+     * Kills this entity.
+     */
     , die: function() {
         this.trigger('entity.die', [this]);
     }
-    // serializes this entity to a json object
+    /**
+     * Serializes this entity to a JSON object.
+     */
     , serialize: function() {
         return this.attrs.get();
     }

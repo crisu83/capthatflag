@@ -5,15 +5,46 @@ var _ = require('lodash')
     , shortid = require('shortid')
     , Node = require('../../shared/node')
     , EntityFactory = require('./entityFactory')
-    , config = require('./config.json');
+    , config = require('./config.json')
+    , Client;
 
-// client class
-var Client = utils.inherit(Node, {
-    id: null
+/**
+ * Client class.
+ * @class shared.Client
+ * @extends shared.Node
+ */
+Client = utils.inherit(Node, {
+    /**
+     * @inheritdoc
+     */
+    key: 'client'
+    /**
+     * Identifier for this client.
+     * @type {string}
+     */
+    , id: null
+    /**
+     * Socket interface for this client.
+     * @type {Socket}
+     */
     , socket: null
+    /**
+     * Room instance that this client is connected to.
+     * @type {server.Room}
+     */
     , room: null
+    /**
+     * Player entity associated with this client.
+     * @type {server.Entity}
+     */
     , player: null
-    // constructor
+    /**
+     * Creates a new client.
+     * @param {string} id client identifier
+     * @param {Socket} socket socket interface
+     * @param {server.Room} room instance
+     * @constructor
+     */
     , constructor: function(id, socket, room) {
         Node.apply(this);
 
@@ -23,7 +54,9 @@ var Client = utils.inherit(Node, {
 
         console.log('  client %s created for room %s', this.id, this.room.id);
     }
-    // initializes this client
+    /**
+     * Initializes this client.
+     */
     , init: function() {
         // create a socket for this room and join it
         this.socket.join(this.room.id);
@@ -55,6 +88,9 @@ var Client = utils.inherit(Node, {
         this.socket.on('client.ready', this.onReady.bind(this));
         this.socket.on('disconnect', this.onDisconnect.bind(this));
     }
+    /**
+     * Event handler for when this client is ready.
+     */
     , onReady: function() {
         var player = EntityFactory.create(this.socket, 'player')
             , id = shortid.generate();
@@ -79,15 +115,23 @@ var Client = utils.inherit(Node, {
 
         this.player = player;
     }
-    // synchronizes this client with the server
-    , sync: function(worldState) {
-        this.socket.emit('client.sync', worldState);
+    /**
+     * Synchronizes this client with the server.
+     * @param {object} state state to synchronize
+     */
+    , sync: function(state) {
+        this.socket.emit('client.sync', state);
     }
-    // event handler for when an entity is updated
+    /**
+     * Event handler for when an entity is updated.
+     * @param {object} state player state
+     */
     , onPlayerState: function(state) {
         this.player.state.push(state);
     }
-    // event handler for when this client disconnects
+    /**
+     * Event handler for when this client disconnects.
+     */
     , onDisconnect: function() {
         // remove the player
         this.player.die();

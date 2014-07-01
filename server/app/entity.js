@@ -2,11 +2,18 @@
 
 var _ = require('lodash')
     , utils = require('../../shared/utils')
-    , EntityBase = require('../../shared/entity');
+    , EntityBase = require('../../shared/entity')
+    , Entity;
 
-// server entity class
-var Entity = utils.inherit(EntityBase, {
-    // updates the logic for this entity
+/**
+ * Server-side entity class.
+ * @class server.Entity
+ * @extends shared.Entity
+ */
+Entity = utils.inherit(EntityBase, {
+    /**
+     * @inheritdoc
+     */
     update: function() {
         EntityBase.prototype.update.apply(this, arguments);
 
@@ -15,6 +22,11 @@ var Entity = utils.inherit(EntityBase, {
             this.applyState(state);
         }
     }
+    /**
+     * Returns the current state of this entity.
+     * @param {boolean} reset whether to set the state to null afterwards
+     * @return {object} current state, or null if no state is set
+     */
     , getCurrentState: function(reset) {
         reset = reset || false;
         var state = null;

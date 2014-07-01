@@ -1,23 +1,47 @@
 'use strict';
 
-var utils = require('./utils');
+var utils = require('./utils')
+    , Hashmap;
 
-// hashmap class
-var Hashmap = utils.inherit(null, {
+/**
+ * Hashmap class
+ * @class shared.Hashmap
+ */
+Hashmap = utils.inherit(null, {
+    /**
+     * Internal items in this hashmap.
+     * @type {object}
+     */
     items: null
-    // constructor
-    , constructor: function(attrs) {
-        this.items = {};
+    /**
+     * Creates a new hashmap.
+     * @param {object} items initial items
+     * @constructor
+     */
+    , constructor: function(items) {
+        this.items = items || {};
     }
-    // adds an item to this hashmap
+    /**
+     * Adds an item to this hashmap.
+     * @param {string} key item key
+     * @param {object} value item value
+     */
     , add: function(key, value) {
         this.items[key] = value;
     }
-    // returns a specific item in this hasmap
+    /**
+     * Returns a specific item in this hasmap.
+     * @param {string} key item key
+     * @return {object} item, or null if not found
+     */
     , get: function(key) {
         return key ? this.items[key] : this.items;
     }
-    // removes an item from this hashmap and returns it
+    /**
+     * Removes an item from this hashmap and returns it.
+     * @param {string} key item key
+     * @return {object} removed item
+     */
     , remove: function(key) {
         var item = this.items[key];
         delete this.items[key];

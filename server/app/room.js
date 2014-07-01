@@ -5,17 +5,49 @@ var utils = require('../../shared/utils')
     , Client = require('./client')
     , ClientHashmap = require('./clientHashmap')
     , EntityHashmap = require('../../shared/entityHashmap')
-    , config = require('./config.json');
+    , config = require('./config.json')
+    , Room;
 
-var Room = utils.inherit(null, {
+/**
+ * Room class.
+ * @class server.Room
+ */
+Room = utils.inherit(null, {
+    /**
+     * Indentifier for this room.
+     * @type {string}
+     */
     id: null
+    /**
+     * Socket server instance associated with this room.
+     * @type {socketio.Server}
+     */
     , io: null
-    , game: null
+    /**
+     * Tilemap data for this room.
+     * @type {object}
+     */
     , tilemap: null
+    /**
+     * Map of clients connected to this room.
+     * @type {server.ClientHashmap}
+     */
     , clients: null
+    /**
+     * Map of entities in this room.
+     * @type {shared.EntityHashmap}
+     */
     , entities: null
+    /**
+     * Timestamp for when the logic for this room was last updated.
+     * @type {number}
+     */
     , lastTick: null
-    // constructor
+    /**
+     * Creates a new room.
+     * @param {socketio.Server} io socket server instance.
+     * @constructor
+     */
     , constructor: function(io) {
         this.id = shortid.generate();
         this.io = io;
@@ -26,7 +58,9 @@ var Room = utils.inherit(null, {
 
         console.log(' room %s created', this.id);
     }
-    // initializes this room
+    /**
+     * Initializes this room.
+     */
     , init: function() {
         // event handler for when a client connects
         this.io.on('connection', this.onConnection.bind(this));
@@ -35,6 +69,10 @@ var Room = utils.inherit(null, {
         console.log(' starting game loop for room %s', this.id);
         setInterval(this.gameLoop.bind(this), 1000 / config.ticksPerSecond);
     }
+    /**
+     * Event handler for when a client connects to this room.
+     * @param {socketio.Socket} socket socket interface.
+     */
     , onConnection: function(socket) {
         /* jshint camelcase:false */
         var clientId = socket.decoded_token.id
@@ -48,7 +86,9 @@ var Room = utils.inherit(null, {
             this.clients.add(clientId, client);
         }
     }
-    // the game loop for this room
+    /**
+     * Updates the logic for this room.
+     */
     , gameLoop: function() {
         var now = +new Date()
             , elapsed;
@@ -63,9 +103,12 @@ var Room = utils.inherit(null, {
 
         this.lastTick = now;
     }
-    // returns the current state of this room
+    /**
+     * Returns the current state of this room.
+     * @return {object} current state
+     */
     , getCurrentState: function() {
-        var worldState = []
+        var current = []
             , entities = this.entities.get()
             , state;
 
@@ -73,12 +116,12 @@ var Room = utils.inherit(null, {
             if (entities.hasOwnProperty(id)) {
                 state = entities[id].getCurrentState(true);
                 if (state) {
-                    worldState.push(state);
+                    current.push(state);
                 }
             }
         }
 
-        return worldState;
+        return current;
     }
 });
 

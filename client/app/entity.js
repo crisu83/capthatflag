@@ -5,15 +5,22 @@ define([
 ], function(_, utils, EntityBase) {
     'use strict';
 
-    // client entity class
+    /**
+     * Client-side entity class.
+     * @class client.Entity
+     * @extends shared.Entity
+     */
     var Entity = utils.inherit(EntityBase, {
-        // synchronizes the state of the this entity
+        /**
+         * Synchronizes the state of the this entity.
+         * @param {object} state synchronized entity state
+         */
         sync: function(state) {
             // copy from the state (everything except the timestamp) to the attributes
             var attrs = _.omit(state, ['timestamp']);
 
             // delete the state because it is not needed anymore
-            this.state.removeAt(state.timestamp);
+            this.state.discardAt(state.timestamp);
 
             // apply all the unprocessed (future) states
             // this is also known as server reconcilation
@@ -21,13 +28,14 @@ define([
                 attrs = this.simulateState(this.state.queue[i], attrs);
             }
 
+            // Update attribute values and trigger the sync event
             this.attrs.set(attrs);
-
-            // update attributes and trigger the sync event
             this.trigger('entity.sync', [this.serialize()]);
         }
-        // updates the logic for this entity
-        , update: function() {
+        /**
+         * @inheritdoc
+         */
+        , update: function(elapsed) {
             EntityBase.prototype.update.apply(this, arguments);
 
             if (this.state.hasChanged()) {

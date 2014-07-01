@@ -3,6 +3,10 @@
 var utils = require('../../../shared/utils')
     , Room = require('../room');
 
+/**
+ * Runs the game.
+ * @param {socketio.Server} io socket server instance
+ */
 function run(io) {
     // todo: add support for different rooms
 

@@ -2,8 +2,13 @@
 
 var _ = require('lodash');
 
-// creates a new object by inheriting another object
-// while preseving the prototype chain
+/**
+ * Creates the constructor for a new object by copying the properties
+ * from a parent object keeping the prototype chain intact.
+ * @param {function} parent parent constructor, or null if no parent
+ * @param {object} props prototype properties
+ * @return {function} constructor
+ */
 function inherit(parent, props) {
     // allow us to pass null as parent
     parent = parent || function() {};
@@ -15,9 +20,7 @@ function inherit(parent, props) {
     if (props && _.has(props, 'constructor')) {
         child = props.constructor;
     } else {
-        child = function() {
-            return parent.apply(this, arguments);
-        };
+        child = function() { return parent.apply(this, arguments); };
     }
 
     // create the object prototype from the parent prototype
@@ -28,12 +31,7 @@ function inherit(parent, props) {
         _.extend(child.prototype, props);
     }
 
-    child.__super__ = parent.prototype;
     return child;
-}
-
-function mixin() {
-    // todo: implement this in order to support "multiple" inheritance
 }
 
 module.exports = {

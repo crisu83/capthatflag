@@ -1,11 +1,19 @@
 'use strict';
 
 var utils = require('../../shared/utils')
-    , HashmapBase = require('../../shared/hashmap');
+    , HashmapBase = require('../../shared/hashmap')
+    , ClientHashmap;
 
-// client hashmap class
-var ClientHashmap = utils.inherit(HashmapBase, {
-    // synchronizes all the clients in this hashmap
+/**
+ * Client hashmap class.
+ * @class server.ClientHashmap
+ * @extends shared.Hashmap
+ */
+ClientHashmap = utils.inherit(HashmapBase, {
+    /**
+     * Synchronizes all the clients in this hashmap.
+     * @param {object} state state to synchronize
+     */
     sync: function(state) {
         for (var id in this.items) {
             if (this.items.hasOwnProperty(id)) {

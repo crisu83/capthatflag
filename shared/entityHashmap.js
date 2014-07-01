@@ -2,10 +2,18 @@
 
 var _ = require('lodash')
     , utils = require('./utils')
-    , HashmapBase = require('./hashmap');
+    , HashmapBase = require('./hashmap')
+    , EntityHashmap;
 
-var EntityHashmap = utils.inherit(HashmapBase, {
-    // updates all the entities in this hashmap
+/**
+ * Entity hashmap class.
+ * @class shared.EntityHashmap
+ * @extends shared.Hashmap
+ */
+EntityHashmap = utils.inherit(HashmapBase, {
+    /**
+     * @inheritdoc
+     */
     update: function(elapsed) {
         for (var id in this.items) {
             if (this.items.hasOwnProperty(id)) {
@@ -13,12 +21,17 @@ var EntityHashmap = utils.inherit(HashmapBase, {
             }
         }
     }
-    // adds an item to this hashmap
+    /**
+     * @inheritdoc
+     */
     , add: function(key, value) {
         value.on('entity.die', this.onEntityDeath.bind(this));
         HashmapBase.prototype.add.apply(this, arguments);
     }
-    // event handler for when an entity dies
+    /**
+     * Event handler for when an entity dies.
+     * @param {shared.Entity} entity entity instance
+     */
     , onEntityDeath: function(entity) {
         this.remove(entity.attrs.get('id'));
     }

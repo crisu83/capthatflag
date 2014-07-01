@@ -1,21 +1,44 @@
 'use strict';
 
-var utils = require('./utils');
+var utils = require('./utils')
+    , Node;
 
-// base node class
-var Node = utils.inherit(null, {
+/**
+ * Node class.
+ * @class shared.Node
+ */
+Node = utils.inherit(null, {
+    /**
+     * Identifier for this node.
+     * @type {string}
+     */
     key: 'node'
+    /**
+     * Internal event handlers for this node.
+     * @type {object}
+     */
     , eventHandlers: null
-    // constructor
+    /**
+     * Creates a new node.
+     * @constructor
+     */
     , constructor: function() {
         this.eventHandlers = {};
     }
-    // adds an event listener to this node
+    /**
+     * Adds an event handler to this node.
+     * @type {string} event event type
+     * @type {function} handler event handler
+     */
     , on: function(event, handler) {
         this.eventHandlers[event] = this.eventHandlers[event] || [];
         this.eventHandlers[event].push(handler);
     }
-    // triggers an event for this node
+    /**
+     * Triggers an event for this node.
+     * @type {string} event event type
+     * @type {array} params parameters to pass to the handlers
+     */
     , trigger: function(event, params) {
         if (this.eventHandlers[event]) {
             for (var i = 0; i < this.eventHandlers[event].length; i++) {
