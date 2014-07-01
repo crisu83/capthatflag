@@ -1,26 +1,50 @@
 'use strict';
 
 var utils = require('./utils')
-    , Node = require('./node');
+    , Node = require('./node')
+    , Component;
 
-// base component class
-var Component = utils.inherit(Node, {
-    owner: null
+/**
+ * Component base class.
+ * @class shared.Component
+ * @augments shared.Node
+ */
+Component = utils.inherit(Node, {
+    /**
+     * @inheritdoc
+     */
+    key: 'component'
+    /**
+     * Entity associated with this component.
+     * @type {shared.Entity}
+     */
+    , owner: null
+    /**
+     * Phase for updating this component.
+     * @type {number}
+     */
     , phase: null
-    // initializes this component
+    /**
+     * Initializes this component.
+     */
     , init: function() {
-
     }
-    // updates the logic for this component
-    , update: function() {
-
+    /**
+     * Updates the logic for this component.
+     * @param {number} elapsed time elapsed since the previous update (ms)
+     */
+    , update: function(elapsed) {
     }
-    // available component phases
+    /**
+     * Component states enumerable.
+     * @enum {number}
+     */
     , phases: {
         LOGIC: 1
-        , PHYSICS: 2
+        , INPUT: 2
         , MOVEMENT: 3
-        , IO: 4
+        , NETWORK: 4
+        , PHYSICS: 5
     }
 });
 

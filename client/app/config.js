@@ -11,6 +11,7 @@ require.config({
         }
     },
     paths: {
+        app: '.',
         dungeon: 'dungeon',
         shared: 'shared',
         lodash: 'lib/lodash/dist/lodash.compat',

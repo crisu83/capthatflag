@@ -1,59 +1,58 @@
 define([
     'phaser'
     , 'shared/utils'
-    , 'dungeon/objects/player'
+    , 'shared/entityHashmap'
+    , 'app/entity'
+    , 'dungeon/components/actor'
     , 'dungeon/components/input'
-    , 'dungeon/components/io'
-    , 'dungeon/components/sprite'
-], function (Phaser, utils, Player, InputComponent, IoComponent, SpriteComponent) {
+], function (Phaser, utils, EntityHashmap, Entity, ActorComponent, InputComponent) {
     'use strict';
 
-    // runs the game
+    /**
+     * Runs the game.
+     * @param {Socket} socket socket interface
+     * @param {object} config game configuration
+     */
     function run(socket, config) {
-        // create the "gameplay" state
+        console.log('creating client', config);
+
+        /**
+         * Gameplay state class.
+         */
         var GameplayState = utils.inherit(Phaser.State, {
-            player: null
-            , players: null
-            , playerGroup: null
-            // constructor
+            /**
+             * Map over entities in this state.
+             * @type {EntityHashmap}
+             */
+            entities: null
+            /**
+             * Creates a new game state.
+             * @constructor
+             */
             , constructor: function() {
-                this.players = {};
+                this.entities = new EntityHashmap();
             }
-            // loads assets
+            /**
+             * Loads the game assets.
+             * @param {Phaser.Game} game game instance
+             */
             , preload: function(game) {
-                console.log('loading game assets ...');
+                console.log('loading assets ...');
 
-                /*
-                socket.on('game.loadTilemap', function(tilemap) {
-                    game.load.tilemap(tilemap.name, null, tilemap.data, tilemap.type);
-                    game.load.image(tilemap.name, tilemap.image);
-                });
-                */
+                game.load.tilemap(config.mapKey, null, config.mapData, config.mapType);
+                game.load.image(config.mapImage, 'static/' + config.mapSrc);
 
-                game.load.tilemap(
-                    'dungeon'
-                    , 'static/assets/maps/dungeon.json'
-                    , null,
-                    Phaser.Tilemap.TILED_JSON
-                );
-
-                game.load.image('dungeon', 'static/assets/images/tiles/dungeon.png');
-                
-                game.load.image('male', 'static/assets/images/sprites/player/male.png');
-                game.load.image('female', 'static/assets/images/sprites/player/female.png');
-
-                // create the player object
-                this.player = new Player();
-                this.player.preload(game);
-
-                console.log('done');
+                game.load.image('player-male', 'static/assets/images/sprites/player/male.png');
+                game.load.image('player-female', 'static/assets/images/sprites/player/female.png');
             }
-            // creates the game
+            /**
+             * Creates the game objects.
+             * @param {Phaser.Game} game game instance
+             */
             , create: function(game) {
                 console.log('creating game ...');
 
-                // start the physics system
-                game.physics.startSystem(Phaser.Physics.ARCADE);
+                var map, layer;
 
                 // define the world bounds
                 game.world.setBounds(0, 0, config.gameWidth, config.gameHeight);
@@ -61,154 +60,108 @@ define([
                 // set the background color for the stage
                 game.stage.backgroundColor = '#000';
 
-                var map, layer, sprite, cursorKeys;
+                // start the arcade physics system
+                game.physics.startSystem(Phaser.Physics.ARCADE);
 
-                // set up our dungeon
-                map = game.add.tilemap('dungeon')
-                map.addTilesetImage('dungeon', 'dungeon');
-                layer = map.createLayer('Floor1');
+                map = game.add.tilemap(config.mapKey);
+                map.addTilesetImage(config.mapKey, config.mapImage);
+                layer = map.createLayer(config.mapLayer);
                 layer.resizeWorld();
 
-                // todo: enable the player to choose the appearance
-                // create the player sprite and move it to a random position.
-                sprite = game.add.sprite(
-                        game.world.randomX
-                        , game.world.randomY
-                        , Math.round(Math.random()) === 0 ? 'male' : 'female'
-                    );
+                // bind event handlers
+                socket.on('player.create', this.onPlayerCreate.bind(this));
+                socket.on('player.leave', this.onPlayerLeave.bind(this));
 
-                game.physics.enable(sprite, Phaser.Physics.ARCADE);
-
-                // todo: move this into the sprite component (show how)
-                sprite.physicsBodyType = Phaser.Physics.ARCADE;
-                sprite.body.collideWorldBounds = true;
-                sprite.body.immovable = true;
-
-                cursorKeys = game.input.keyboard.createCursorKeys();
-
-                // add components to the player
-                this.player.addComponent(new InputComponent(cursorKeys));
-                this.player.addComponent(new IoComponent(socket));
-                this.player.addComponent(new SpriteComponent(sprite));
-
-                // let the server know of the player
-                socket.emit('player.join', this.player.toJSON());
-
-                // create a sprite group for players
-                this.playerGroup = game.add.group();
-
-                // lock the camera on the player
-                game.camera.follow(this.player.sprite, Phaser.Camera.FOLLOW_LOCKON);
-
-                console.log('done');
-
-                // initialize event handlers
-                this.initEventHandlers(game);
+                // let the server know that client is ready
+                socket.emit('client.ready');
             }
-            // sets up event handlers for the game
-            , initEventHandlers: function(game) {
-                console.log('initializing event handlers ...');
+            /**
+             * Event handler for creating the player.
+             * @param {object} playerState player state
+             */
+            , onPlayerCreate: function(playerState) {
+                console.log('creating player', playerState);
 
-                var self = this;
+                var entity = new Entity(socket, playerState)
+                    , sprite = this.game.add.sprite(playerState.x, playerState.y, playerState.image)
+                    , physics = entity.attrs.get('physics');
 
-                // assign the client id to the player
-                socket.on('client.assignId', function (clientId) {
-                    self.player.clientId = clientId;
-                });
+                if (physics >= 0) {
+                    this.game.physics.enable(sprite, physics);
+                    sprite.physicsBodyType = physics;
+                    sprite.body.collideWorldBounds = true;
+                    sprite.body.immovable = true;
+                }
 
-                // event handler for when the game state is initialized
-                socket.on('client.initializeState', function (playerStates) {
-                    console.log('initializing game state ...', playerStates);
+                entity.components.add(new ActorComponent(sprite));
+                entity.components.add(new InputComponent(this.game.input));
 
-                    var i, playerState, player;
-                    for (i = 0; i < playerStates.length; i++) {
-                        playerState = playerStates[i];
-                        player = self.createPlayerFromState(playerState, game);
-                        self.players[playerState.clientId] = player;
-                    }
+                this.entities.add(playerState.id, entity);
 
-                    console.log('done');
-                });
-
-                // event handler for when a new player joins the game
-                socket.on('player.join', function (playerState) {
-                    console.log('player joined', playerState);
-
-                    var player = self.createPlayerFromState(playerState, game);
-                    self.players[playerState.clientId] = player;
-                });
-
-                // event handler for when a player moves
-                socket.on('player.move', function (playerState) {
-                    if (self.players[playerState.clientId]) {
-                        console.log('player moved', playerState);
-
-                        var player, sprite;
-                        player = self.players[playerState.clientId];
-                        sprite = player.getComponent('sprite');
-                        sprite.setPosition(playerState.x, playerState.y);
-                    }
-                });
-
-                // event handler for when a player quits the game
-                socket.on('player.quit', function (clientId) {
-                    if (self.players[clientId]) {
-                        console.log('player quit', clientId);
-
-                        var player = self.players[clientId];
-                        delete self.players[clientId];
-                        player.die();
-                    }
-                });
-
-                console.log('done');
+                // now we are ready to synchronization the world with the server
+                socket.on('client.sync', this.onSync.bind(this));
             }
-            // updates game logic
+            /**
+             * Event handler for synchronizing the client with the server.
+             * @param {object} worldState world state
+             */
+            , onSync: function(worldState) {
+                var entityState, entity, sprite, physics;
+                for (var i = 0; i < worldState.length; i++) {
+                    entityState = worldState[i];
+                    entity = this.entities.get(entityState.id);
+
+                    // if the entity does not exist, we need to create it
+                    if (!entity) {
+                        console.log('creating new entity', entityState);
+                        entity = new Entity(socket, entityState);
+                        sprite = this.game.add.sprite(entityState.x, entityState.y, entityState.image);
+                        physics = entity.attrs.get('physics');
+
+                        if (physics >= 0) {
+                            this.game.physics.enable(sprite, physics);
+                            sprite.physicsBodyType = physics;
+                            sprite.body.collideWorldBounds = true;
+                            sprite.body.immovable = true;
+                        }
+
+                        entity.components.add(new ActorComponent(sprite));
+
+                        this.entities.add(entityState.id, entity);
+                    }
+
+                    // synchronize the state of the entity
+                    entity.sync(entityState);
+                }
+            }
+            /**
+             * Event handler for when a player leaves.
+             * @param {string} id player identifier
+             */
+            , onPlayerLeave: function (id) {
+                console.log('player left', id);
+
+                var player = this.entities.get(id);
+                if (player) {
+                    player.die();
+                }
+            }
+            /**
+             * Updates the logic for this game.
+             * @param {Phaser.Game} game game instance
+             */
             , update: function(game) {
-                // todo: fix collision so that players cannot overlap each other
+                // todo: add collision detection
 
-                // enable collision between players
-                game.physics.arcade.collide(this.player.sprite, this.playerGroup);
+                var elapsed = game.time.elapsed;
 
-                // update player logic
-                this.player.update(game);
-            }
-            // todo: move this logic to a factory (or similar)
-            // creates a new player
-            , createPlayer: function() {
-                var player = new Player();
-                player.socket = this.socket;
-                return player;
-            }
-            // creates a new player from the given state
-            , createPlayerFromState: function(playerState, game) {
-                var sprite, player;
-
-                sprite = this.playerGroup.create(
-                    playerState.x
-                    , playerState.y
-                    , playerState.image
-                );
-
-                game.physics.enable(sprite, Phaser.Physics.ARCADE);
-
-                // todo: move this into the sprite component (show how)
-                sprite.physicsBodyType = Phaser.Physics.ARCADE;
-                sprite.body.collideWorldBounds = true;
-                sprite.body.immovable = true;
-
-                player = this.createPlayer(sprite, game);
-                player.addComponent(new IoComponent(socket));
-                player.addComponent(new SpriteComponent(sprite));
-
-                return player;
+                this.entities.update(elapsed);
             }
         });
 
         // create the actual game
         var game = new Phaser.Game(config.canvasWidth, config.canvasHeight, Phaser.AUTO);
-        game.state.add('gameplay', new GameplayState(socket));
-        game.state.start('gameplay');
+        game.state.add('gameplay', new GameplayState(), true/* autostart */);
     }
 
     return {

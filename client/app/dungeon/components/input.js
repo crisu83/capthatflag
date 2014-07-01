@@ -3,47 +3,78 @@ define([
     , 'shared/utils'
     , 'shared/component'
 ], function(Phaser, utils, ComponentBase) {
-    // input component class
+    'use strict';
+
+    /**
+     * Input component class
+     * @class dungeon.components.InputComponent
+     * @extends shared.Component
+     */
     var InputComponent = utils.inherit(ComponentBase, {
-        phase: ComponentBase.prototype.phases.LOGIC
+        /**
+         * @inheritdoc
+         */
+        key: 'input'
+        /**
+         * @inheritdoc
+         */
+        , phase: ComponentBase.prototype.phases.INPUT
+        /**
+         * Input manager associated with this component.
+         * @type {Phaser.Input}
+         */
+        , input: null
+        /**
+         * Cursor keys object.
+         * @type {object}
+         */
         , cursorKeys: null
-        , sprite: null
-        // consturctor
-        , constructor: function(cursorKeys) {
-            this.key = 'input';
-            this.cursorKeys = cursorKeys;
+        /**
+         * Creates a new component.
+         * @param {Phaser.Input} input input manager
+         * @constructor
+         */
+        , constructor: function(input) {
+            this.input = input;
+            this.cursorKeys = this.input.keyboard.createCursorKeys();
         }
-        // updates the logic for this component
-        , update: function(game) {
+        /**
+         * @inheritdoc
+         */
+        , update: function(elapsed) {
             ComponentBase.prototype.update.apply(this, arguments);
 
-            var vx = 0, vy = 0;
+            var actor = this.owner.components.get('actor');
+            if (actor) {
+                var x = actor.sprite.x
+                    , y = actor.sprite.y
+                    , speed = this.owner.attrs.get('speed')
+                    , step = (elapsed / 1000) * speed
+                    , input = [];
 
-            if (this.cursorKeys.up.isDown) {
-                vy = -this.owner.speed;
-            }
-            if (this.cursorKeys.right.isDown) {
-                vx = this.owner.speed;
-            }
-            if (this.cursorKeys.down.isDown) {
-                vy = this.owner.speed;
-            }
-            if (this.cursorKeys.left.isDown) {
-                vx = -this.owner.speed;
-            }
+                if (this.cursorKeys.up.isDown) {
+                    y -= step;
+                    input.push('up');
+                } else if (this.cursorKeys.down.isDown) {
+                    y += step;
+                    input.push('down');
+                }
+                if (this.cursorKeys.left.isDown) {
+                    x -= step;
+                    input.push('left');
+                } else if (this.cursorKeys.right.isDown) {
+                    x += step;
+                    input.push('right');
+                }
 
-            // reset velocities when corresponding cursor keys are released
-            if (this.cursorKeys.left.isUp && this.cursorKeys.right.isUp) {
-                vx = 0;
+                // move the player immediately without waiting for the response
+                // from the server to avoid an unnecessary lag effect
+                // and save the input, speed and elapsed time in the entity state
+                if (input.length) {
+                    actor.setPosition(x, y);
+                    this.owner.state.add({input: input, speed: speed, elapsed: elapsed});
+                }
             }
-            if (this.cursorKeys.up.isUp && this.cursorKeys.down.isUp) {
-                vy = 0;
-            }
-
-            // Note that this was too slow to do with events
-            var sprite = this.owner.getComponent('sprite');
-            sprite.sprite.body.velocity.x = vx;
-            sprite.sprite.body.velocity.y = vy;
         }
     });
 

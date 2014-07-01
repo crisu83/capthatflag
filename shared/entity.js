@@ -1,87 +1,111 @@
 'use strict';
 
-var utils = require('./utils')
+var _ = require('lodash')
+    , utils = require('./utils')
     , Node = require('./node')
-    , SortedList = require('./sortedList');
+    , EntityState = require('./entityState')
+    , EntityAttributes = require('./entityAttributes')
+    , EntityComponents = require('./entityComponents')
+    , Entity;
 
-// base entity class
-var Entity = utils.inherit(Node, {
+/**
+ * Entity base class.
+ * @class shared.Entity
+ * @extends shared.Node
+ */
+Entity = utils.inherit(Node, {
+    /**
+     * @inheritdoc
+     */
     key: 'entity'
-    , x: null
-    , y: null
-    , width: null
-    , height: null
-    , speed: 0
-    , image: null
+    /**
+     * Socket interface for this entity.
+     * @type {Socket}
+     */
+    , socket: null
+    /**
+     * Entity state instance.
+     * @type {shared.EntityState}
+     */
+    , state: null
+    /**
+     * Entity attributes instance.
+     * @type {shared.EntityAttributes}
+     */
+    , attrs: null
+    /**
+     * Entity components instance.
+     * @type {shared.EntityComponents}
+     */
     , components: null
-    // constructor
-    , constructor: function(x, y, image) {
+    /**
+     * Creates a new entity.
+     * @param {Socket} socket socket interface
+     * @param {object} attrs initial attributes
+     * @constructor
+     */
+    , constructor: function(socket, attrs) {
         Node.apply(this);
 
-        this.x = x;
-        this.y = y;
-        this.image = image;
-        this.components = new SortedList(function(a, b) {
-            return a.phase < b.phase;
-        });
+        this.socket = socket;
+        this.state = new EntityState();
+        this.attrs = new EntityAttributes(attrs);
+        this.components = new EntityComponents(this);
     }
-    // load assets for this entity
-    , preload: function(game) {
+    /**
+     * Updates the logic for this entity.
+     * @param {number} elapsed time elapsed since the previous update (ms)
+     */
+    , update: function(elapsed) {
+        this.components.update(elapsed);
+    }
+    /**
+     * Applies a state to this entity.
+     * @param {object} state entity state to apply
+     */
+    , applyState: function(state) {
+        var attrs = this.simulateState(state);
+        this.attrs.set(attrs);
+    }
+    /**
+     * Simulates the outcome for a state and returns the result.
+     * @param {object} state entity state to simulate
+     * @param {object} attrs source attributes
+     */
+    , simulateState: function(state, attrs) {
+        attrs = attrs || this.attrs.get();
 
-    }
-    // runs creation logic for this entity
-    , create: function(game) {
+        if (state.input && state.elapsed && state.speed) {
+            var step = (state.elapsed / 1000) * state.speed;
 
-    }
-    // updates the logic for this entity
-    , update: function(game) {
-        // update the components (that are already sorted)
-        for (var i = 0; i < this.components.items.length; i++) {
-            this.components.get(i).update(game);
-        }
-    }
-    // adds a component to this entity
-    , addComponent: function(component) {
-        component.owner = this;
-        component.init();
-        this.components.add(component);
-    }
-    // get a component that belongs to this entity
-    , getComponent: function(key) {
-        var i, component;
-        for (i = 0; i < this.components.size(); i++) {
-            component = this.components.get(i);
-            if (component.key === key) {
-                return component;
+            // do the move on the server to to ensure that it is done correctly
+            for (var i = 0; i < state.input.length; i++) {
+                if (state.input[i] === 'up') {
+                    attrs.y -= step;
+                } else if (state.input[i] === 'down') {
+                    attrs.y += step;
+                }
+                if (state.input[i] === 'left') {
+                    attrs.x -= step;
+                } else if (state.input[i] === 'right') {
+                    attrs.x += step;
+                }
             }
         }
 
-        return null;
+        return attrs;
     }
-    // kills off this entity
+    /**
+     * Kills this entity.
+     */
     , die: function() {
-        this.trigger('entity.die');
+        this.trigger('entity.die', [this]);
     }
-    // converts this entity to a json object
-    , toJSON: function() {
-        return {
-            x: this.x
-            , y: this.y
-            , width: this.width
-            , height: this.height
-            , speed: this.speed
-            , image: this.image
-        };
-    }
-
-    // sets properties for this entity from a json object
-    , fromJSON: function(json) {
-        this.x = json.x;
-        this.y = json.y;
-        this.width = json.width;
-        this.height = json.height;
-        this.speed = json.speed;
-        this.image = json.image;
+    /**
+     * Serializes this entity to a JSON object.
+     */
+    , serialize: function() {
+        return this.attrs.get();
     }
 });
 

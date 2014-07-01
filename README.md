@@ -11,28 +11,27 @@ A high level overview of the game structure:
 ### Server
 
 - Built on-top of ExpressJS and Socket.io
-- Authoritative server (as much as possible)
-- Runs logic that cannot be run on the client
+- Authoritative server (does all sensitive calculations)
 - Must be able to handle events from up to 100 clients
-- Uses oddment tables for mobs and items
+- Uses oddment tables for mob spawns and item drops
 - Attaches to client events; emits and broadcasts events to clients
 - Single point of configuration (configuration sent to clients)
 
 ### Client
 
 - Built on-top of the Phaser framework (http://phaser.io)
-- Runs physics (probably using the arcade physics system)
+- Runs physics (arcade physics, and ninja if seen necessary)
 - Renders the game state in real time (doesn't wait for the server)
-- Emits events to the server and attaches to server events (no broadcasting)
+- Emits events to the server and attaches to server events
 - Renders tile-based maps (JSON + png)
 - Uses RequireJS as r.js can convert CommonJS modules to AMD modules
 
-### Game objects
+### Entities
 
-- Maintains the state of the game
-- Base class under shared, client and server classes under respective directory
-- Base classes packaged using r.js for the client
-- Serialized objects are passed over the network (JSON)
+- Final entity class that can be initialized with JSON data through a factory
+- Functionality added by various components (both server and client)
+- Attributes stored under a single property (attributes)
+- Can be serialize to JSON for network communication
 
 ### Gameplay
 
@@ -60,14 +59,16 @@ Things to do, in order of priority:
 - Player game object __DONE__
 - Make clients aware of other clients __DONE__
 - Object inheritance __DONE__
-- Base for shared game objects (server, client) __DONE__
+- Base for shared classes (server, client) __DONE__
 - Support for multiple game states (menu, gameplay, etc.) __DONE__
 - Tile-based maps __DONE__
 - Use namespace for socket communication __DONE__
 - Component support for entities (maybe) __DONE__
-- Spawn maps on the server and send it the to clients
-- Spawn entities on the server and send them to the clients
-- Object multi-inheritance (maybe)
+- Spawn maps on the server and send it the to clients __DONE__
+- Spawn entities on the server and send them to the clients __DONE__
+- Server game loop (10-30 ticks per second)
+- Entity prediction and server reconciliation
+- Entity interpolation
 - Some chest game objects
 - Some monster game objects
 - Oddment tables for item drops (run logic on server)

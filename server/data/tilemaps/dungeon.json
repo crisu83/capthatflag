@@ -1,0 +1,8 @@
+{
+    "key": "dungeon"
+    , "data": "../assets/tilemaps/dungeon.json"
+    , "type": 1
+    , "image": "dungeon"
+    , "src": "assets/images/tilemaps/dungeon.png"
+    , "layers": ["Floor1"]
+}
