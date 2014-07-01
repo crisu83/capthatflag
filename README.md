@@ -3,8 +3,8 @@ dungeon-game
 
 A fast-paced multiplayer action role playing game written in JavaScript.
 
-Requirements
-------------
+Specifications
+--------------
 
 A high level overview of the game structure:
 
@@ -55,6 +55,7 @@ Things to do, in order of priority:
 
 - Basic server __DONE__
 - Basic client __DONE__
+- Modular design with shared classes (AMD + CommonJS) __DONE__
 - Enable socket communication __DONE__
 - Player game object __DONE__
 - Make clients aware of other clients __DONE__
@@ -66,13 +67,14 @@ Things to do, in order of priority:
 - Component support for entities (maybe) __DONE__
 - Spawn maps on the server and send it the to clients __DONE__
 - Spawn entities on the server and send them to the clients __DONE__
-- Server game loop (10-30 ticks per second)
-- Entity prediction and server reconciliation
-- Entity interpolation
+- Server game loop (10-30 ticks per second) __DONE__
+- Entity prediction and server reconciliation __DONE__
+- Synchronize server state to all clients __DONE__
+- Entity delay and interpolation
 - Some chest game objects
 - Some monster game objects
 - Oddment tables for item drops (run logic on server)
 - PVE combat (run logic on server)
 - Multiple socket rooms
-- Generate random maps
+- Randomly generated maps
 - ...
