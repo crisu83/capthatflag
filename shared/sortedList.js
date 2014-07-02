@@ -7,17 +7,11 @@ var utils = require('./utils')
  * Sorted list class.
  * @class shared.SortedList
  * @classdesc Utility class for sorted lists.
+ * @property {array} _items - Internal items for this list.
+ * @property {function} _sort - Function for sorting this list.
  */
 SortedList = utils.inherit(null, {
-    /**
-     * Internal items for this list.
-     * @private
-     */
     _items: null
-    /**
-     * Function for sorting this list.
-     * @private
-     */
     , _sort: null
     /**
      * Creates a new sorted list.

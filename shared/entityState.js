@@ -9,7 +9,7 @@ var _ = require('lodash')
  * @class shared.EntityState
  * @classdesc Utility class for managing entity states.
  * @property {object} current - Currently active state.
- * @property {array} _queue - State item queue.
+ * @property {array} _queue - Intenal state item queue.
  */
 EntityState = utils.inherit(null, {
     current: null

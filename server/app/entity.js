@@ -25,8 +25,9 @@ Entity = utils.inherit(EntityBase, {
     }
     /**
      * Returns the current state of this entity.
-     * @param {boolean} reset whether to set the state to null afterwards
-     * @return {object} current state, or null if no state is set
+     * @method server.Entity#getCurrentState
+     * @param {boolean} reset - Whether to set the state to null afterwards
+     * @return {object} Current state, or null if no state is set.
      */
     , getCurrentState: function(reset) {
         reset = reset || false;

@@ -1,7 +1,7 @@
 'use strict';
 
-var utils = require('../../../shared/utils')
-    , Room = require('../room');
+var utils = require('../../shared/utils')
+    , Room = require('./room');
 
 /**
  * Runs the game.
