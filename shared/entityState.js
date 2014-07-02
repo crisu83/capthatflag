@@ -57,7 +57,7 @@ EntityState = utils.inherit(null, {
      */
     , next: function() {
         if (this._queue.length) {
-            this.current = this.queue.shift();
+            this.current = this._queue.shift();
         }
         return this.current;
     }

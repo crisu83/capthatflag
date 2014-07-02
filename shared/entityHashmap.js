@@ -16,9 +16,9 @@ EntityHashmap = utils.inherit(HashmapBase, {
      * @override
      */
     update: function(elapsed) {
-        for (var id in this.items) {
-            if (this.items.hasOwnProperty(id)) {
-                this.items[id].update(elapsed);
+        for (var id in this._items) {
+            if (this._items.hasOwnProperty(id)) {
+                this._items[id].update(elapsed);
             }
         }
     }

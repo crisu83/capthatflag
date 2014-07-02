@@ -38,7 +38,7 @@ SortedList = utils.inherit(null, {
      * @return {object} Item found, or null if not found
      */
     , get: function(index) {
-        return this.items[index];
+        return this._items[index];
     }
     /**
      * Returns the number of items in this list.
@@ -46,7 +46,7 @@ SortedList = utils.inherit(null, {
      * @return {number} Number of items.
      */
     , size: function() {
-        return this.items.length;
+        return this._items.length;
     }
 });
 
