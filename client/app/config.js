@@ -11,8 +11,7 @@ require.config({
         }
     },
     paths: {
-        client: '.',
-        shared: 'shared',
+        shared: 'shared/',
         lodash: 'lib/lodash/dist/lodash.compat',
         jquery: 'lib/jquery/dist/jquery',
         requirejs: 'lib/requirejs/require',

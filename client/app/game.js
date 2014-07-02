@@ -2,9 +2,9 @@ define([
     'phaser'
     , 'shared/utils'
     , 'shared/entityHashmap'
-    , 'client/entity'
-    , 'client/components/actor'
-    , 'client/components/input'
+    , './entity'
+    , './components/actor'
+    , './components/input'
 ], function (Phaser, utils, EntityHashmap, Entity, ActorComponent, InputComponent) {
     'use strict';
 

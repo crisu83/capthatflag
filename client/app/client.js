@@ -1,7 +1,7 @@
 require([
     'jquery'
     , 'socket.io'
-    , 'client/game'
+    , './game'
 ], function ($, io, game) {
     console.log('connecting to server ...');
 
