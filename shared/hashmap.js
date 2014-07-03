@@ -35,7 +35,7 @@ Hashmap = utils.inherit(null, {
      * @return {object} Item, or null if not found.
      */
     , get: function(key) {
-        return key ? this._items[key] : this.items;
+        return key ? this._items[key] : this._items;
     }
     /**
      * Removes an item from this hashmap and returns it.

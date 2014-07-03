@@ -37,13 +37,14 @@ module.exports = function(grunt) {
             build: 'client/build'
         },
         copy: {
+            // copies the client application files for the build
             build: {
                 files: [
                     {
                         expand: true,
                         cwd: 'client/app/',
                         src: ['**/*.js'],
-                        dest: 'client/build',
+                        dest: 'client/build/app',
                         filter: 'isFile'
                     },
                     {
@@ -55,6 +56,7 @@ module.exports = function(grunt) {
                     }
                 ]
             },
+            // copies the shared files for the client during the build
             shared: {
                 files: [
                     {
@@ -66,6 +68,19 @@ module.exports = function(grunt) {
                     }
                 ]
             },
+            // copies the socket.io client library for the build
+            'socket.io': {
+                files: [
+                    {
+                        expand: true,
+                        cwd: 'node_modules/socket.io/node_modules/socket.io-client',
+                        src: ['socket.io.js'],
+                        dest: 'client/build/lib/socket.io',
+                        filter: 'isFile'
+                    }
+                ]
+            },
+            // copies the assets for the build
             assets: {
                 files: [
                     {
@@ -78,6 +93,7 @@ module.exports = function(grunt) {
                 ]
             }
         },
+        // documentation parser configuration
         jsdoc : {
             dist : {
                 src: [
@@ -91,6 +107,7 @@ module.exports = function(grunt) {
                 }
             }
         },
+        // image minifaction configuration
         imagemin: {
             assets: {
                 files: [{
@@ -101,12 +118,12 @@ module.exports = function(grunt) {
                 }]
             },
         },
+        // jshint configuration
         jshint: {
             files: [
                 'client/app/**/*.js',
                 'server/app/**/*.js',
-                'shared/**/*.js',
-                'Gruntfile.js'
+                'shared/**/*.js'
             ],
             options: {
                 'curly': true, // require curly braces
@@ -129,31 +146,40 @@ module.exports = function(grunt) {
             }
         },
         requirejs: {
+            // development build, client application is built as separate files
             dev: {
                 options: {
                     mainConfigFile: 'client/app/config.js',
                     baseUrl: './',
                     appDir: 'client/build/',
-                    dir: 'client/web/js',
+                    dir: 'client/web/js/',
                     optimize: 'none',
                     removeCombined: true,
                     useStrict: true,
                     cjsTranslate: true
                 }
             },
+            // distribution build, client application is combined to a single file
             dist: {
                 options: {
                     mainConfigFile: 'client/app/config.js',
                     baseUrl: './',
                     appDir: 'client/build/',
-                    dir: 'client/web/js',
+                    dir: 'client/web/js/',
                     optimize: 'uglify2',
+                    modules: [
+                        {
+                            name: 'client',
+                            exclude: ['lodash', 'jquery', 'phaser', 'socket.io'],
+                        }
+                    ],
                     removeCombined: true,
                     useStrict: true,
                     cjsTranslate: true
                 }
             }
         },
+        // watch plugin configuration
         watch: {
             client: {
                 files: [
@@ -174,20 +200,25 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('default', []);
+
+    // development build task
     grunt.registerTask('build', [
         'jshint',
         'copy:build',
         'copy:shared',
         'copy:assets',
+        'copy:socket.io',
         'clean:client',
         'requirejs:dev',
         'clean:build'
     ]);
+
+    // distribution build task
     grunt.registerTask('dist', [
-        'jshint',
         'copy:build',
         'copy:shared',
         'copy:assets',
+        'copy:socket.io',
         'clean:client',
         'requirejs:dist',
         'clean:build',

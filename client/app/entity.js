@@ -26,8 +26,8 @@ define([
 
             // apply all the unprocessed (future) states
             // this is also known as server reconcilation
-            for (var i = 0; i < this.state.queue.length; i++) {
-                attrs = this.simulateState(this.state.queue[i], attrs);
+            for (var i = 0; i < this.state._queue.length; i++) {
+                attrs = this.simulateState(this.state._queue[i], attrs);
             }
 
             // Update attribute values and trigger the sync event

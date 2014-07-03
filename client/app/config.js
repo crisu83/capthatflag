@@ -11,11 +11,12 @@ require.config({
         }
     },
     paths: {
+        app: 'app',
         shared: 'shared',
         lodash: 'lib/lodash/dist/lodash.compat',
         jquery: 'lib/jquery/dist/jquery',
         requirejs: 'lib/requirejs/require',
         phaser: 'lib/phaser-official/build/phaser',
-        'socket.io': '../../socket.io/socket.io'
+        'socket.io': 'lib/socket.io/socket.io'
     }
 });

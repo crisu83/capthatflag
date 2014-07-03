@@ -37,7 +37,7 @@ Node = utils.inherit(null, {
      * @param {array} params - Parameters to call the handlers with.
      */
     , trigger: function(event, params) {
-        if (this.eventHandlers[event]) {
+        if (this._eventHandlers[event]) {
             for (var i = 0; i < this._eventHandlers[event].length; i++) {
                 this._eventHandlers[event][i].apply(this, params);
             }

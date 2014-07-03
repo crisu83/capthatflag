@@ -17,9 +17,9 @@ ClientHashmap = utils.inherit(HashmapBase, {
      * @param {object} state state to synchronize
      */
     sync: function(state) {
-        for (var id in this.items) {
-            if (this.items.hasOwnProperty(id)) {
-                this.items[id].sync(state);
+        for (var id in this._items) {
+            if (this._items.hasOwnProperty(id)) {
+                this._items[id].sync(state);
             }
         }
     }
