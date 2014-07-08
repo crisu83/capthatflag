@@ -16,7 +16,7 @@ var utils = require('../../shared/utils')
  * @property {object} tilemap - Associated tilemap data.
  * @property {server.ClientHashmap} clients - Map of clients connected to the room.
  * @property {shared.EntityHashmap} entities - Map of entities in the room.
- * @property {number} lastTime - Timestamp for when the room logic was last updated.
+ * @property {number} lastTick - Timestamp for when the room logic was last updated.
  */
 Room = utils.inherit(null, {
     id: null
@@ -33,7 +33,7 @@ Room = utils.inherit(null, {
     , constructor: function(io) {
         this.id = shortid.generate();
         this.io = io;
-        // todo: change this to not be hard-coded
+        // TODO change this to not be hard-coded
         this.tilemap = require('../data/tilemaps/dungeon.json');
         this.clients = new ClientHashmap();
         this.entities = new EntityHashmap();
@@ -76,7 +76,8 @@ Room = utils.inherit(null, {
      */
     , gameLoop: function() {
         var now = +new Date()
-            , elapsed;
+            , clients = this.clients.get()
+            , state, elapsed;
 
         this.lastTick = this.lastTick || now;
         elapsed = now - this.lastTick;
@@ -84,7 +85,9 @@ Room = utils.inherit(null, {
         // update the entities in this room
         // and synchronize the current state to all clients
         this.entities.update(elapsed);
-        this.clients.sync(this.getCurrentState());
+        // TODO add support for "area of interest"
+        state = this.getState();
+        this.clients.sync(state);
 
         this.lastTick = now;
     }
@@ -93,14 +96,15 @@ Room = utils.inherit(null, {
      * @method server.Room#getCurrentState
      * @return {object} Current state.
      */
-    , getCurrentState: function() {
+    , getState: function() {
         var current = []
             , entities = this.entities.get()
-            , state;
+            , entity, state;
 
         for (var id in entities) {
             if (entities.hasOwnProperty(id)) {
-                state = entities[id].getCurrentState(true);
+                entity = entities[id];
+                state = entity.state.getCurrent();
                 if (state) {
                     current.push(state);
                 }

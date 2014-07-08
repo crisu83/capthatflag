@@ -30,8 +30,12 @@ EntityComponents = utils.inherit(null, {
      * @override
      */
     , update: function(elapsed) {
+        var component;
         for (var i = 0, len = this._components.size(); i < len; i++) {
-            this._components.get(i).update(elapsed);
+            component = this._components.get(i);
+            if (typeof component.update === 'function') {
+                component.update(elapsed);
+            }
         }
     }
     /**
@@ -41,7 +45,8 @@ EntityComponents = utils.inherit(null, {
      * @return {shared.Component|null} Component instance, or null if not found.
      */
     , get: function(key) {
-        for (var i = 0, component; i < this._components.size(); i++) {
+        var component;
+        for (var i = 0, len = this._components.size(); i < len; i++) {
             component = this._components.get(i);
             if (component.key === key) {
                 return component;

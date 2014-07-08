@@ -23,6 +23,21 @@ ClientHashmap = utils.inherit(HashmapBase, {
             }
         }
     }
+    /**
+     * @override
+     */
+    , add: function(key, value) {
+        HashmapBase.prototype.add.apply(this, arguments);
+        value.on('client.disconnect', this.onClientDisconnect.bind(this));
+    }
+    /**
+     * Event hanlder for when the client disconnects.
+     * @method server.ClientHashmap#onClientDisconnect
+     * @param {string} clientId - Client identifier.
+     */
+    , onClientDisconnect: function(clientId) {
+        this.remove(clientId);
+    }
 });
 
 module.exports = ClientHashmap;

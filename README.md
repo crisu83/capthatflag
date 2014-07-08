@@ -70,7 +70,9 @@ Things to do, in order of priority:
 - Server game loop (10-30 ticks per second) __DONE__
 - Entity prediction and server reconciliation __DONE__
 - Synchronize server state to all clients __DONE__
-- Entity delay and interpolation
+- Entity delay and interpolation __DONE__
+- Change to use Browserify instead of AMD
+- Change to use Primus instead of Socket.io
 - Some chest game objects
 - Some monster game objects
 - Oddment tables for item drops (run logic on server)

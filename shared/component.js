@@ -18,11 +18,11 @@ Component = utils.inherit(Node, {
     , owner: null
     , phase: null
     , phases: {
-        LOGIC: 1
-        , INPUT: 2
+        INPUT: 1
+        , LOGIC: 2
         , MOVEMENT: 3
-        , NETWORK: 4
-        , PHYSICS: 5
+        , PHYSICS: 4
+        , NETWORK: 5
     }
     /**
      * Initializes this component.

@@ -24,3 +24,8 @@
  * Namespace for shared classes.
  * @namespace shared
  */
+
+ /**
+  * Namespace for shared component classes.
+  * @namespace shared.components
+  */

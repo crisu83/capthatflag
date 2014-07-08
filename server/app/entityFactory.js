@@ -20,7 +20,7 @@ EntityFactory = {
         var data = this.loadData(key)
             , entity = new Entity(socket, data);
 
-        // todo: consider including components in the data and attaching them here
+        // TODO: consider including components in the data and attaching them here
 
         return entity;
     }

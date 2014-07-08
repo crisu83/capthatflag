@@ -5,6 +5,7 @@ var _ = require('lodash')
     , shortid = require('shortid')
     , Node = require('../../shared/node')
     , EntityFactory = require('./entityFactory')
+    , PlayerComponent = require('./components/player')
     , config = require('./config.json')
     , Client;
 
@@ -56,6 +57,7 @@ Client = utils.inherit(Node, {
         this.socket.emit('client.init', {
             // client identifier
             id: this.id
+            , delay: config.clientDelay
             // game configuration
             , canvasWidth: config.canvasWidth
             , canvasHeight: config.canvasHeight
@@ -84,21 +86,19 @@ Client = utils.inherit(Node, {
 
         player.attrs.set({
             id: id
-            , clientId: this.id
-            // todo: add some logic for where to spawn the player
+            // TODO: add some logic for where to spawn the player
             // spawn the player at a random location for now
             , x: Math.abs(Math.random() * (config.gameWidth - player.attrs.get('width')))
             , y: Math.abs(Math.random() * (config.gameHeight - player.attrs.get('height')))
         });
 
-        console.log('   player %s created for client %s', player.attrs.get('id'), this.id);
+        player.components.add(new PlayerComponent());
+
+        console.log('   player %s created for client %s', id, this.id);
 
         this.socket.emit('player.create', player.serialize());
 
         this.room.entities.add(id, player);
-
-        // bind event handlers
-        this.socket.on('player.state', this.onPlayerState.bind(this));
 
         this.player = player;
     }
@@ -109,14 +109,6 @@ Client = utils.inherit(Node, {
      */
     , sync: function(state) {
         this.socket.emit('client.sync', state);
-    }
-    /**
-     * Event handler for when an entity is updated.
-     * @method server.Client#onPlayerState
-     * @param {object} state - Player state.
-     */
-    , onPlayerState: function(state) {
-        this.player.state.push(state);
     }
     /**
      * Event handler for when this client disconnects.
@@ -130,7 +122,7 @@ Client = utils.inherit(Node, {
         this.socket.broadcast.emit('player.leave', this.player.attrs.get('id'));
 
         console.log('  client %s disconnected from room %s', this.id, this.room.id);
-        this.trigger('client.disconnect', [this]);
+        this.trigger('client.disconnect', [this.id]);
     }
 });
 

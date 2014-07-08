@@ -4,8 +4,8 @@ define([
     , 'shared/entityHashmap'
     , 'app/entity'
     , 'app/components/actor'
-    , 'app/components/input'
-], function (Phaser, utils, EntityHashmap, Entity, ActorComponent, InputComponent) {
+    , 'app/components/player'
+], function (Phaser, utils, EntityHashmap, Entity, ActorComponent, PlayerComponent) {
     'use strict';
 
     /**
@@ -92,12 +92,12 @@ define([
                 if (physics >= 0) {
                     this.game.physics.enable(sprite, physics);
                     sprite.physicsBodyType = physics;
-                    sprite.body.collideWorldBounds = true;
+                    //sprite.body.collideWorldBounds = true;
                     sprite.body.immovable = true;
                 }
 
                 entity.components.add(new ActorComponent(sprite));
-                entity.components.add(new InputComponent(this.game.input));
+                entity.components.add(new PlayerComponent(this.game.input));
 
                 this.entities.add(playerState.id, entity);
 
@@ -111,6 +111,7 @@ define([
              */
             , onSync: function(worldState) {
                 var entityState, entity, sprite, physics;
+
                 for (var i = 0; i < worldState.length; i++) {
                     entityState = worldState[i];
                     entity = this.entities.get(entityState.id);
@@ -125,7 +126,7 @@ define([
                         if (physics >= 0) {
                             this.game.physics.enable(sprite, physics);
                             sprite.physicsBodyType = physics;
-                            sprite.body.collideWorldBounds = true;
+                            //sprite.body.collideWorldBounds = true;
                             sprite.body.immovable = true;
                         }
 
@@ -157,7 +158,7 @@ define([
              * @param {Phaser.Game} game - Game instance.
              */
             , update: function(game) {
-                // todo: add collision detection
+                // TODO: add collision detection
 
                 var elapsed = game.time.elapsed;
 

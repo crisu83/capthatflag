@@ -26,16 +26,16 @@ EntityHashmap = utils.inherit(HashmapBase, {
      * @override
      */
     , add: function(key, value) {
-        value.on('entity.die', this.onEntityDeath.bind(this));
         HashmapBase.prototype.add.apply(this, arguments);
+        value.on('entity.die', this.onEntityDeath.bind(this));
     }
     /**
      * Event handler for when an entity dies.
      * @method shared.EntityHashmap#onEntityDeath
-     * @param {shared.Entity} entity - Entity instance.
+     * @param {number} entityId - Entity identifier.
      */
-    , onEntityDeath: function(entity) {
-        this.remove(entity.attrs.get('id'));
+    , onEntityDeath: function(entityId) {
+        this.remove(entityId);
     }
 });
 

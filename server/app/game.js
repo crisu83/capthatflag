@@ -9,7 +9,7 @@ var utils = require('../../shared/utils')
  */
 function run(io) {
 
-    // todo: add support for different rooms
+    // TODO: add support for different rooms
 
     var room = new Room(io);
     room.init();

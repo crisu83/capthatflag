@@ -14,7 +14,7 @@ define([
      */
     var ActorComponent = utils.inherit(ComponentBase, {
         key: 'actor'
-        , phase: ComponentBase.prototype.phases.MOVEMENT
+        , phase: ComponentBase.prototype.phases.INPUT
         , sprite: null
         /**
          * Creates a new component.
@@ -54,9 +54,8 @@ define([
          * @param {number} y - Coordinates on the y-axis.
          */
         , setPosition: function(x, y) {
-            // round the values to avoid sub-pixel rendering
-            this.sprite.x = Math.round(x);
-            this.sprite.y = Math.round(y);
+            this.sprite.x = x;
+            this.sprite.y = y;
         }
     });
 

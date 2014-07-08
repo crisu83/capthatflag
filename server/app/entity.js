@@ -3,6 +3,8 @@
 var _ = require('lodash')
     , utils = require('../../shared/utils')
     , EntityBase = require('../../shared/entity')
+    , EntityState = require('../../shared/entityState')
+    , config = require('./config.json')
     , Entity;
 
 /**
@@ -15,31 +17,10 @@ Entity = utils.inherit(EntityBase, {
     /**
      * @override
      */
-    update: function() {
+    update: function(elapsed) {
         EntityBase.prototype.update.apply(this, arguments);
 
-        var state = this.state.next();
-        if (state) {
-            this.applyState(state);
-        }
-    }
-    /**
-     * Returns the current state of this entity.
-     * @method server.Entity#getCurrentState
-     * @param {boolean} reset - Whether to set the state to null afterwards
-     * @return {object} Current state, or null if no state is set.
-     */
-    , getCurrentState: function(reset) {
-        reset = reset || false;
-        var state = null;
-        if (this.state.current) {
-            state = _.extend({}, {timestamp: this.state.current.timestamp}, this.attrs.get());
-
-            if (reset) {
-                this.state.reset();
-            }
-        }
-        return state;
+        this.state.snapshot(this.attrs.get());
     }
 });
 

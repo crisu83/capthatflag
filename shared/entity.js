@@ -3,9 +3,9 @@
 var _ = require('lodash')
     , utils = require('./utils')
     , Node = require('./node')
-    , EntityState = require('./entityState')
     , EntityAttributes = require('./entityAttributes')
     , EntityComponents = require('./entityComponents')
+    , EntityState = require('./entityState')
     , Entity;
 
 /**
@@ -21,9 +21,9 @@ var _ = require('lodash')
 Entity = utils.inherit(Node, {
     key: 'entity'
     , socket: null
-    , state: null
     , attrs: null
     , components: null
+    , state: null
     /**
      * Creates a new entity.
      * @constructor
@@ -34,9 +34,9 @@ Entity = utils.inherit(Node, {
         Node.apply(this);
 
         this.socket = socket;
-        this.state = new EntityState();
         this.attrs = new EntityAttributes(attrs);
         this.components = new EntityComponents(this);
+        this.state = new EntityState();
     }
     /**
      * Updates the logic for this entity.
@@ -47,49 +47,11 @@ Entity = utils.inherit(Node, {
         this.components.update(elapsed);
     }
     /**
-     * Applies a state to this entity.
-     * @method shared.Entity#applyState
-     * @param {object} state - Entity state to apply.
-     */
-    , applyState: function(state) {
-        var attrs = this.simulateState(state);
-        this.attrs.set(attrs);
-    }
-    /**
-     * Simulates the outcome for a state and returns the result.
-     * @method shared.Entity#simulateState
-     * @param {object} state - Entity state to simulate.
-     * @param {object} attrs - Initial attribute values, or null to use current values.
-     */
-    , simulateState: function(state, attrs) {
-        attrs = attrs || this.attrs.get();
-
-        if (state.input && state.elapsed && state.speed) {
-            var step = (state.elapsed / 1000) * state.speed;
-
-            // do the move on the server to to ensure that it is done correctly
-            for (var i = 0; i < state.input.length; i++) {
-                if (state.input[i] === 'up') {
-                    attrs.y -= step;
-                } else if (state.input[i] === 'down') {
-                    attrs.y += step;
-                }
-                if (state.input[i] === 'left') {
-                    attrs.x -= step;
-                } else if (state.input[i] === 'right') {
-                    attrs.x += step;
-                }
-            }
-        }
-
-        return attrs;
-    }
-    /**
      * Kills this entity.
      * @method shared.Entity#die
      */
     , die: function() {
-        this.trigger('entity.die', [this]);
+        this.trigger('entity.die', [this.attrs.get('id')]);
     }
     /**
      * Serializes this entity to a JSON object.

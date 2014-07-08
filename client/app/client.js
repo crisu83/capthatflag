@@ -15,6 +15,11 @@ require([
             console.log('connection established');
         });
 
+        // event handler for when the client joins a room
+        socket.on('client.joinRoom', function(roomId) {
+            console.log('joined room', roomId);
+        });
+
         // event handler for configuring the client
         socket.on('client.init', function(config) {
             // remove the canvas if it was already created
@@ -23,11 +28,6 @@ require([
 
             // run the game
             game.run(socket, config);
-        });
-
-        // event handler for when the client joins a room
-        socket.on('client.joinRoom', function(roomId) {
-            console.log('joined room', roomId);
         });
     });
 });

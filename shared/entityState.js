@@ -8,73 +8,108 @@ var _ = require('lodash')
  * Entity state class.
  * @class shared.EntityState
  * @classdesc Utility class for managing entity states.
- * @property {object} current - Currently active state.
- * @property {array} _queue - Intenal state item queue.
+ * @property {object} _current - Index of the current state snapshot.
+ * @property {array} _snapshots - Intenal state snapshots.
  */
 EntityState = utils.inherit(null, {
-    current: null
-    , _queue: null
+    _current: -1
+    , _snapshots: null
     /**
      * Creates a new entity state queue.
      * @constructor
      */
     , constructor: function() {
-        this._queue = [];
+        this._snapshots = [];
     }
     /**
-     * Adds variables to the current state.
-     * @method shared.EntityState#add
-     * @param {object} vars - Variables to add to the state.
+     * Timestamps and saves a snapshot of the given state.
+     * @method shared.EntityState#snapshot
+     * @param {object} state - State to snapshot.
      */
-    , add: function(vars) {
-        this.current = _.extend(this.current || {}, vars);
+    , snapshot: function(state) {
+        state.timestamp = +new Date();
+        this._snapshots.push(state);
     }
     /**
-     * Discards all items older than or equal the given timestamp.
-     * @method shared.EntityState#discardAt
-     * @param {number} timestamp - Timestamp of the latest item to discard.
+     * TODO
      */
-    , discardAt: function(timestamp) {
-        this._queue = _.filter(this._queue, function(item) {
-            return item.timestamp > timestamp;
-        });
+    , next: function() {
+        if (this._current < this._snapshots.length - 2) {
+            this._current++;
+        }
     }
     /**
-     * Pushes a state to the queue.
-     * @method shared.EntityState#push
-     * @param {object} state - State to push to the queue.
-     * @return {object} Pushed state.
+     * Returns the number of states in the queue.
+     * @method shared.EntityState#size
+     * @return {number} Queue length.
      */
-    , push: function(state) {
-        state.timestamp = state.timestamp || +new Date();
-        this._queue.push(state);
+    , size: function() {
+        return this._snapshots.length;
+    }
+    /**
+     * TODO
+     */
+    , isEmpty: function() {
+        return this.size() === 0;
+    }
+    /**
+     * Returns a snapshot of the current state.
+     * @method shared.EntityState#getCurrent
+     * @return {object} State snapshot.
+     */
+    , getCurrent: function() {
+        var state = this.get(this._current);
+        this.next();
         return state;
     }
     /**
-     * Takes the next state from the queue, sets it as the current state and returns it.
-     * @method shared.EntityState#next
-     * @return {object} Current state.
+     * Returns a snapshot of the next state.
+     * @method shared.EntityState#getNext
+     * @return {object} State snapshot.
      */
-    , next: function() {
-        if (this._queue.length) {
-            this.current = this._queue.shift();
-        }
-        return this.current;
+    , getNext: function() {
+        return this.get(this._current + 1);
     }
     /**
-     * Resets the current state.
-     * @method shared.EntityState#reset
+     * Returns an approximation of the current state using linear interpolation.
+     * @method shared.EntityState#interpolate
+     * @return {object} State snapshot.
      */
-    , reset: function() {
-        this.current = null;
+    , interpolate: function() {
+        // TODO consider making the delay configurable (currently hard-coded at 100).
+        var delayTick = +new Date() - 100
+            , state = this.getCurrent()
+            , next = this.getNext();
+
+        if (state && next) {
+            var factor = (delayTick - state.timestamp) / (next.timestamp - state.timestamp);
+
+            // make sure that the interpolation factor is between 0 and 1.
+            if (factor < 0) {
+                factor = 0;
+            } else if (factor > 1) {
+                factor = 1;
+            }
+
+            for (var name in next) {
+                if (next.hasOwnProperty(name) && state[name]) {
+                    state[name] = utils.lerp(state[name], next[name], factor);
+                }
+            }
+
+            return state;
+        }
+
+        return null;
     }
-     /**
-      * Returns whether this state has changed.
-      * @method shared.EntityState#hasChanged
-      * @return {boolean} The result.
-      */
-    , hasChanged: function() {
-        return this.current !== null;
+    /**
+     * Returns a specific state snapshot.
+     * @method shared.EntityState#get
+     * @param {number} index - Snapshot index.
+     * @return {object} State snapshot.
+     */
+    , get: function(index) {
+        return this._snapshots[index] ? this._snapshots[index] : null;
     }
 });
 
