@@ -1,7 +1,6 @@
 'use strict';
 
 var $ = require('jquery')
-    , io = require('socket.io-client')
     , game = require('./game')
     , primus;
 
