@@ -20,7 +20,7 @@ var utils = require('../../shared/utils')
  */
 Room = utils.inherit(null, {
     id: null
-    , io: null
+    , primus: null
     , tilemap: null
     , clients: null
     , entities: null
@@ -30,9 +30,9 @@ Room = utils.inherit(null, {
      * @constructor
      * @param {socketio.Server} io - Socket server instance.
      */
-    , constructor: function(io) {
+    , constructor: function(primus) {
         this.id = shortid.generate();
-        this.io = io;
+        this.primus = primus;
         // TODO change this to not be hard-coded
         this.tilemap = require('../data/tilemaps/dungeon.json');
         this.clients = new ClientHashmap();
@@ -46,7 +46,7 @@ Room = utils.inherit(null, {
      */
     , init: function() {
         // event handler for when a client connects
-        this.io.on('connection', this.onConnection.bind(this));
+        this.primus.on('connection', this.onConnection.bind(this));
 
         // start the game loop for this room with the configured tick rate
         console.log(' starting game loop for room %s', this.id);
@@ -55,17 +55,16 @@ Room = utils.inherit(null, {
     /**
      * Event handler for when a client connects to this room.
      * @method server.Room#onConnection
-     * @param {socketio.Socket} socket - Socket interface.
+     * @param {primus.Spark} spark - Spark instance.
      */
-    , onConnection: function(socket) {
-        /* jshint camelcase:false */
-        var clientId = socket.decoded_token.id
+    , onConnection: function(spark) {
+        var clientId = shortid.generate()
             , client = this.clients.get(clientId);
 
         // make sure that we do not create the game multiple times in
         // the client, that will cause an infinite loop and jam the browser
         if (!client) {
-            client = new Client(clientId, socket, this);
+            client = new Client(clientId, spark, this);
             client.init();
             this.clients.add(clientId, client);
         }

@@ -8,10 +8,10 @@ var utils = require('../../shared/utils')
 
 /**
  * Runs the game.
- * @param {Socket} socket - Socket interface.
+ * @param {primus.Client} primus - Client instance.
  * @param {object} config - Game configuration.
  */
-function run(socket, config) {
+function run(primus, config) {
     console.log('creating client', config);
 
     /**
@@ -19,7 +19,7 @@ function run(socket, config) {
      * @class client.GameplayState
      * @classdesc Game state that runs the acutal game.
      * @extends Phaser.State
-     * @property {dungeon.shared.EntityHashmap} entities - Map over entities in the state.
+     * @property {shared.EntityHashmap} entities - Map over entities in the state.
      */
     var GameplayState = utils.inherit(Phaser.State, {
         entities: null
@@ -69,11 +69,11 @@ function run(socket, config) {
             layer.resizeWorld();
 
             // bind event handlers
-            socket.on('player.create', this.onPlayerCreate.bind(this));
-            socket.on('player.leave', this.onPlayerLeave.bind(this));
+            primus.on('player.create', this.onPlayerCreate.bind(this));
+            primus.on('player.leave', this.onPlayerLeave.bind(this));
 
             // let the server know that client is ready
-            socket.emit('client.ready');
+            primus.emit('client.ready');
         }
         /**
          * Event handler for creating the player.
@@ -83,7 +83,7 @@ function run(socket, config) {
         , onPlayerCreate: function(playerState) {
             console.log('creating player', playerState);
 
-            var entity = new Entity(socket, playerState)
+            var entity = new Entity(primus, playerState)
                 , sprite = this.game.add.sprite(playerState.x, playerState.y, playerState.image)
                 , physics = entity.attrs.get('physics');
 
@@ -100,7 +100,7 @@ function run(socket, config) {
             this.entities.add(playerState.id, entity);
 
             // now we are ready to synchronization the world with the server
-            socket.on('client.sync', this.onSync.bind(this));
+            primus.on('client.sync', this.onSync.bind(this));
         }
         /**
          * Event handler for synchronizing the client with the server.
@@ -117,7 +117,7 @@ function run(socket, config) {
                 // if the entity does not exist, we need to create it
                 if (!entity) {
                     console.log('creating new entity', entityState);
-                    entity = new Entity(socket, entityState);
+                    entity = new Entity(primus, entityState);
                     sprite = this.game.add.sprite(entityState.x, entityState.y, entityState.image);
                     physics = entity.attrs.get('physics');
 
@@ -140,12 +140,12 @@ function run(socket, config) {
         /**
          * Event handler for when a player leaves.
          * @method client.GameplayState#onPlayerLeave
-         * @param {string} id - Player identifier.
+         * @param {string} playerId - Player identifier.
          */
-        , onPlayerLeave: function (id) {
-            console.log('player left', id);
+        , onPlayerLeave: function (playerId) {
+            console.log('player left', playerId);
 
-            var player = this.entities.get(id);
+            var player = this.entities.get(playerId);
             if (player) {
                 player.die();
             }
@@ -163,8 +163,6 @@ function run(socket, config) {
             this.entities.update(elapsed);
         }
     });
-
-    console.log(Phaser);
 
     // create the actual game
     var game = new Phaser.Game(config.canvasWidth, config.canvasHeight, Phaser.AUTO);

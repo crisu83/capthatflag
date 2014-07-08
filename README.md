@@ -10,7 +10,7 @@ A high level overview of the game structure:
 
 ### Server
 
-- Built on-top of ExpressJS and Socket.io
+- Built on-top of ExpressJS and Primus.io
 - Authoritative server (does all sensitive calculations)
 - Must be able to handle events from up to 100 clients
 - Uses oddment tables for mob spawns and item drops
@@ -30,7 +30,7 @@ A high level overview of the game structure:
 
 - Final entity class that can be initialized with JSON data through a factory
 - Functionality added by various components (both server and client)
-- Attributes stored under a single property (attributes)
+- Attributes stored under a single property
 - Can be serialize to JSON for network communication
 
 ### Gameplay
@@ -55,7 +55,7 @@ Things to do, in order of priority:
 
 - Basic server __DONE__
 - Basic client __DONE__
-- Modular design with shared classes (AMD + CommonJS) __DONE__
+- Modular design with shared classes __DONE__
 - Enable socket communication __DONE__
 - Player game object __DONE__
 - Make clients aware of other clients __DONE__
@@ -71,8 +71,7 @@ Things to do, in order of priority:
 - Entity prediction and server reconciliation __DONE__
 - Synchronize server state to all clients __DONE__
 - Entity delay and interpolation __DONE__
-- Change to use Browserify instead of AMD
-- Change to use Primus instead of Socket.io
+- Fix client prediction and server reconciliation
 - Some chest game objects
 - Some monster game objects
 - Oddment tables for item drops (run logic on server)

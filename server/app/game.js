@@ -5,13 +5,13 @@ var utils = require('../../shared/utils')
 
 /**
  * Runs the game.
- * @param {socketio.Server} io - Socket server instance.
+ * @param {primus.Server} io - Primus server instance.
  */
-function run(io) {
+function run(primus) {
 
     // TODO: add support for different rooms
 
-    var room = new Room(io);
+    var room = new Room(primus);
     room.init();
 }
 

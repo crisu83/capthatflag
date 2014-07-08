@@ -13,7 +13,7 @@ var _ = require('lodash')
  * @class shared.Entity
  * @classdesc Base class for both the client- and server-side entity classes.
  * @extends shared.Node
- * @property {socketio.Socket} socket - Socket interface for this entity.
+ * @property {primus.Client|primus.Spark} socket - Socket interface for this entity.
  * @property {shared.EntityState} state - Entity state instance.
  * @property {shared.EntityAttributes} attrs - Entity attributes instance.
  * @property {shared.EntityComponents} components - Entity components instance.

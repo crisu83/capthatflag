@@ -21,21 +21,21 @@ var _ = require('lodash')
 Client = utils.inherit(Node, {
     key: 'client'
     , id: null
-    , socket: null
+    , spark: null
     , room: null
     , player: null
     /**
      * Creates a new client.
      * @constructor
-     * @param {string} id client identifier
-     * @param {Socket} socket socket interface
-     * @param {server.Room} room instance
+     * @param {string} id - Client identifier.
+     * @param {primus.Spark} spark - Spark instance.
+     * @param {server.Room} room - Room instance.
      */
-    , constructor: function(id, socket, room) {
+    , constructor: function(id, spark, room) {
         Node.apply(this);
 
         this.id = id;
-        this.socket = socket;
+        this.spark = spark;
         this.room = room;
 
         console.log('  client %s created for room %s', this.id, this.room.id);
@@ -45,16 +45,13 @@ Client = utils.inherit(Node, {
      * @method server.Client#init
      */
     , init: function() {
-        // create a socket for this room and join it
-        this.socket.join(this.room.id);
-
         // let the client know to which room they have connected
-        this.socket.emit('client.joinRoom', this.room.id);
+        this.spark.emit('client.joinRoom', this.room.id);
 
         console.log('  client %s connected to room %s', this.id, this.room.id);
 
         // send the configuration to the client
-        this.socket.emit('client.init', {
+        this.spark.emit('client.init', {
             // client identifier
             id: this.id
             , delay: config.clientDelay
@@ -73,15 +70,15 @@ Client = utils.inherit(Node, {
         });
 
         // bind event handlers
-        this.socket.on('client.ready', this.onReady.bind(this));
-        this.socket.on('disconnect', this.onDisconnect.bind(this));
+        this.spark.on('client.ready', this.onReady.bind(this));
+        this.spark.on('end', this.onDisconnect.bind(this));
     }
     /**
      * Event handler for when this client is ready.
      * @method server.Client#onReady
      */
     , onReady: function() {
-        var player = EntityFactory.create(this.socket, 'player')
+        var player = EntityFactory.create(this.spark, 'player')
             , id = shortid.generate();
 
         player.attrs.set({
@@ -96,7 +93,7 @@ Client = utils.inherit(Node, {
 
         console.log('   player %s created for client %s', id, this.id);
 
-        this.socket.emit('player.create', player.serialize());
+        this.spark.emit('player.create', player.serialize());
 
         this.room.entities.add(id, player);
 
@@ -108,18 +105,22 @@ Client = utils.inherit(Node, {
      * @param {object} state - State to synchronize.
      */
     , sync: function(state) {
-        this.socket.emit('client.sync', state);
+        this.spark.emit('client.sync', state);
     }
     /**
      * Event handler for when this client disconnects.
      * @method server.Client#onDisconnect
      */
     , onDisconnect: function() {
+        var playerId = this.player.attrs.get('id');
+
         // remove the player
         this.player.die();
 
         // let other clients know that this client has left the room
-        this.socket.broadcast.emit('player.leave', this.player.attrs.get('id'));
+        this.room.primus.forEach(function(spark) {
+            spark.emit('player.leave', playerId);
+        });
 
         console.log('  client %s disconnected from room %s', this.id, this.room.id);
         this.trigger('client.disconnect', [this.id]);

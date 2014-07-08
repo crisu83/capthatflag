@@ -2,13 +2,11 @@
 
 var express = require('express')
     , path = require('path')
-    , socketio = require('socket.io')
-    , socketioJwt = require('socketio-jwt')
-    , jwt = require('jsonwebtoken')
+    , Primus = require('primus')
     , shortid = require('shortid')
     , game = require('./game')
     , config = require('./config.json')
-    , webRoot, app, server, io;
+    , webRoot, app, server, primus;
 
 // resolve the path to the web root
 webRoot = path.resolve(__dirname, '../../client/web');
@@ -19,19 +17,6 @@ app = express();
 // serve static files under /static
 app.use('/static', express.static(webRoot));
 
-// handle authentication under /auth
-app.post('/auth', function (req, res) {
-    // generate the authentication token
-    var token = jwt.sign(
-        { id: shortid.generate() }
-        , config.appSecret
-        , { expiresInMinutes: config.tokenExpiresMinutes }
-    );
-
-    // send a response containing the token and the socket namespace
-    res.json({token: token, namespace: config.socketNamespace});
-});
-
 // redirect all other requests to our index.html file
 app.get('/', function(req, res) {
     res.sendfile('index.html', {root: webRoot});
@@ -41,9 +26,14 @@ app.get('/', function(req, res) {
 server = app.listen(config.port);
 console.log('game server started on port %d', server.address().port);
 
-// initialize socket, a namespace and authorize the connection
-io = socketio.listen(server).of(config.socketNamespace);
-io.use(socketioJwt.authorize({secret: config.appSecret, handshake: true}));
+// initialize primus
+primus = new Primus(server, {
+    pathname: config.socketNamespace
+    , transformer: 'engine.io'
+});
+
+// enable the primus-emit plugin
+primus.use('emit', require('primus-emit'));
 
 // run the game server
-game.run(io);
+game.run(primus);
