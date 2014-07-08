@@ -47,6 +47,10 @@
 							<a href="shared.html">shared</a>
 						</li>
 						
+						<li>
+							<a href="shared.components.html">shared.components</a>
+						</li>
+						
 
 					</ul>
 				</li>
@@ -62,7 +66,7 @@
 						</li>
 						
 						<li>
-							<a href="client.components.InputComponent.html">client.components.InputComponent</a>
+							<a href="client.components.PlayerComponent.html">client.components.PlayerComponent</a>
 						</li>
 						
 						<li>
@@ -95,6 +99,10 @@
 						
 						<li>
 							<a href="shared.Component.html">shared.Component</a>
+						</li>
+						
+						<li>
+							<a href="shared.components.html#PlayerComponent">shared.components.PlayerComponent</a>
 						</li>
 						
 						<li>
@@ -140,11 +148,15 @@
 					<ul class="dropdown-menu ">
 						
 						<li>
-							<a href="global.html#_items">_items</a>
+							<a href="global.html#inherit">inherit</a>
 						</li>
 						
 						<li>
-							<a href="global.html#inherit">inherit</a>
+							<a href="global.html#init">init</a>
+						</li>
+						
+						<li>
+							<a href="global.html#lerp">lerp</a>
 						</li>
 						
 						<li>
@@ -241,7 +253,7 @@
 
         <tr>
             
-                <td class="name"><code>current</code></td>
+                <td class="name"><code>_current</code></td>
             
 
             <td class="type">
@@ -257,14 +269,14 @@
 
             
 
-            <td class="description last">Currently active state.</td>
+            <td class="description last">Index of the current state snapshot.</td>
         </tr>
 
 	
 
         <tr>
             
-                <td class="name"><code>_queue</code></td>
+                <td class="name"><code>_snapshots</code></td>
             
 
             <td class="type">
@@ -280,7 +292,7 @@
 
             
 
-            <td class="description last">State item queue.</td>
+            <td class="description last">Intenal state snapshots.</td>
         </tr>
 
 	
@@ -352,7 +364,7 @@
         <dl>
             
 <dt>
-    <h4 class="name" id="add"><span class="type-signature"></span>add<span class="signature">(vars)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="get"><span class="type-signature"></span>get<span class="signature">(index)</span><span class="type-signature"> &rarr; {object}</span></h4>
     
     
 </dt>
@@ -360,7 +372,7 @@
     
     
     <div class="description">
-        Adds variables to the current state.
+        Returns a specific state snapshot.
     </div>
     
 
@@ -394,122 +406,7 @@
 
         <tr>
             
-                <td class="name"><code>vars</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Variables to add to the state.</td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="discardAt"><span class="type-signature"></span>discardAt<span class="signature">(timestamp)</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        Discards all items older than or equal the given timestamp.
-    </div>
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>timestamp</code></td>
+                <td class="name"><code>index</code></td>
             
 
             <td class="type">
@@ -525,7 +422,7 @@
 
             
 
-            <td class="description last">Timestamp of the latest item to discard.</td>
+            <td class="description last">Snapshot index.</td>
         </tr>
 
 	
@@ -575,166 +472,11 @@
     
     
     
-    
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="hasChanged"><span class="type-signature"></span>hasChanged<span class="signature">()</span><span class="type-signature"> &rarr; {boolean}</span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        Returns whether this state has changed.
-    </div>
-    
-
-    
-    
-    
-    
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
     <h5>Returns:</h5>
     
             
 <div class="param-desc">
-    The result.
-</div>
-
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">boolean</span>
-
-
-	</dd>
-</dl>
-
-
-        
-    
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="next"><span class="type-signature"></span>next<span class="signature">()</span><span class="type-signature"> &rarr; {object}</span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        Takes the next state from the queue, sets it as the current state and returns it.
-    </div>
-    
-
-    
-    
-    
-    
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    Current state.
+    State snapshot.
 </div>
 
 
@@ -760,7 +502,7 @@
         
             
 <dt>
-    <h4 class="name" id="push"><span class="type-signature"></span>push<span class="signature">(state)</span><span class="type-signature"> &rarr; {object}</span></h4>
+    <h4 class="name" id="getCurrent"><span class="type-signature"></span>getCurrent<span class="signature">()</span><span class="type-signature"> &rarr; {object}</span></h4>
     
     
 </dt>
@@ -768,7 +510,363 @@
     
     
     <div class="description">
-        Pushes a state to the queue.
+        Returns a snapshot of the current state.
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    State snapshot.
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">object</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getNext"><span class="type-signature"></span>getNext<span class="signature">()</span><span class="type-signature"> &rarr; {object}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Returns a snapshot of the next state.
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    State snapshot.
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">object</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="interpolate"><span class="type-signature"></span>interpolate<span class="signature">()</span><span class="type-signature"> &rarr; {object}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Returns an approximation of the current state using linear interpolation.
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    State snapshot.
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">object</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="size"><span class="type-signature"></span>size<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Returns the number of states in the queue.
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    Queue length.
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">number</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="snapshot"><span class="type-signature"></span>snapshot<span class="signature">(state)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Timestamps and saves a snapshot of the given state.
     </div>
     
 
@@ -818,102 +916,13 @@
 
             
 
-            <td class="description last">State to push to the queue.</td>
+            <td class="description last">State to snapshot.</td>
         </tr>
 
 	
 	</tbody>
 </table>
 
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    Pushed state.
-</div>
-
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">object</span>
-
-
-	</dd>
-</dl>
-
-
-        
-    
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="reset"><span class="type-signature"></span>reset<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        Resets the current state.
-    </div>
-    
-
-    
-    
-    
-    
     
     
     
@@ -982,7 +991,7 @@
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.2</a>
-		on 2014-07-01T23:41:23+03:00 using the <a
+		on 2014-07-08T22:46:05+03:00 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
