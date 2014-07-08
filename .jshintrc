@@ -15,5 +15,5 @@
     //"unused": true, // warn about unused variables
     "camelcase": true, // camel case variable and function names
     "indent": 4, // indent length
-    "predef": ["define"]
+    "predef": ["define", "Phaser"]
 }

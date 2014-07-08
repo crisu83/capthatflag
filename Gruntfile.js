@@ -24,7 +24,11 @@ module.exports = function(grunt) {
         return files;
     }
 
-    require('load-grunt-tasks')(grunt);
+    // time the grunt build
+    require('time-grunt')(grunt);
+
+    // enable the "just-in-time" plugin loader
+    require('jit-grunt')(grunt);
 
     var bowerMainFiles = findBowerMainFiles(
         path.resolve(__dirname, 'client/bower_components')
@@ -36,46 +40,42 @@ module.exports = function(grunt) {
             client: 'client/web/js',
             build: 'client/build'
         },
+        browserify: {
+            client: {
+                files: {
+                    'client/build/client.bundle.js': 'client/app/client.js'
+                }
+            }
+        },
+        concat: {
+            client: {
+                src: [
+                    'client/build/lib/**/*.js',
+                    'client/build/client.bundle.js'
+                ],
+                dest: 'client/build/client.js'
+            },
+        },
         copy: {
-            // copies the client application files for the build
-            build: {
+            client: {
                 files: [
                     {
                         expand: true,
-                        cwd: 'client/app/',
-                        src: ['**/*.js'],
-                        dest: 'client/build/app',
+                        cwd: 'client/build',
+                        src: ['client.js'],
+                        dest: 'client/web/js',
                         filter: 'isFile'
-                    },
+                    }
+                ]
+            },
+            // copies the client application files for the build
+            libs: {
+                files: [
                     {
                         expand: true,
                         cwd: 'client/bower_components/',
                         src: bowerMainFiles,
                         dest: 'client/build/lib',
-                        filter: 'isFile'
-                    }
-                ]
-            },
-            // copies the shared files for the client during the build
-            shared: {
-                files: [
-                    {
-                        expand: true,
-                        cwd: 'shared/',
-                        src: ['**/*.js'],
-                        dest: 'client/build/shared',
-                        filter: 'isFile'
-                    }
-                ]
-            },
-            // copies the socket.io client library for the build
-            'socket.io': {
-                files: [
-                    {
-                        expand: true,
-                        cwd: 'node_modules/socket.io/node_modules/socket.io-client',
-                        src: ['socket.io.js'],
-                        dest: 'client/build/lib/socket.io',
                         filter: 'isFile'
                     }
                 ]
@@ -129,37 +129,10 @@ module.exports = function(grunt) {
                 jshintrc: '.jshintrc'
             }
         },
-        requirejs: {
-            // development build, client application is built as separate files
-            dev: {
-                options: {
-                    mainConfigFile: 'client/app/config.js',
-                    baseUrl: './',
-                    appDir: 'client/build/',
-                    dir: 'client/web/js/',
-                    optimize: 'none',
-                    removeCombined: true,
-                    useStrict: true,
-                    cjsTranslate: true
-                }
-            },
-            // distribution build, client application is combined to a single file
-            dist: {
-                options: {
-                    mainConfigFile: 'client/app/config.js',
-                    baseUrl: './',
-                    appDir: 'client/build/',
-                    dir: 'client/web/js/',
-                    optimize: 'uglify2',
-                    modules: [
-                        {
-                            name: 'client',
-                            exclude: ['lodash', 'jquery', 'phaser', 'socket.io'],
-                        }
-                    ],
-                    removeCombined: true,
-                    useStrict: true,
-                    cjsTranslate: true
+        uglify: {
+            client: {
+                files: {
+                    'client/web/js/client.js': ['client/build/client.js']
                 }
             }
         },
@@ -188,23 +161,23 @@ module.exports = function(grunt) {
     // development build task
     grunt.registerTask('build', [
         'jshint',
-        'copy:build',
-        'copy:shared',
+        'browserify:client',
+        'copy:libs',
+        'concat:client',
         'copy:assets',
-        'copy:socket.io',
         'clean:client',
-        'requirejs:dev',
+        'copy:client',
         'clean:build'
     ]);
 
     // distribution build task
     grunt.registerTask('dist', [
-        'copy:build',
-        'copy:shared',
+        'browserify:client',
+        'copy:libs',
+        'concat:client',
         'copy:assets',
-        'copy:socket.io',
         'clean:client',
-        'requirejs:dist',
+        'uglify:client',
         'clean:build',
         'imagemin:assets'
     ]);
