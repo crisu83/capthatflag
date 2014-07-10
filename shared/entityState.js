@@ -37,6 +37,12 @@ EntityState = utils.inherit(null, {
         if (this._current < this._snapshots.length - 2) {
             this._current++;
         }
+
+        var timestamp = +new Date() - 1000;
+
+        this._snapshots = _.filter(this._snapshots, function(state) {
+            return state.timestamp > timestamp;
+        });
     }
     /**
      * Returns the number of states in the queue.
@@ -76,15 +82,16 @@ EntityState = utils.inherit(null, {
      * @return {object} State snapshot.
      */
     , interpolate: function() {
-        // TODO consider making the delay configurable (currently hard-coded at 100).
-        var delayTick = +new Date() - 100
+        // TODO consider making the lerp configurable (currently hard-coded at 100)
+        var lerpMsec = 100
+            , delayTick = +new Date() - lerpMsec
             , state = this.getCurrent()
             , next = this.getNext();
 
         if (state && next) {
             var factor = (delayTick - state.timestamp) / (next.timestamp - state.timestamp);
 
-            // make sure that the interpolation factor is between 0 and 1.
+            // make sure that the interpolation factor is between 0 and 1
             if (factor < 0) {
                 factor = 0;
             } else if (factor > 1) {

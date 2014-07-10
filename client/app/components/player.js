@@ -63,7 +63,6 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         if (actor) {
             var speed = this.owner.attrs.get('speed')
-                , step = (elapsed / 1000) * speed
                 , input;
 
             // TODO consider moving speed to the server only

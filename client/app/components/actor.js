@@ -13,7 +13,7 @@ var utils = require('../../../shared/utils')
  */
 ActorComponent = utils.inherit(ComponentBase, {
     key: 'actor'
-    , phase: ComponentBase.prototype.phases.INPUT
+    , phase: ComponentBase.prototype.phases.MOVEMENT
     , sprite: null
     /**
      * Creates a new component.
