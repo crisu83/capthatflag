@@ -10,16 +10,15 @@ var _ = require('lodash')
  * @class client.components.PlayerComponent
  * @classdesc Client-isde component that adds support for taking user input.
  * @extends shared.Component
- * @property {Phaser.Input} input - Associated input manager instance.
- * @property {object} - Cursor keys object literal.
+ * @property {Phaser.Input} input - Input manager instance.
+ * @property {object} - Cursor keys.
  */
 PlayerComponent = utils.inherit(ComponentBase, {
-    key: 'player'
-    , phase: ComponentBase.prototype.phases.INPUT
-    , input: null
-    , cursorKeys: null
+    input: null
+    , _cursorKeys: null
+    , _commands: null
     , _sequence: 0
-    , _inputs: null
+    , _lastSyncAt: null
     /**
      * Creates a new component.
      * @constructor
@@ -27,31 +26,8 @@ PlayerComponent = utils.inherit(ComponentBase, {
      */
     , constructor: function(input) {
         this.input = input;
-        this.cursorKeys = this.input.keyboard.createCursorKeys();
-        this._inputs = [];
-    }
-    /**
-     * @override
-     */
-    , init: function() {
-        this.owner.on('entity.sync', this.onEntitySync.bind(this));
-    }
-    /**
-     * Event handler for when the associated entity is synchronized.
-     * @method client.components.PlayerComponent#onEntitySync
-     */
-    , onEntitySync: function(state) {
-        var attrs = _.omit(state, ['inputSequence']);
-
-        this._inputs = _.filter(this._inputs, function(input) {
-            return input.sequence > state.inputSequence;
-        });
-
-        for (var i = 0; i < this._inputs.length; i++) {
-            attrs = this.simulateInput(this._inputs[i], attrs);
-        }
-
-        this.owner.attrs.set(attrs);
+        this._cursorKeys = this.input.keyboard.createCursorKeys();
+        this._commands = [];
     }
     /**
      * @override
@@ -59,38 +35,37 @@ PlayerComponent = utils.inherit(ComponentBase, {
     , update: function(elapsed) {
         ComponentBase.prototype.update.apply(this, arguments);
 
-        var actor = this.owner.components.get('actor');
+        var now = +new Date()
+            , speed = this.owner.attrs.get('speed')
+            , command = {down: [], speed: speed, elapsed: elapsed, sequence: null};
 
-        if (actor) {
-            var speed = this.owner.attrs.get('speed')
-                , input;
+        if (this._cursorKeys.up.isDown) {
+            command.down.push('up');
+        } else if (this._cursorKeys.down.isDown) {
+            command.down.push('down');
+        }
+        if (this._cursorKeys.left.isDown) {
+            command.down.push('left');
+        } else if (this._cursorKeys.right.isDown) {
+            command.down.push('right');
+        }
 
-            // TODO consider moving speed to the server only
+        if (command.down.length) {
+            command.sequence = this._sequence++;
 
-            input = {down: [], speed: speed, elapsed: elapsed};
-
-            if (this.cursorKeys.up.isDown) {
-                input.down.push('up');
-            } else if (this.cursorKeys.down.isDown) {
-                input.down.push('down');
+            if (this.owner.config.enablePrediction) {
+                var attrs = this.applyCommand(command);
+                this.owner.attrs.set(attrs);
             }
-            if (this.cursorKeys.left.isDown) {
-                input.down.push('left');
-            } else if (this.cursorKeys.right.isDown) {
-                input.down.push('right');
-            }
 
-            // move the player immediately without waiting for the response
-            // from the server to avoid an unnecessary lag effect
-            if (input.down.length) {
-                // TODO figure out why we cannot use x and y from attrs
-                var attrs = {x: actor.sprite.x, y: actor.sprite.y};
-                attrs = this.simulateInput(input, attrs);
-                actor.setPosition(attrs.x, attrs.y);
-                input.sequence = this._sequence++;
-                this._inputs.push(input);
-                this.owner.socket.emit('player.input', input);
-            }
+            this._commands.push(command);
+        }
+
+        if (this._commands.length && (!this._lastSyncAt || (now - this._lastSyncAt) > 1000 / this.owner.config.tickRate)) {
+            this.owner.socket.emit('player.input', this._commands);
+
+            this._commands = [];
+            this._lastSyncAt = now;
         }
     }
 });

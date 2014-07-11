@@ -34,11 +34,13 @@ function inherit(parent, proto, props) {
     }
 
     // define object properties
+    /*
     for (var name in props) {
         if (props.hasOwnProperty(name)) {
             Object.defineProperty(child, name, props[name]);
         }
     }
+    */
 
     return child;
 }

@@ -1,11 +1,11 @@
 'use strict';
 
 var _ = require('lodash')
+    , shortid = require('shortid')
     , utils = require('./utils')
     , Node = require('./node')
     , EntityAttributes = require('./entityAttributes')
     , EntityComponents = require('./entityComponents')
-    , EntityState = require('./entityState')
     , Entity;
 
 /**
@@ -13,30 +13,35 @@ var _ = require('lodash')
  * @class shared.Entity
  * @classdesc Base class for both the client- and server-side entity classes.
  * @extends shared.Node
+ * @property {string} id - Unique entity identifier.
+ * @property {object} config - Game configuration.
  * @property {primus.Client|primus.Spark} socket - Socket interface for this entity.
- * @property {shared.EntityState} state - Entity state instance.
  * @property {shared.EntityAttributes} attrs - Entity attributes instance.
  * @property {shared.EntityComponents} components - Entity components instance.
  */
 Entity = utils.inherit(Node, {
     key: 'entity'
+    , id: null
     , socket: null
+    , config: null
     , attrs: null
     , components: null
-    , state: null
     /**
      * Creates a new entity.
      * @constructor
      * @param {socketio.Socket} socket - Socket interface.
-     * @param {object} attrs - Initial attributes.
+     * @param {object} data - Entity data.
+     * @param {object} config - Game configuration.
      */
-    , constructor: function(socket, attrs) {
+    , constructor: function(socket, data, config) {
         Node.apply(this);
 
+        this.id = data.id;
+        this.key = data.key || 'entity';
         this.socket = socket;
-        this.attrs = new EntityAttributes(attrs);
+        this.config = config;
+        this.attrs = new EntityAttributes(data.attrs);
         this.components = new EntityComponents(this);
-        this.state = new EntityState();
     }
     /**
      * Updates the logic for this entity.
@@ -51,14 +56,14 @@ Entity = utils.inherit(Node, {
      * @method shared.Entity#die
      */
     , die: function() {
-        this.trigger('entity.die', [this.attrs.get('id')]);
+        this.trigger('entity.die', [this.id]);
     }
     /**
      * Serializes this entity to a JSON object.
      * @method shared.Entity#serialize
      */
     , serialize: function() {
-        return this.attrs.get();
+        return {id: this.id, key: this.key, attrs: this.attrs.get()};
     }
 });
 

@@ -2,6 +2,7 @@
 
 var utils = require('../../shared/utils')
     , EntityHashmap = require('../../shared/entityHashmap')
+    , StateHistory = require('../../shared/stateHistory')
     , Entity = require('./entity')
     , ActorComponent = require('./components/actor')
     , PlayerComponent = require('./components/player');
@@ -23,12 +24,15 @@ function run(primus, config) {
      */
     var GameplayState = utils.inherit(Phaser.State, {
         entities: null
+        , player: null
+        , _stateHistory: null
         /**
          * Creates a new game state.
          * @constructor
          */
         , constructor: function() {
             this.entities = new EntityHashmap();
+            this._stateHistory = new StateHistory((1000 / config.tickRate) * 3);
         }
         /**
          * Loads the game assets.
@@ -78,14 +82,14 @@ function run(primus, config) {
         /**
          * Event handler for creating the player.
          * @method client.GameplayState#onPlayerCreate
-         * @param {object} playerState - Player state.
+         * @param {object} state - Player state.
          */
-        , onPlayerCreate: function(playerState) {
-            console.log('creating player', playerState);
+        , onPlayerCreate: function(state) {
+            console.log('creating player', state);
 
-            var entity = new Entity(primus, playerState)
-                , sprite = this.game.add.sprite(playerState.x, playerState.y, playerState.image)
-                , physics = entity.attrs.get('physics');
+            var entity = this.createEntity(state)
+                , sprite = this.game.add.sprite(state.attrs.x, state.attrs.y, state.attrs.image)
+                , physics = state.attrs.physics || -1;
 
             if (physics >= 0) {
                 this.game.physics.enable(sprite, physics);
@@ -97,7 +101,9 @@ function run(primus, config) {
             entity.components.add(new ActorComponent(sprite));
             entity.components.add(new PlayerComponent(this.game.input));
 
-            this.entities.add(playerState.id, entity);
+            this.entities.add(state.id, entity);
+
+            this.player = entity;
 
             // now we are ready to synchronization the world with the server
             primus.on('client.sync', this.onSync.bind(this));
@@ -108,18 +114,20 @@ function run(primus, config) {
          * @param {object} worldState - World state.
          */
         , onSync: function(worldState) {
-            var entityState, entity, sprite, physics;
+            var state, entity, sprite, physics;
+
+            this._stateHistory.snapshot(worldState);
 
             for (var i = 0; i < worldState.length; i++) {
-                entityState = worldState[i];
-                entity = this.entities.get(entityState.id);
+                state = worldState[i];
+                entity = this.entities.get(state.id);
 
                 // if the entity does not exist, we need to create it
                 if (!entity) {
-                    console.log('creating new entity', entityState);
-                    entity = new Entity(primus, entityState);
-                    sprite = this.game.add.sprite(entityState.x, entityState.y, entityState.image);
-                    physics = entity.attrs.get('physics');
+                    console.log('creating new entity', state);
+                    entity = this.createEntity(state);
+                    sprite = this.game.add.sprite(state.attrs.x, state.attrs.y, state.attrs.image);
+                    physics = state.attrs.physics || -1;
 
                     if (physics >= 0) {
                         this.game.physics.enable(sprite, physics);
@@ -128,24 +136,30 @@ function run(primus, config) {
                         sprite.body.immovable = true;
                     }
 
+                    if (!entity) {
+                        throw new Error('Failed to create entity ' + state.id + '!');
+                    }
+
                     entity.components.add(new ActorComponent(sprite));
 
-                    this.entities.add(entityState.id, entity);
+                    this.entities.add(entity.id, entity);
                 }
 
-                // synchronize the state of the entity
-                entity.sync(entityState);
+                if (state.id !== this.player.id) {
+                    entity.attrs.set(state.attrs);
+                }
             }
         }
         /**
          * Event handler for when a player leaves.
          * @method client.GameplayState#onPlayerLeave
-         * @param {string} playerId - Player identifier.
+         * @param {string} id - Player identifier.
          */
-        , onPlayerLeave: function (playerId) {
-            console.log('player left', playerId);
+        , onPlayerLeave: function (id) {
+            console.log('player left', id);
 
-            var player = this.entities.get(playerId);
+            var player = this.entities.get(id);
+
             if (player) {
                 player.die();
             }
@@ -161,6 +175,14 @@ function run(primus, config) {
             var elapsed = game.time.elapsed;
 
             this.entities.update(elapsed);
+        }
+        /**
+         * Creates a new entity.
+         * @method client.GameplayState#createEntity
+         * @param {object} data - Entity data.
+         */
+        , createEntity: function(data) {
+            return new Entity(primus, data, config);
         }
     });
 

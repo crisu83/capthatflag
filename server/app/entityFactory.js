@@ -2,6 +2,7 @@
 
 var _ = require('lodash')
     , Entity = require('./entity')
+    , config = require('./config.json')
     , EntityFactory;
 
 /**
@@ -18,7 +19,7 @@ EntityFactory = {
      */
     create: function(socket, key) {
         var data = this.loadData(key)
-            , entity = new Entity(socket, data);
+            , entity = new Entity(socket, data, config);
 
         // TODO: consider including components in the data and attaching them here
 
@@ -34,7 +35,7 @@ EntityFactory = {
         // return a clone so that we get a different reference
         // to the data for each entity
         var data = require('../data/entities/' + key + '.json');
-        return _.clone(data);
+        return {key: data.key, attrs: _.clone(data.attrs)};
     }
 };
 

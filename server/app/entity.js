@@ -1,10 +1,10 @@
 'use strict';
 
 var _ = require('lodash')
+    , shortid = require('shortid')
     , utils = require('../../shared/utils')
     , EntityBase = require('../../shared/entity')
     , EntityState = require('../../shared/entityState')
-    , config = require('./config.json')
     , Entity;
 
 /**
@@ -17,10 +17,11 @@ Entity = utils.inherit(EntityBase, {
     /**
      * @override
      */
-    update: function(elapsed) {
-        EntityBase.prototype.update.apply(this, arguments);
+    constructor: function(socket, data, config) {
+        EntityBase.apply(this, arguments);
 
-        this.state.snapshot(this.attrs.get());
+        // identifiers are always generated on the server (and passed to the client)
+        this.id = shortid.generate();
     }
 });
 
