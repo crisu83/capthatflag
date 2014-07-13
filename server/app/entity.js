@@ -4,7 +4,6 @@ var _ = require('lodash')
     , shortid = require('shortid')
     , utils = require('../../shared/utils')
     , EntityBase = require('../../shared/entity')
-    , EntityState = require('../../shared/entityState')
     , Entity;
 
 /**

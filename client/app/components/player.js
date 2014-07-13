@@ -61,7 +61,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
             this._commands.push(command);
         }
 
-        if (this._commands.length && (!this._lastSyncAt || (now - this._lastSyncAt) > 1000 / this.owner.config.tickRate)) {
+        if (this._commands.length && (!this._lastSyncAt || (now - this._lastSyncAt) > (1000 / this.owner.config.tickRate))) {
             this.owner.socket.emit('player.input', this._commands);
 
             this._commands = [];

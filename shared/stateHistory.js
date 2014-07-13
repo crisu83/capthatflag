@@ -25,12 +25,11 @@ StateHistory = utils.inherit(ListBase, {
     /**
      * Creates a new snapshot of the game state.
      * @method shared.StateHistory#snapshot
-     * @param {array} entities - List of serialized entities.
+     * @param {object} entityMap - Map of serialized entities.
      */
-    , snapshot: function(entities) {
-        var now = +new Date();
-        this.add({timestamp: now, entities: entities});
-        this.removeExpired(now - this._expireMsec);
+    , snapshot: function(state) {
+        this.add(state);
+        this.removeExpired(+new Date() - this._expireMsec);
     }
     /**
      * Removes expired snapshots from the history.
@@ -39,6 +38,14 @@ StateHistory = utils.inherit(ListBase, {
      */
     , removeExpired: function(expireTime) {
         this.filter(function(item) { return item.timestamp > expireTime; });
+    }
+    /**
+     * Returns the state snapshot previous to the current one.
+     * @method shared.StateHistory#previous
+     * @return {object} World state.
+     */
+    , previous: function() {
+        return this.get(this.size() - 2);
     }
 });
 

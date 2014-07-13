@@ -6,8 +6,11 @@
     , "canvasHeight": 320
     , "gameWidth": 480
     , "gameHeight": 320
-    , "tickRate": 10
-    , "clientLerp": 100
+    , "tickRate": 30
     , "enablePrediction": true
-    , "enableReconcilation": true
+    , "enableReconcilation": false
+    , "enableInterpolation": true
+    , "enableExtrapolation": true
+    , "extrapolationMsec": 200
+    , "fakeLagMsec": 0
 }

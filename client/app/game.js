@@ -1,6 +1,7 @@
 'use strict';
 
-var utils = require('../../shared/utils')
+var _ = require('lodash')
+    , utils = require('../../shared/utils')
     , EntityHashmap = require('../../shared/entityHashmap')
     , StateHistory = require('../../shared/stateHistory')
     , Entity = require('./entity')
@@ -16,16 +17,19 @@ function run(primus, config) {
     console.log('creating client', config);
 
     /**
-     * Gameplay state class.
-     * @class client.GameplayState
-     * @classdesc Game state that runs the acutal game.
+     * Play state class.
+     * @class client.PlayState
+     * @classdesc Game state that runs the acutal game play.
      * @extends Phaser.State
      * @property {shared.EntityHashmap} entities - Map over entities in the state.
+     * @property {client.Entity} player - Player entity instance.
      */
-    var GameplayState = utils.inherit(Phaser.State, {
+    var PlayState = utils.inherit(Phaser.State, {
         entities: null
         , player: null
         , _stateHistory: null
+        , _lastSyncAt: null
+        , _lastTickAt: null
         /**
          * Creates a new game state.
          * @constructor
@@ -45,6 +49,7 @@ function run(primus, config) {
             game.load.tilemap(config.mapKey, null, config.mapData, config.mapType);
             game.load.image(config.mapImage, 'static/' + config.mapSrc);
 
+            // TODO Load dynamically
             game.load.image('player-male', 'static/assets/images/sprites/player/male.png');
             game.load.image('player-female', 'static/assets/images/sprites/player/female.png');
         }
@@ -114,41 +119,12 @@ function run(primus, config) {
          * @param {object} worldState - World state.
          */
         , onSync: function(worldState) {
-            var state, entity, sprite, physics;
+            var now = +new Date();
 
+            worldState.timestamp = now;
             this._stateHistory.snapshot(worldState);
 
-            for (var i = 0; i < worldState.length; i++) {
-                state = worldState[i];
-                entity = this.entities.get(state.id);
-
-                // if the entity does not exist, we need to create it
-                if (!entity) {
-                    console.log('creating new entity', state);
-                    entity = this.createEntity(state);
-                    sprite = this.game.add.sprite(state.attrs.x, state.attrs.y, state.attrs.image);
-                    physics = state.attrs.physics || -1;
-
-                    if (physics >= 0) {
-                        this.game.physics.enable(sprite, physics);
-                        sprite.physicsBodyType = physics;
-                        //sprite.body.collideWorldBounds = true;
-                        sprite.body.immovable = true;
-                    }
-
-                    if (!entity) {
-                        throw new Error('Failed to create entity ' + state.id + '!');
-                    }
-
-                    entity.components.add(new ActorComponent(sprite));
-
-                    this.entities.add(entity.id, entity);
-                }
-
-                if (state.id !== this.player.id) {
-                    entity.attrs.set(state.attrs);
-                }
-            }
+            this._lastSyncAt = now;
         }
         /**
          * Event handler for when a player leaves.
@@ -172,9 +148,152 @@ function run(primus, config) {
         , update: function(game) {
             // TODO: add collision detection
 
-            var elapsed = game.time.elapsed;
+            var now = +new Date()
+                , elapsed = game.time.elapsed;
 
+            this.updateWorldState(elapsed);
             this.entities.update(elapsed);
+
+            this._lastTickAt = game.time.lastTime;
+
+            /*
+            if (game.time.totalElapsedSeconds() > 5) {
+                game.paused = true;
+            }
+            */
+        }
+        /**
+         * TODO
+         */
+        , updateWorldState: function(elapsed) {
+            var worldState = this._stateHistory.last();
+
+            if (worldState) {
+                var now = +new Date()
+                    , previousState = this._stateHistory.previous();
+
+                if (previousState) {
+                    if (config.enableInterpolation && true || this.canInterpolate()) {
+                        var lerpMsec = (1000 / config.tickRate) * 2
+                            , lerpTime = this._lastTickAt - lerpMsec
+                            , delta = lerpTime - previousState.timestamp
+                            , timestep = worldState.timestamp - previousState.timestamp
+                            , factor = delta / timestep;
+
+                        worldState = this.interpolateWorldState(previousState, worldState, factor);
+                        //console.log('interpolating');
+                    } else if (config.enableExtrapolation && this.canExtrapolate()) {
+                        //worldState = this.extrapolateWorldState(previousState, worldState, factor);
+                        //console.log('extrapolating');
+                    }
+                }
+
+                var state, entity, sprite, physics;
+
+                for (var id in worldState.entities) {
+                    if (worldState.entities.hasOwnProperty(id)) {
+                        state = worldState.entities[id];
+                        entity = this.entities.get(state.id);
+
+                        // if the entity does not exist, we need to create it
+                        if (!entity) {
+                            console.log('creating new entity', state);
+                            entity = this.createEntity(state);
+                            sprite = this.game.add.sprite(state.attrs.x, state.attrs.y, state.attrs.image);
+                            physics = state.attrs.physics || -1;
+
+                            if (physics >= 0) {
+                                this.game.physics.enable(sprite, physics);
+                                sprite.physicsBodyType = physics;
+                                //sprite.body.collideWorldBounds = true;
+                                sprite.body.immovable = true;
+                            }
+
+                            if (!entity) {
+                                throw new Error('Failed to create entity ' + state.id + '!');
+                            }
+
+                            entity.components.add(new ActorComponent(sprite));
+
+                            this.entities.add(entity.id, entity);
+                        }
+
+                        if (state.id !== this.player.id) {
+                            entity.attrs.set(state.attrs);
+                        }
+                    }
+                }
+            }
+        }
+        /**
+         * TODO
+         */
+        , canInterpolate: function() {
+            var endTime = +new Date() - (1000 / config.tickRate)
+                , last = this._stateHistory.last();
+
+            return this._stateHistory.size() >= 2 && last.timestamp < endTime;
+        }
+        /**
+         * TODO
+         */
+        , canExtrapolate: function() {
+            var now = +new Date()
+                , startTime = now - (1000 / config.tickRate)
+                , endTime = now - config.extrapolationMsec
+                , last = this._stateHistory.last();
+
+            return this._stateHistory.size() >= 2 && last.timestamp < startTime && last.timestamp > endTime;
+        }
+        /**
+         * TODO
+         */
+        , interpolateWorldState: function(previous, next, factor) {
+            var worldState = _.clone(next)
+                , entityState;
+
+            if (factor >= 0 && factor <= 1) {
+                for (var id in next.entities) {
+                    if (next.entities.hasOwnProperty(id) && previous.entities[id]) {
+                        entityState = this.interpolateEntityState(
+                            previous.entities[id]
+                            , next.entities[id]
+                            , factor
+                        );
+                        // TODO Test with a bigger sprite if this "smoothing" is necessary
+                        /*
+                        entityState = this.interpolateEntityState(
+                            previous.entities[id]
+                            , entityState
+                            , 0.3
+                        );
+                        */
+                        worldState.entities[id] = entityState;
+                    }
+                }
+            }
+
+            return worldState;
+        }
+        /**
+         * TODO
+         */
+        , interpolateEntityState: function(previous, next, factor) {
+            var entityState = _.clone(next);
+
+            for (var name in next.attrs) {
+                if (next.attrs.hasOwnProperty(name) && previous.attrs[name]) {
+                    entityState.attrs[name] = utils.lerp(previous.attrs[name], next.attrs[name], factor);
+                }
+            }
+
+            return entityState;
+        }
+        /**
+         * TODO
+         */
+        , extrapolateWorldState: function() {
+            // TODO implement entity extrapolation
         }
         /**
          * Creates a new entity.
@@ -188,7 +307,7 @@ function run(primus, config) {
 
     // create the actual game
     var game = new Phaser.Game(config.canvasWidth, config.canvasHeight, Phaser.AUTO);
-    game.state.add('gameplay', new GameplayState(), true/* autostart */);
+    game.state.add('play', new PlayState(), true/* autostart */);
 }
 
 module.exports = {

@@ -27,6 +27,7 @@ Room = utils.inherit(null, {
     , entities: null
     , _stateHistory: null
     , _lastTickAt: null
+    , _packetSequence: 0
     /**
      * Creates a new room.
      * @constructor
@@ -78,13 +79,14 @@ Room = utils.inherit(null, {
      */
     , gameLoop: function() {
         var now = +new Date()
+            , worldState = this.createWorldState()
             , elapsed;
 
         this._lastTickAt = this._lastTickAt || now;
         elapsed = now - this._lastTickAt;
 
         this.entities.update(elapsed);
-        this.clients.sync(this.createWorldState());
+        this.clients.sync(worldState);
 
         this._lastTickAt = now;
     }
@@ -94,20 +96,19 @@ Room = utils.inherit(null, {
      * @return {object} Current world state.
      */
     , createWorldState: function() {
-        var worldState = []
+        var now = +new Date()
+            , worldState = {sequence: this._packetSequence++, timestamp: now, entities: {}}
             , entities = this.entities.get()
             , entity;
 
         for (var id in entities) {
             if (entities.hasOwnProperty(id)) {
                 entity = entities[id];
-                worldState.push(entity.serialize());
+                worldState.entities[entity.id] = entity.serialize();
             }
         }
 
         this._stateHistory.snapshot(worldState);
-
-        //console.log(worldState);
 
         return worldState;
     }

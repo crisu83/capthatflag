@@ -54,11 +54,14 @@ Client = utils.inherit(Node, {
         this.spark.emit('client.init', {
             // client identifier
             id: this.id
-            // game configuration
+            // server configuration
             , tickRate: config.tickRate
-            , lerp: config.clientLerp
+            // client configuration
             , enablePrediction: config.enablePrediction
             , enableReconcilation: config.enableReconcilation
+            , enableInterpolation: config.enableInterpolation
+            , enableExtrapolation: config.enableExtrapolation
+            , extrapolationMsec: config.extrapolationMsec
             // viewport configuration
             , canvasWidth: config.canvasWidth
             , canvasHeight: config.canvasHeight

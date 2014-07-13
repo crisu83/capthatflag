@@ -49,6 +49,12 @@ List = utils.inherit(null, {
     , filter: function(filter) {
         this._items = _.filter(this._items, filter);
     }
+    /**
+     * TODO
+     */
+    , last: function() {
+        return this._items[this._items.length - 1];
+    }
 });
 
 module.exports = List;
