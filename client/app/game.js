@@ -62,7 +62,7 @@ function run(primus, config) {
         , create: function(game) {
             console.log('creating game ...');
 
-            var map, layer;
+            var map, layer, pauseKey;
 
             // define the world bounds
             game.world.setBounds(0, 0, config.gameWidth, config.gameHeight);
@@ -78,12 +78,22 @@ function run(primus, config) {
             layer = map.createLayer(config.mapLayer);
             layer.resizeWorld();
 
+            pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
+            pauseKey.onDown.add(this.onGamePause.bind(this, game));
+
             // bind event handlers
             primus.on('player.create', this.onPlayerCreate.bind(this));
             primus.on('player.leave', this.onPlayerLeave.bind(this));
 
             // let the server know that client is ready
             primus.emit('client.ready');
+        }
+        /**
+         * TODO
+         */
+        , onGamePause: function(game, event) {
+            game.paused = !game.paused;
+            console.log(game.paused ? 'game paused' : 'game resumed');
         }
         /**
          * Event handler for creating the player.
@@ -156,12 +166,6 @@ function run(primus, config) {
             this.entities.update(elapsed);
 
             this._lastTickAt = game.time.lastTime;
-
-            /*
-            if (game.time.totalElapsedSeconds() > 5) {
-                game.paused = true;
-            }
-            */
         }
         /**
          * TODO
