@@ -30,7 +30,7 @@ ActorComponent = utils.inherit(ComponentBase, {
         this.owner.on('entity.die', this.onEntityDeath.bind(this));
     }
     /**
-     * TODO
+     * @override
      */
     , update: function(elapsed) {
         this.setPosition(this.owner.attrs.get(['x', 'y']));

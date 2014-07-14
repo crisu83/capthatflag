@@ -10,6 +10,7 @@ var _ = require('lodash')
 /**
  * Entity factory static class.
  * @class server.EntityFactory
+ * @classdesc Factory class for creating entities.
  */
 EntityFactory = {
     /**
@@ -17,7 +18,7 @@ EntityFactory = {
      * @method server.EntityFactory#create
      * @param {Socket} socket - Socket interface.
      * @param {string} key - Entity type.
-     * @return {server.Entity} Entity instance.
+     * @return {shared.Entity} Entity instance.
      */
     create: function(socket, key) {
         var data = this.loadData(key)

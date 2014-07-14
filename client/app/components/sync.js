@@ -6,7 +6,7 @@ var utils = require('../../../shared/utils')
 
 /**
  * Synchronization component class.
- * @class server.components.SyncComponent
+ * @class client.components.SyncComponent
  * @classdesc Component for synchronizing the associated entity over the network.
  * @extends shared.Component
  */
@@ -14,13 +14,15 @@ SyncComponent = utils.inherit(ComponentBase, {
     key: 'sync'
     , phase: ComponentBase.prototype.phases.LOGIC
     /**
-     * TODO
+     * @override
      */
     , init: function() {
         this.owner.on('entity.sync', this.onEntitySync.bind(this));
     }
     /**
-     * TODO
+     * Event handler for when the associated entity is synchronized.
+     * @method client.components.SyncComponent#onEntitySync
+     * @param {object} attrs - Synchronized attributes.
      */
     , onEntitySync: function(attrs) {
         this.owner.attrs.set(attrs);

@@ -70,11 +70,11 @@
 						</li>
 						
 						<li>
-							<a href="client.Entity.html">client.Entity</a>
+							<a href="client.components.SyncComponent.html">client.components.SyncComponent</a>
 						</li>
 						
 						<li>
-							<a href="client.GameplayState.html">client.GameplayState</a>
+							<a href="client.PlayState.html">client.PlayState</a>
 						</li>
 						
 						<li>
@@ -86,7 +86,11 @@
 						</li>
 						
 						<li>
-							<a href="server.Entity.html">server.Entity</a>
+							<a href="server.components.PlayerComponent.html">server.components.PlayerComponent</a>
+						</li>
+						
+						<li>
+							<a href="server.DataManager.html">server.DataManager</a>
 						</li>
 						
 						<li>
@@ -98,11 +102,19 @@
 						</li>
 						
 						<li>
+							<a href="server.Tilemap.html">server.Tilemap</a>
+						</li>
+						
+						<li>
+							<a href="server.TilemapFactory.html">server.TilemapFactory</a>
+						</li>
+						
+						<li>
 							<a href="shared.Component.html">shared.Component</a>
 						</li>
 						
 						<li>
-							<a href="shared.components.html#PlayerComponent">shared.components.PlayerComponent</a>
+							<a href="shared.components.PlayerComponent.html">shared.components.PlayerComponent</a>
 						</li>
 						
 						<li>
@@ -122,10 +134,6 @@
 						</li>
 						
 						<li>
-							<a href="shared.EntityState.html">shared.EntityState</a>
-						</li>
-						
-						<li>
 							<a href="shared.Hashmap.html">shared.Hashmap</a>
 						</li>
 						
@@ -135,6 +143,10 @@
 						
 						<li>
 							<a href="shared.SortedList.html">shared.SortedList</a>
+						</li>
+						
+						<li>
+							<a href="shared.StateHistory.html">shared.StateHistory</a>
 						</li>
 						
 
@@ -194,7 +206,7 @@
     Entity
     </h2>
     
-        <div class="class-description">Base class for both the client- and server-side entity classes.</div>
+        <div class="class-description">Final class for entities with support for components and attributes.</div>
     
 </header>
 
@@ -213,7 +225,7 @@
     
     
     <div class="description">
-        Entity base class.
+        Entity class.
     </div>
     
 
@@ -253,13 +265,13 @@
 
         <tr>
             
-                <td class="name"><code>socket</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">socketio.Socket</span>
+<span class="param-type">string</span>
 
 
             
@@ -269,20 +281,23 @@
 
             
 
-            <td class="description last">Socket interface for this entity.</td>
+            <td class="description last">Unique entity identifier.</td>
         </tr>
 
 	
 
         <tr>
             
-                <td class="name"><code>state</code></td>
+                <td class="name"><code>socket</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="shared.EntityState.html">shared.EntityState</a></span>
+<span class="param-type">primus.Client</span>
+|
+
+<span class="param-type">primus.Spark</span>
 
 
             
@@ -292,7 +307,30 @@
 
             
 
-            <td class="description last">Entity state instance.</td>
+            <td class="description last">Socket interface.</td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>config</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Game configuration.</td>
         </tr>
 
 	
@@ -695,6 +733,121 @@
         
             
 <dt>
+    <h4 class="name" id="sync"><span class="type-signature"></span>sync<span class="signature">(attrs)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Synchronizes the entity attributes.
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>attrs</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Attributes to synchronize.</td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
     <h4 class="name" id="trigger"><span class="type-signature"></span>trigger<span class="signature">(event, params)</span><span class="type-signature"></span></h4>
     
     
@@ -975,7 +1128,7 @@
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.2</a>
-		on 2014-07-08T22:46:04+03:00 using the <a
+		on 2014-07-15T00:01:07+03:00 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

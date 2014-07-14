@@ -7,17 +7,25 @@ var _ = require('lodash')
     , TilemapFactory;
 
 /**
- * TODO
+ * Tilemap factory static class.
+ * @class server.TilemapFactory
+ * @classdesc Factory class for creating tilemaps.
  */
 TilemapFactory = {
     /**
-     * TODO
+     * Creates a new tilemap.
+     * @method server.TilemapFactory#create
+     * @param {string} key - Tilemap type.
+     * @return {server.Tilemap} Tilemap instance.
      */
     create: function(key) {
         return new Tilemap(this.loadData(key));
     }
     /**
-     * TODO
+     * Loads data for a specific tilemap.
+     * @method server.TilemapFactory#loadData
+     * @param {string} key - Tilemap type.
+     * @return {object} Tilemap data.
      */
     , loadData: function(key) {
         var data = DataManager.getTilemap(key);

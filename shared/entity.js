@@ -9,13 +9,13 @@ var _ = require('lodash')
     , Entity;
 
 /**
- * Entity base class.
+ * Entity class.
  * @class shared.Entity
- * @classdesc Base class for both the client- and server-side entity classes.
+ * @classdesc Final class for entities with support for components and attributes.
  * @extends shared.Node
  * @property {string} id - Unique entity identifier.
+ * @property {primus.Client|primus.Spark} socket - Socket interface.
  * @property {object} config - Game configuration.
- * @property {primus.Client|primus.Spark} socket - Socket interface for this entity.
  * @property {shared.EntityAttributes} attrs - Entity attributes instance.
  * @property {shared.EntityComponents} components - Entity components instance.
  */
@@ -44,7 +44,9 @@ Entity = utils.inherit(Node, {
         this.components = new EntityComponents(this);
     }
     /**
-     * TODO
+     * Synchronizes the entity attributes.
+     * @method shared.Entity#sync
+     * @param {object} attrs - Attributes to synchronize.
      */
     , sync: function(attrs) {
         this.trigger('entity.sync', [attrs]);

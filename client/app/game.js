@@ -41,7 +41,7 @@ function run(primus, config) {
         }
         /**
          * Loads the game assets.
-         * @method client.GameplayState#preload
+         * @method client.PlayState#preload
          * @param {Phaser.Game} game - Game instance.
          */
         , preload: function(game) {
@@ -64,7 +64,7 @@ function run(primus, config) {
         }
         /**
          * Creates the game objects.
-         * @method client.GameplayState#creeate
+         * @method client.PlayState#creeate
          * @param {Phaser.Game} game - Game instance.
          */
         , create: function(game) {
@@ -97,7 +97,8 @@ function run(primus, config) {
             primus.emit('client.ready');
         }
         /**
-         * TODO
+         * Event handler for when the game is paused.
+         * @method client.PlayState#onGamePause
          */
         , onGamePause: function(game, event) {
             game.paused = !game.paused;
@@ -105,7 +106,7 @@ function run(primus, config) {
         }
         /**
          * Event handler for creating the player.
-         * @method client.GameplayState#onPlayerCreate
+         * @method client.PlayState#onPlayerCreate
          * @param {object} state - Player state.
          */
         , onPlayerCreate: function(state) {
@@ -134,7 +135,7 @@ function run(primus, config) {
         }
         /**
          * Event handler for synchronizing the client with the server.
-         * @method client.GameplayState#onSync
+         * @method client.PlayState#onSync
          * @param {object} worldState - World state.
          */
         , onSync: function(worldState) {
@@ -147,7 +148,7 @@ function run(primus, config) {
         }
         /**
          * Event handler for when a player leaves.
-         * @method client.GameplayState#onPlayerLeave
+         * @method client.PlayState#onPlayerLeave
          * @param {string} id - Player identifier.
          */
         , onPlayerLeave: function (id) {
@@ -161,7 +162,7 @@ function run(primus, config) {
         }
         /**
          * Updates the logic for this game.
-         * @method client.GameplayState#update
+         * @method client.PlayState#update
          * @param {Phaser.Game} game - Game instance.
          */
         , update: function(game) {
@@ -176,7 +177,9 @@ function run(primus, config) {
             this._lastTickAt = game.time.lastTime;
         }
         /**
-         * TODO
+         * Updates the world state using the state history.
+         * @method client.PlayState#updateWorldState
+         * @param {number} elapsed - Time elapsed since the previous update (ms).
          */
         , updateWorldState: function(elapsed) {
             var worldState = this._stateHistory.last();
@@ -232,16 +235,11 @@ function run(primus, config) {
             }
         }
         /**
-         * TODO
-         */
-        , canInterpolate: function() {
-            var endTime = +new Date() - (1000 / config.syncRate)
-                , last = this._stateHistory.last();
-
-            return this._stateHistory.size() >= 2 && last.timestamp < endTime;
-        }
-        /**
-         * TODO
+         * Calculates an interpolation factor based on the two given snapshots.
+         * @method client.PlayState#calculateInterpolationFactor
+         * @param {object} previous - Previous snapshot.
+         * @param {object} next - Next snapshot.
+         * @return {number} Interpolation factory (a number between 0 and 1).
          */
         , calculateInterpolationFactor: function(previous, next) {
             var lerpMsec = (1000 / config.syncRate) * 2
@@ -252,8 +250,21 @@ function run(primus, config) {
             return delta / timestep;
         }
         /**
-         * TODO
+         * Returns whether the state can be interpolated.
+         * @method client.PlayState#canInterpolate
+         * @return {boolean} The result.
          */
+        , canInterpolate: function() {
+            var endTime = +new Date() - (1000 / config.syncRate)
+                , last = this._stateHistory.last();
+
+            return this._stateHistory.size() >= 2 && last.timestamp < endTime;
+        }
+        /**
+          * Returns whether the state can be extrapolated.
+          * @method client.PlayState#canExtrapolate
+          * @return {boolean} The result.
+          */
         , canExtrapolate: function() {
             var now = +new Date()
                 , startTime = now - (1000 / config.syncRate)
@@ -263,7 +274,11 @@ function run(primus, config) {
             return this._stateHistory.size() >= 2 && last.timestamp < startTime && last.timestamp > endTime;
         }
         /**
-         * TODO
+         * Creates an approximate snapshot of the world state using linear interpolation.
+         * @method client.PlayState#interpolateWorldState
+         * @param {object} previous - Previous snapshot.
+         * @param {object} next - Next snapshot.
+         * @return {object} Interpolated world state.
          */
         , interpolateWorldState: function(previous, next, factor) {
             var worldState = _.clone(next)
@@ -293,7 +308,11 @@ function run(primus, config) {
             return worldState;
         }
         /**
-         * TODO
+         * Creates an approximate snapshot of an entity.
+         * @method client.PlayState#interpolateEntityState
+         * @param {object} previous - Previous snapshot.
+         * @param {object} next - Next snapshot.
+         * @return {object} Interpolated entity state.
          */
         , interpolateEntityState: function(previous, next, factor) {
             var entityState = _.clone(next);
@@ -307,14 +326,18 @@ function run(primus, config) {
             return entityState;
         }
         /**
-         * TODO
+         * Creates an approximate snapshot of the world state using linear extrapolation.
+         * @method client.PlayState#extrapolateWorldState
+         * @param {object} previous - Previous snapshot.
+         * @param {object} next - Next snapshot.
+         * @return {object} Interpolated world state.
          */
         , extrapolateWorldState: function() {
             // TODO implement entity extrapolation
         }
         /**
          * Creates a new entity.
-         * @method client.GameplayState#createEntity
+         * @method client.PlayState#createEntity
          * @param {object} data - Entity data.
          */
         , createEntity: function(data) {

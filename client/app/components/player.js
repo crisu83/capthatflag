@@ -32,13 +32,15 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this._processed = [];
     }
     /**
-     * TODO
+     * @override
      */
     , init: function() {
         this.owner.on('entity.sync', this.onEntitySync.bind(this));
     }
     /**
-     * TODO
+     * Event handler for when the associated entity is synchronized.
+     * @method client.components.PlayerComponent#onEntitySync
+     * @param {object} attrs - Synchronized attributes.
      */
     , onEntitySync: function(attrs) {
         if (this.owner.config.enablePrediction && !this.isAttributesProcessed(attrs)) {
@@ -60,7 +62,10 @@ PlayerComponent = utils.inherit(ComponentBase, {
         }
     }
     /**
-     * TODO
+     * Returns whether the given attributes have already been processed.
+     * @method client.components.PlayerComponent#isAttributesProcessed
+     * @param {object} attrs - Entity attributes.
+     * @return {boolean} The result.
      */
     , isAttributesProcessed: function(attrs) {
         return attrs.inputSequence && this._processed.indexOf(attrs.inputSequence) !== -1;

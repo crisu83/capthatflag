@@ -4,7 +4,9 @@ var utils = require('../../shared/utils')
     , Tilemap;
 
 /**
- * TODO
+ * Tilemap class.
+ * @class server.Tilemap
+ * @classdesc Final class for tilemaps.
  */
 Tilemap = utils.inherit(null, {
     key: 'tilemap'
@@ -14,7 +16,9 @@ Tilemap = utils.inherit(null, {
     , layers: null
     , image: null
     /**
-     * TODO
+     * Creates a new tilemap.
+     * @constructor
+     * @param {object} data - Tilemap data.
      */
     , constructor: function(data) {
         this.id = data.id;

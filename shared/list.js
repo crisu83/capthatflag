@@ -20,7 +20,7 @@ List = utils.inherit(null, {
     }
     /**
      * Adds an item to this list.
-     * @method shared.SortedList#add
+     * @method shared.List#add
      * @param {object} item - Item to add.
      */
     , add: function(item) {
@@ -28,7 +28,7 @@ List = utils.inherit(null, {
     }
     /**
      * Returns the item with the given index from this list.
-     * @method shared.SortedList#get
+     * @method shared.List#get
      * @param {number} index - Item index, omit to get all items.
      * @return {object} Item found, or null if not found
      */
@@ -40,45 +40,57 @@ List = utils.inherit(null, {
         }
     }
     /**
-     * TODO
+     * Sets an item to the list.
+     * @method shared.List#set
+     * @param {number} index - Item index.
+     * @param {objec} item - Item to set.
      */
     , set: function(index, item) {
         this._items[index] = item;
     }
     /**
      * Returns the number of items in this list.
-     * @method shared.SortedList#size
+     * @method shared.List#size
      * @return {number} Number of items.
      */
     , size: function() {
         return this._items.length;
     }
     /**
-     * TODO
+     * Removes all items from the list.
+     * @method shared.List#clear
      */
     , clear: function() {
         this._items = [];
     }
     /**
-     * TODO
+     * Returns whether the list contains no items.
+     * @method shared.List#isEmpty
+     * @return {boolean} The result.
      */
     , isEmpty: function() {
         return this._items.length === 0;
     }
     /**
-     * TODO
+     * Filters the items using the given callback function.
+     * @method shared.List#filter
+     * @param {function} filter - Filtering function.
      */
     , filter: function(filter) {
         this._items = _.filter(this._items, filter);
     }
     /**
-     * TODO
+     * Returns the first item in the list.
+     * @method shared.List#first
+     * @return {object} Item found, or null if not found.
      */
     , first: function() {
         return this._items[0];
     }
     /**
-     * TODO
+     * Returns the last item in the list.
+     * @method shared.List#last
+     * @return {object} Item found, or null if not found.
      */
     , last: function() {
         return this._items[this._items.length - 1];

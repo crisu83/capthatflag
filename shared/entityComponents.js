@@ -27,16 +27,14 @@ EntityComponents = utils.inherit(null, {
         });
     }
     /**
-     * @override
+     * Adds a component item to this set of components.
+     * @method shared.EntityComponents#add
+     * @param {shared.Component} component - Component to add.
      */
-    , update: function(elapsed) {
-        var component;
-        for (var i = 0, len = this._components.size(); i < len; i++) {
-            component = this._components.get(i);
-            if (typeof component.update === 'function') {
-                component.update(elapsed);
-            }
-        }
+    , add: function(component) {
+        component.owner = this._entity;
+        component.init();
+        this._components.add(component);
     }
     /**
      * Returns a specific component from this set of components.
@@ -55,14 +53,16 @@ EntityComponents = utils.inherit(null, {
         return null;
     }
     /**
-     * Adds a component item to this set of components.
-     * @method shared.EntityComponents#add
-     * @param {shared.Component} component - Component to add.
+     * @override
      */
-    , add: function(component) {
-        component.owner = this._entity;
-        component.init();
-        this._components.add(component);
+    , update: function(elapsed) {
+        var component;
+        for (var i = 0, len = this._components.size(); i < len; i++) {
+            component = this._components.get(i);
+            if (typeof component.update === 'function') {
+                component.update(elapsed);
+            }
+        }
     }
 });
 
