@@ -1,10 +1,12 @@
 'use strict';
 
-var utils = require('../../shared/utils')
+var _ = require('lodash')
+    , utils = require('../../shared/utils')
     , shortid = require('shortid')
     , Client = require('./client')
     , ClientHashmap = require('./clientHashmap')
     , EntityHashmap = require('../../shared/entityHashmap')
+    , StateHistory = require('../../shared/stateHistory')
     , config = require('./config.json')
     , Room;
 
@@ -16,7 +18,6 @@ var utils = require('../../shared/utils')
  * @property {object} tilemap - Associated tilemap data.
  * @property {server.ClientHashmap} clients - Map of clients connected to the room.
  * @property {shared.EntityHashmap} entities - Map of entities in the room.
- * @property {number} lastTick - Timestamp for when the room logic was last updated.
  */
 Room = utils.inherit(null, {
     id: null
@@ -24,7 +25,11 @@ Room = utils.inherit(null, {
     , tilemap: null
     , clients: null
     , entities: null
-    , lastTick: null
+    , _stateHistory: null
+    , _chatMessages: null
+    , _lastSyncAt: null
+    , _lastTickAt: null
+    , _packetSequence: 0
     /**
      * Creates a new room.
      * @constructor
@@ -37,6 +42,8 @@ Room = utils.inherit(null, {
         this.tilemap = require('../data/tilemaps/dungeon.json');
         this.clients = new ClientHashmap();
         this.entities = new EntityHashmap();
+        this._stateHistory = new StateHistory(1000);
+        this._chatMessages = [];
 
         console.log(' room %s created', this.id);
     }
@@ -50,7 +57,7 @@ Room = utils.inherit(null, {
 
         // start the game loop for this room with the configured tick rate
         console.log(' starting game loop for room %s', this.id);
-        setInterval(this.gameLoop.bind(this), 1000 / config.ticksPerSecond);
+        setInterval(this.gameLoop.bind(this), 1000 / config.tickRate);
     }
     /**
      * Event handler for when a client connects to this room.
@@ -75,42 +82,42 @@ Room = utils.inherit(null, {
      */
     , gameLoop: function() {
         var now = +new Date()
-            , clients = this.clients.get()
-            , state, elapsed;
+            , elapsed;
 
-        this.lastTick = this.lastTick || now;
-        elapsed = now - this.lastTick;
+        this._lastTickAt = this._lastTickAt || now;
+        elapsed = now - this._lastTickAt;
 
-        // update the entities in this room
-        // and synchronize the current state to all clients
         this.entities.update(elapsed);
-        // TODO add support for "area of interest"
-        state = this.getState();
-        this.clients.sync(state);
 
-        this.lastTick = now;
+        if (!this._lastSyncAt || now - this._lastSyncAt > 1000 / config.syncRate) {
+            var worldState = this.createWorldState();
+            this.clients.sync(worldState);
+            this._lastSyncAt = now;
+        }
+
+        this._lastTickAt = now;
     }
     /**
-     * Returns the current state of this room.
-     * @method server.Room#getCurrentState
-     * @return {object} Current state.
+     * Creates the current game state.
+     * @method server.Room#createWorldState
+     * @return {object} Current world state.
      */
-    , getState: function() {
-        var current = []
+    , createWorldState: function() {
+        var now = +new Date()
+            , worldState = {sequence: this._packetSequence++, timestamp: now, entities: {}}
             , entities = this.entities.get()
-            , entity, state;
+            , entity;
 
         for (var id in entities) {
             if (entities.hasOwnProperty(id)) {
                 entity = entities[id];
-                state = entity.state.getCurrent();
-                if (state) {
-                    current.push(state);
-                }
+                worldState.entities[entity.id] = entity.serialize();
             }
         }
 
-        return current;
+        this._stateHistory.snapshot(worldState);
+
+        return worldState;
     }
 });
 

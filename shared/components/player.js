@@ -9,35 +9,34 @@ var _ = require('lodash')
  * Shared player component class.
  * @class shared.components.PlayerComponent
  * @classdesc Base class for both server and client-side player components.
- * @extends shared.components.PlayerComponent
+ * @extends shared.Component
  */
 PlayerComponent = utils.inherit(ComponentBase, {
     key: 'player'
     , phase: ComponentBase.prototype.phases.LOGIC
     /**
-     * Simulates the given input.
-     * @method shared.components.PlayerComponent
-     * @param {object} input - Input object literal.
-     * @param {object} attrs - Optional attributes.
+     * Applies to user command on the given attributes.
+     * @method shared.components.PlayerComponent#applyCommand
+     * @param {object} command - User command.
+     * @param {object|null} attrs - Player attributes, defaults to current attributes.
      * @return {object} Resulting attributes.
      */
-    , simulateInput: function(input, attrs) {
+    , applyCommand: function(command, attrs) {
         attrs = attrs || this.owner.attrs.get();
+        attrs.inputSequence = command.sequence;
 
-        if (input.down && input.elapsed && input.speed) {
-            var step = (input.elapsed / 1000) * input.speed;
+        var step = (command.elapsed / 1000) * command.speed;
 
-            for (var i = 0; i < input.down.length; i++) {
-                if (input.down[i] === 'up') {
-                    attrs.y -= step;
-                } else if (input.down[i] === 'down') {
-                    attrs.y += step;
-                }
-                if (input.down[i] === 'left') {
-                    attrs.x -= step;
-                } else if (input.down[i] === 'right') {
-                    attrs.x += step;
-                }
+        for (var i = 0; i < command.down.length; i++) {
+            if (command.down[i] === 'up') {
+                attrs.y -= step;
+            } else if (command.down[i] === 'down') {
+                attrs.y += step;
+            }
+            if (command.down[i] === 'left') {
+                attrs.x -= step;
+            } else if (command.down[i] === 'right') {
+                attrs.x += step;
             }
         }
 

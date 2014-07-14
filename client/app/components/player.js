@@ -3,6 +3,7 @@
 var _ = require('lodash')
     , utils = require('../../../shared/utils')
     , ComponentBase = require('../../../shared/components/player')
+    , List = require('../../../shared/list')
     , PlayerComponent;
 
 /**
@@ -10,16 +11,15 @@ var _ = require('lodash')
  * @class client.components.PlayerComponent
  * @classdesc Client-isde component that adds support for taking user input.
  * @extends shared.Component
- * @property {Phaser.Input} input - Associated input manager instance.
- * @property {object} - Cursor keys object literal.
+ * @property {Phaser.Input} input - Input manager instance.
  */
 PlayerComponent = utils.inherit(ComponentBase, {
-    key: 'player'
-    , phase: ComponentBase.prototype.phases.INPUT
-    , input: null
-    , cursorKeys: null
+    input: null
+    , _cursorKeys: null
+    , _commands: null
+    , _processed: null
     , _sequence: 0
-    , _inputs: null
+    , _lastSyncAt: null
     /**
      * Creates a new component.
      * @constructor
@@ -27,70 +27,86 @@ PlayerComponent = utils.inherit(ComponentBase, {
      */
     , constructor: function(input) {
         this.input = input;
-        this.cursorKeys = this.input.keyboard.createCursorKeys();
-        this._inputs = [];
+        this._cursorKeys = this.input.keyboard.createCursorKeys();
+        this._commands = new List();
+        this._processed = [];
     }
     /**
-     * @override
+     * TODO
      */
     , init: function() {
         this.owner.on('entity.sync', this.onEntitySync.bind(this));
     }
     /**
-     * Event handler for when the associated entity is synchronized.
-     * @method client.components.PlayerComponent#onEntitySync
+     * TODO
      */
-    , onEntitySync: function(state) {
-        var attrs = _.omit(state, ['inputSequence']);
+    , onEntitySync: function(attrs) {
+        if (this.owner.config.enablePrediction && !this.isAttributesProcessed(attrs)) {
+            var inputSequence = attrs.inputSequence
+                , command;
 
-        this._inputs = _.filter(this._inputs, function(input) {
-            return input.sequence > state.inputSequence;
-        });
+            delete attrs.inputSequence;
 
-        for (var i = 0; i < this._inputs.length; i++) {
-            attrs = this.simulateInput(this._inputs[i], attrs);
+            this._commands.filter(function(command) {
+                return command.sequence > inputSequence;
+            });
+
+            for (var i = 0, len = this._commands.size(); i < len; i++) {
+                attrs = this.applyCommand(this._commands.get(i), attrs);
+            }
+
+            this.owner.attrs.set(attrs);
+            this._processed.push(inputSequence);
         }
-
-        this.owner.attrs.set(attrs);
+    }
+    /**
+     * TODO
+     */
+    , isAttributesProcessed: function(attrs) {
+        return attrs.inputSequence && this._processed.indexOf(attrs.inputSequence) !== -1;
     }
     /**
      * @override
      */
     , update: function(elapsed) {
-        ComponentBase.prototype.update.apply(this, arguments);
+        var now = +new Date()
+            , speed = this.owner.attrs.get('speed')
+            , command;
 
-        var actor = this.owner.components.get('actor');
+        this._lastSyncAt = this._lastSyncAt || now;
 
-        if (actor) {
-            var speed = this.owner.attrs.get('speed')
-                , input;
+        command = {
+            sequence: null
+            , down: []
+            , speed: speed
+            , elapsed: elapsed
+        };
 
-            // TODO consider moving speed to the server only
+        if (this._cursorKeys.up.isDown) {
+            command.down.push('up');
+        } else if (this._cursorKeys.down.isDown) {
+            command.down.push('down');
+        }
+        if (this._cursorKeys.left.isDown) {
+            command.down.push('left');
+        } else if (this._cursorKeys.right.isDown) {
+            command.down.push('right');
+        }
 
-            input = {down: [], speed: speed, elapsed: elapsed};
+        if (command.down.length) {
+            command.sequence = this._sequence++;
+            this._commands.add(command);
 
-            if (this.cursorKeys.up.isDown) {
-                input.down.push('up');
-            } else if (this.cursorKeys.down.isDown) {
-                input.down.push('down');
+            if (this.owner.config.enablePrediction) {
+                var attrs = this.applyCommand(command);
+                this.owner.attrs.set(attrs);
             }
-            if (this.cursorKeys.left.isDown) {
-                input.down.push('left');
-            } else if (this.cursorKeys.right.isDown) {
-                input.down.push('right');
-            }
+        }
 
-            // move the player immediately without waiting for the response
-            // from the server to avoid an unnecessary lag effect
-            if (input.down.length) {
-                // TODO figure out why we cannot use x and y from attrs
-                var attrs = {x: actor.sprite.x, y: actor.sprite.y};
-                attrs = this.simulateInput(input, attrs);
-                actor.setPosition(attrs.x, attrs.y);
-                input.sequence = this._sequence++;
-                this._inputs.push(input);
-                this.owner.socket.emit('player.input', input);
-            }
+        if (!this._commands.isEmpty() && (now - this._lastSyncAt) > (1000 / this.owner.config.tickRate)) {
+            this.owner.socket.emit('player.input', this._commands.get());
+            this._commands.clear();
+            this._lastSyncAt = now;
         }
     }
 });

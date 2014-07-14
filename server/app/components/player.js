@@ -7,8 +7,8 @@ var _ = require('lodash')
 
 /**
  * Player component class.
- * @class client.components.PlayerComponent
- * @classdesc Server-side component that adds support for receiving user input.
+ * @class server.components.PlayerComponent
+ * @classdesc Server-side component that adds support for receiving user commands.
  * @extends shared.components.PlayerComponent
  */
 PlayerComponent = utils.inherit(ComponentBase, {
@@ -19,15 +19,17 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this.owner.socket.on('player.input', this.onInput.bind(this));
     }
     /**
-     * Event handler for when receiving player input.
-     * @method server.components.PlayerComponent#onInput
-     * @param {object} input - Input object literal.
+     * Event handler for when receiving user input.
+     * @method server.components.PlayerComponent#onCommand
+     * @param {object} command - User command.
      */
-    , onInput: function(input) {
-        // simulate the input the input to calculate the real position,
-        // set the entity attributes and take a snapshot of the state
-        var attrs = this.simulateInput(input);
-        attrs.inputSequence = input.sequence;
+    , onInput: function(commands) {
+        var attrs = this.owner.attrs.get();
+
+        for (var i = 0; i < commands.length; i++) {
+            attrs = this.applyCommand(commands[i], attrs);
+        }
+
         this.owner.attrs.set(attrs);
     }
 });

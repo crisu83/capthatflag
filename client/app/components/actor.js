@@ -7,13 +7,13 @@ var utils = require('../../../shared/utils')
 /**
  * Actor component class.
  * @class client.components.ActorComponent
- * @classdesc Component that adds support for a sprite to the entity.
+ * @classdesc Component that adds sprite support for the associated entity.
  * @extends shared.Component
- * @property {Phaser.Sprite} sprite - Associated sprite object.
+ * @property {Phaser.Sprite} sprite - Sprite instance.
  */
 ActorComponent = utils.inherit(ComponentBase, {
     key: 'actor'
-    , phase: ComponentBase.prototype.phases.MOVEMENT
+    , phase: ComponentBase.prototype.phases.RENDER
     , sprite: null
     /**
      * Creates a new component.
@@ -27,17 +27,13 @@ ActorComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , init: function() {
-        // bind event handlers
-        this.owner.on('entity.sync', this.onEntitySync.bind(this));
         this.owner.on('entity.die', this.onEntityDeath.bind(this));
     }
     /**
-     * Event handler for when the entity is synchronized.
-     * @method client.components.ActorComponent#onEntitySync
-     * @param {object} state - Synchronized entity state.
+     * TODO
      */
-    , onEntitySync: function(state) {
-        this.setPosition(state.x, state.y);
+    , update: function(elapsed) {
+        this.setPosition(this.owner.attrs.get(['x', 'y']));
     }
     /**
      * Event handler for when the entity dies.
@@ -52,9 +48,9 @@ ActorComponent = utils.inherit(ComponentBase, {
      * @param {number} x - Coordinates on the x-axis.
      * @param {number} y - Coordinates on the y-axis.
      */
-    , setPosition: function(x, y) {
-        this.sprite.x = x;
-        this.sprite.y = y;
+    , setPosition: function(position) {
+        this.sprite.x = position.x;
+        this.sprite.y = position.y;
     }
 });
 

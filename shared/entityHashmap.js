@@ -32,10 +32,10 @@ EntityHashmap = utils.inherit(HashmapBase, {
     /**
      * Event handler for when an entity dies.
      * @method shared.EntityHashmap#onEntityDeath
-     * @param {number} entityId - Entity identifier.
+     * @param {number} id - Entity identifier.
      */
-    , onEntityDeath: function(entityId) {
-        this.remove(entityId);
+    , onEntityDeath: function(id) {
+        this.remove(id);
     }
 });
 

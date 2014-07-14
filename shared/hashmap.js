@@ -22,7 +22,7 @@ Hashmap = utils.inherit(null, {
     /**
      * Adds an item to this hashmap.
      * @method shared.Hashmap#add
-     * @param {string} key - Item key.
+     * @param {string|object} key - Item key.
      * @param {object} value - Item value.
      */
     , add: function(key, value) {

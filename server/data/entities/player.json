@@ -1,10 +1,12 @@
 {
     "key": "player"
-    , "x": 0
-    , "y": 0
-    , "width": 32
-    , "height": 32
-    , "speed": 150
-    , "physics": 0
-    , "image": "player-male"
+    , "attrs": {
+        "x": 0
+        , "y": 0
+        , "width": 32
+        , "height": 32
+        , "speed": 100
+        , "physics": 0
+        , "image": "player-male"
+    }
 }

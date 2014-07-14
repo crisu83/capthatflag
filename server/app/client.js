@@ -54,8 +54,15 @@ Client = utils.inherit(Node, {
         this.spark.emit('client.init', {
             // client identifier
             id: this.id
-            , delay: config.clientDelay
-            // game configuration
+            // server configuration
+            , tickRate: config.tickRate
+            // client configuration
+            , enablePrediction: config.enablePrediction
+            , enableReconcilation: config.enableReconcilation
+            , enableInterpolation: config.enableInterpolation
+            , enableExtrapolation: config.enableExtrapolation
+            , extrapolationMsec: config.extrapolationMsec
+            // viewport configuration
             , canvasWidth: config.canvasWidth
             , canvasHeight: config.canvasHeight
             , gameWidth: config.gameWidth
@@ -78,41 +85,36 @@ Client = utils.inherit(Node, {
      * @method server.Client#onReady
      */
     , onReady: function() {
-        var player = EntityFactory.create(this.spark, 'player')
-            , id = shortid.generate();
+        var player = EntityFactory.create(this.spark, 'player');
 
+        // TODO add some logic for where to spawn the player
         player.attrs.set({
-            id: id
-            // TODO: add some logic for where to spawn the player
-            // spawn the player at a random location for now
-            , x: Math.abs(Math.random() * (config.gameWidth - player.attrs.get('width')))
+            x: Math.abs(Math.random() * (config.gameWidth - player.attrs.get('width')))
             , y: Math.abs(Math.random() * (config.gameHeight - player.attrs.get('height')))
         });
 
         player.components.add(new PlayerComponent());
 
-        console.log('   player %s created for client %s', id, this.id);
+        console.log('   player %s created for client %s', player.id, this.id);
 
         this.spark.emit('player.create', player.serialize());
-
-        this.room.entities.add(id, player);
-
+        this.room.entities.add(player.id, player);
         this.player = player;
     }
     /**
      * Synchronizes this client with the server.
      * @method server.Client#sync
-     * @param {object} state - State to synchronize.
+     * @param {object} worldState - State to synchronize.
      */
-    , sync: function(state) {
-        this.spark.emit('client.sync', state);
+    , sync: function(worldState) {
+        this.spark.emit('client.sync', worldState);
     }
     /**
      * Event handler for when this client disconnects.
      * @method server.Client#onDisconnect
      */
     , onDisconnect: function() {
-        var playerId = this.player.attrs.get('id');
+        var playerId = this.player.id;
 
         // remove the player
         this.player.die();
