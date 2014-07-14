@@ -24,7 +24,12 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @param {object} command - User command.
      */
     , onInput: function(commands) {
-        var attrs = this.processCommands(commands);
+        var attrs = this.owner.attrs.get();
+
+        for (var i = 0; i < commands.length; i++) {
+            attrs = this.applyCommand(commands[i], attrs);
+        }
+
         this.owner.attrs.set(attrs);
     }
 });

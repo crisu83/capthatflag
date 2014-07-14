@@ -29,11 +29,21 @@ List = utils.inherit(null, {
     /**
      * Returns the item with the given index from this list.
      * @method shared.SortedList#get
-     * @param {number} index - Item index.
+     * @param {number} index - Item index, omit to get all items.
      * @return {object} Item found, or null if not found
      */
     , get: function(index) {
-        return this._items[index];
+        if (typeof index === 'undefined') {
+            return this._items;
+        } else {
+            return this._items[index];
+        }
+    }
+    /**
+     * TODO
+     */
+    , set: function(index, item) {
+        this._items[index] = item;
     }
     /**
      * Returns the number of items in this list.
@@ -46,8 +56,26 @@ List = utils.inherit(null, {
     /**
      * TODO
      */
+    , clear: function() {
+        this._items = [];
+    }
+    /**
+     * TODO
+     */
+    , isEmpty: function() {
+        return this._items.length === 0;
+    }
+    /**
+     * TODO
+     */
     , filter: function(filter) {
         this._items = _.filter(this._items, filter);
+    }
+    /**
+     * TODO
+     */
+    , first: function() {
+        return this._items[0];
     }
     /**
      * TODO

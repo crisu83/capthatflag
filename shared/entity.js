@@ -37,11 +37,17 @@ Entity = utils.inherit(Node, {
         Node.apply(this);
 
         this.id = data.id;
-        this.key = data.key || 'entity';
+        this.key = data.key;
         this.socket = socket;
         this.config = config;
         this.attrs = new EntityAttributes(data.attrs);
         this.components = new EntityComponents(this);
+    }
+    /**
+     * TODO
+     */
+    , sync: function(attrs) {
+        this.trigger('entity.sync', [attrs]);
     }
     /**
      * Updates the logic for this entity.

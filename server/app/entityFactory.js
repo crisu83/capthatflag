@@ -1,7 +1,8 @@
 'use strict';
 
 var _ = require('lodash')
-    , Entity = require('./entity')
+    , shortid = require('shortid')
+    , Entity = require('../../shared/entity')
     , config = require('./config.json')
     , EntityFactory;
 
@@ -35,7 +36,12 @@ EntityFactory = {
         // return a clone so that we get a different reference
         // to the data for each entity
         var data = require('../data/entities/' + key + '.json');
-        return {key: data.key, attrs: _.clone(data.attrs)};
+
+        return {
+            id: shortid.generate()
+            , key: data.key
+            , attrs: _.clone(data.attrs)
+        };
     }
 };
 

@@ -3,6 +3,7 @@
 var _ = require('lodash')
     , utils = require('../../../shared/utils')
     , ComponentBase = require('../../../shared/components/player')
+    , List = require('../../../shared/list')
     , PlayerComponent;
 
 /**
@@ -11,12 +12,12 @@ var _ = require('lodash')
  * @classdesc Client-isde component that adds support for taking user input.
  * @extends shared.Component
  * @property {Phaser.Input} input - Input manager instance.
- * @property {object} - Cursor keys.
  */
 PlayerComponent = utils.inherit(ComponentBase, {
     input: null
     , _cursorKeys: null
     , _commands: null
+    , _processed: null
     , _sequence: 0
     , _lastSyncAt: null
     /**
@@ -27,17 +28,59 @@ PlayerComponent = utils.inherit(ComponentBase, {
     , constructor: function(input) {
         this.input = input;
         this._cursorKeys = this.input.keyboard.createCursorKeys();
-        this._commands = [];
+        this._commands = new List();
+        this._processed = [];
+    }
+    /**
+     * TODO
+     */
+    , init: function() {
+        this.owner.on('entity.sync', this.onEntitySync.bind(this));
+    }
+    /**
+     * TODO
+     */
+    , onEntitySync: function(attrs) {
+        if (this.owner.config.enablePrediction && !this.isAttributesProcessed(attrs)) {
+            var inputSequence = attrs.inputSequence
+                , command;
+
+            delete attrs.inputSequence;
+
+            this._commands.filter(function(command) {
+                return command.sequence > inputSequence;
+            });
+
+            for (var i = 0; i < this._commands.length; i++) {
+                attrs = this.applyCommand(this._commands.get(i), attrs);
+            }
+
+            this.owner.attrs.set(attrs);
+            this._processed.push(inputSequence);
+        }
+    }
+    /**
+     * TODO
+     */
+    , isAttributesProcessed: function(attrs) {
+        return attrs.inputSequence && this._processed.indexOf(attrs.inputSequence) !== -1;
     }
     /**
      * @override
      */
     , update: function(elapsed) {
-        ComponentBase.prototype.update.apply(this, arguments);
-
         var now = +new Date()
             , speed = this.owner.attrs.get('speed')
-            , command = {down: [], speed: speed, elapsed: elapsed, sequence: null};
+            , command;
+
+        this._lastSyncAt = this._lastSyncAt || now;
+
+        command = {
+            sequence: null
+            , down: []
+            , speed: speed
+            , elapsed: elapsed
+        };
 
         if (this._cursorKeys.up.isDown) {
             command.down.push('up');
@@ -52,19 +95,17 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         if (command.down.length) {
             command.sequence = this._sequence++;
+            this._commands.add(command);
 
             if (this.owner.config.enablePrediction) {
                 var attrs = this.applyCommand(command);
                 this.owner.attrs.set(attrs);
             }
-
-            this._commands.push(command);
         }
 
-        if (this._commands.length && (!this._lastSyncAt || (now - this._lastSyncAt) > (1000 / this.owner.config.tickRate))) {
-            this.owner.socket.emit('player.input', this._commands);
-
-            this._commands = [];
+        if (!this._commands.isEmpty() && (now - this._lastSyncAt) > (1000 / this.owner.config.tickRate)) {
+            this.owner.socket.emit('player.input', this._commands.get());
+            this._commands.clear();
             this._lastSyncAt = now;
         }
     }

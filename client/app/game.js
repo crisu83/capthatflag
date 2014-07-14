@@ -4,9 +4,10 @@ var _ = require('lodash')
     , utils = require('../../shared/utils')
     , EntityHashmap = require('../../shared/entityHashmap')
     , StateHistory = require('../../shared/stateHistory')
-    , Entity = require('./entity')
+    , Entity = require('../../shared/entity')
     , ActorComponent = require('./components/actor')
-    , PlayerComponent = require('./components/player');
+    , PlayerComponent = require('./components/player')
+    , SyncComponent = require('./components/sync');
 
 /**
  * Runs the game.
@@ -174,17 +175,11 @@ function run(primus, config) {
 
                 if (previousState) {
                     if (config.enableInterpolation && true || this.canInterpolate()) {
-                        var lerpMsec = (1000 / config.tickRate) * 2
-                            , lerpTime = this._lastTickAt - lerpMsec
-                            , delta = lerpTime - previousState.timestamp
-                            , timestep = worldState.timestamp - previousState.timestamp
-                            , factor = delta / timestep;
-
+                        var factor = this.calculateInterpolationFactor(previousState, worldState);
                         worldState = this.interpolateWorldState(previousState, worldState, factor);
-                        //console.log('interpolating');
                     } else if (config.enableExtrapolation && this.canExtrapolate()) {
+                        // TODO add support for world state extrapolation
                         //worldState = this.extrapolateWorldState(previousState, worldState, factor);
-                        //console.log('extrapolating');
                     }
                 }
 
@@ -214,13 +209,12 @@ function run(primus, config) {
                             }
 
                             entity.components.add(new ActorComponent(sprite));
+                            entity.components.add(new SyncComponent());
 
                             this.entities.add(entity.id, entity);
                         }
 
-                        if (state.id !== this.player.id) {
-                            entity.attrs.set(state.attrs);
-                        }
+                        entity.sync(state.attrs);
                     }
                 }
             }
@@ -229,7 +223,7 @@ function run(primus, config) {
          * TODO
          */
         , canInterpolate: function() {
-            var endTime = +new Date() - (1000 / config.tickRate)
+            var endTime = +new Date() - (1000 / config.syncRate)
                 , last = this._stateHistory.last();
 
             return this._stateHistory.size() >= 2 && last.timestamp < endTime;
@@ -237,9 +231,20 @@ function run(primus, config) {
         /**
          * TODO
          */
+        , calculateInterpolationFactor: function(previous, next) {
+            var lerpMsec = (1000 / config.syncRate) * 2
+                , lerpTime = this._lastTickAt - lerpMsec
+                , delta = lerpTime - previous.timestamp
+                , timestep = next.timestamp - previous.timestamp;
+
+            return delta / timestep;
+        }
+        /**
+         * TODO
+         */
         , canExtrapolate: function() {
             var now = +new Date()
-                , startTime = now - (1000 / config.tickRate)
+                , startTime = now - (1000 / config.syncRate)
                 , endTime = now - config.extrapolationMsec
                 , last = this._stateHistory.last();
 

@@ -26,6 +26,8 @@ Room = utils.inherit(null, {
     , clients: null
     , entities: null
     , _stateHistory: null
+    , _chatMessages: null
+    , _lastSyncAt: null
     , _lastTickAt: null
     , _packetSequence: 0
     /**
@@ -41,6 +43,7 @@ Room = utils.inherit(null, {
         this.clients = new ClientHashmap();
         this.entities = new EntityHashmap();
         this._stateHistory = new StateHistory(1000);
+        this._chatMessages = [];
 
         console.log(' room %s created', this.id);
     }
@@ -79,14 +82,18 @@ Room = utils.inherit(null, {
      */
     , gameLoop: function() {
         var now = +new Date()
-            , worldState = this.createWorldState()
             , elapsed;
 
         this._lastTickAt = this._lastTickAt || now;
         elapsed = now - this._lastTickAt;
 
         this.entities.update(elapsed);
-        this.clients.sync(worldState);
+
+        if (!this._lastSyncAt || now - this._lastSyncAt > 1000 / config.syncRate) {
+            var worldState = this.createWorldState();
+            this.clients.sync(worldState);
+            this._lastSyncAt = now;
+        }
 
         this._lastTickAt = now;
     }
