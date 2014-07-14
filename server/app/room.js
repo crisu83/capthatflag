@@ -1,8 +1,11 @@
 'use strict';
 
-var _ = require('lodash')
+var path = require('path')
+    , _ = require('lodash')
     , utils = require('../../shared/utils')
     , shortid = require('shortid')
+    , DataManager = require('./dataManager')
+    , TilemapFactory = require('./tilemapFactory')
     , Client = require('./client')
     , ClientHashmap = require('./clientHashmap')
     , EntityHashmap = require('../../shared/entityHashmap')
@@ -38,10 +41,15 @@ Room = utils.inherit(null, {
     , constructor: function(primus) {
         this.id = shortid.generate();
         this.primus = primus;
+
+        var dataPath = path.resolve(__dirname + '/../data');
+        DataManager.loadData(dataPath);
+
         // TODO change this to not be hard-coded
-        this.tilemap = require('../data/tilemaps/dungeon.json');
+        this.tilemap = TilemapFactory.create('dungeon');
         this.clients = new ClientHashmap();
         this.entities = new EntityHashmap();
+
         this._stateHistory = new StateHistory(1000);
         this._chatMessages = [];
 

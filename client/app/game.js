@@ -48,11 +48,19 @@ function run(primus, config) {
             console.log('loading assets ...');
 
             game.load.tilemap(config.mapKey, null, config.mapData, config.mapType);
-            game.load.image(config.mapImage, 'static/' + config.mapSrc);
 
-            // TODO Load dynamically
-            game.load.image('player-male', 'static/assets/images/sprites/player/male.png');
-            game.load.image('player-female', 'static/assets/images/sprites/player/female.png');
+            this.loadImages(game);
+        }
+        /**
+         * Loads all image assets.
+         * @param {Phaser.Game} game - Game instance.
+         */
+        , loadImages: function(game) {
+            for (var key in config.images) {
+                if (config.images.hasOwnProperty(key)) {
+                    game.load.image(key, 'static/assets/' + config.images[key]);
+                }
+            }
         }
         /**
          * Creates the game objects.
@@ -75,7 +83,7 @@ function run(primus, config) {
 
             map = game.add.tilemap(config.mapKey);
             map.addTilesetImage(config.mapKey, config.mapImage);
-            layer = map.createLayer(config.mapLayer);
+            layer = map.createLayer(config.mapLayer[0]);
             layer.resizeWorld();
 
             pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);

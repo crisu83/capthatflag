@@ -4,6 +4,7 @@ var _ = require('lodash')
     , utils = require('../../shared/utils')
     , shortid = require('shortid')
     , Node = require('../../shared/node')
+    , DataManager = require('./dataManager')
     , EntityFactory = require('./entityFactory')
     , PlayerComponent = require('./components/player')
     , config = require('./config.json')
@@ -69,11 +70,12 @@ Client = utils.inherit(Node, {
             , gameHeight: config.gameHeight
             // map configuration
             , mapKey: this.room.tilemap.key
-            , mapData: JSON.stringify(require(this.room.tilemap.data))
+            , mapData: this.room.tilemap.data
             , mapType: this.room.tilemap.type
             , mapImage: this.room.tilemap.image
-            , mapSrc: this.room.tilemap.src
-            , mapLayer: this.room.tilemap.layers[0]
+            , mapLayer: this.room.tilemap.layers
+            // assets
+            , images: DataManager.getImages()
         });
 
         // bind event handlers

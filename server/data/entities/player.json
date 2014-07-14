@@ -9,4 +9,7 @@
         , "physics": 0
         , "image": "player-male"
     }
+    , "assets": {
+        "player-male": "images/sprites/player/male.png"
+    }
 }

@@ -4,6 +4,7 @@ var _ = require('lodash')
     , shortid = require('shortid')
     , Entity = require('../../shared/entity')
     , config = require('./config.json')
+    , DataManager = require('./dataManager')
     , EntityFactory;
 
 /**
@@ -33,9 +34,7 @@ EntityFactory = {
      * @return {object} Entity data.
      */
     , loadData: function(key) {
-        // return a clone so that we get a different reference
-        // to the data for each entity
-        var data = require('../data/entities/' + key + '.json');
+        var data = DataManager.getEntity(key);
 
         return {
             id: shortid.generate()
