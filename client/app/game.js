@@ -7,7 +7,8 @@ var _ = require('lodash')
     , Entity = require('../../shared/entity')
     , ActorComponent = require('./components/actor')
     , PlayerComponent = require('./components/player')
-    , SyncComponent = require('./components/sync');
+    , SyncComponent = require('./components/sync')
+    , Chat = require('./ui/chat');
 
 /**
  * Runs the game.
@@ -28,6 +29,7 @@ function run(primus, config) {
     var PlayState = utils.inherit(Phaser.State, {
         entities: null
         , player: null
+        , chat: null
         , _stateHistory: null
         , _lastSyncAt: null
         , _lastTickAt: null
@@ -70,7 +72,7 @@ function run(primus, config) {
         , create: function(game) {
             console.log('creating game ...');
 
-            var map, layer, pauseKey;
+            var map, layer, pauseKey, chatStyle;
 
             // define the world bounds
             game.world.setBounds(0, 0, config.gameWidth, config.gameHeight);
@@ -86,8 +88,11 @@ function run(primus, config) {
             layer = map.createLayer(config.mapLayer[0]);
             layer.resizeWorld();
 
+            // set up pause key
             pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
             pauseKey.onDown.add(this.onGamePause.bind(this, game));
+
+            this.chat = new Chat(10, config.gameHeight - 120, 5, '12px Arial', game);
 
             // bind event handlers
             primus.on('player.create', this.onPlayerCreate.bind(this));
@@ -173,6 +178,7 @@ function run(primus, config) {
 
             this.updateWorldState(elapsed);
             this.entities.update(elapsed);
+            this.chat.update(elapsed);
 
             this._lastTickAt = game.time.lastTime;
         }
