@@ -2,15 +2,15 @@
 
 var path = require('path')
     , _ = require('lodash')
-    , utils = require('../../shared/utils')
     , shortid = require('shortid')
+    , utils = require('../../../shared/utils')
     , DataManager = require('./dataManager')
     , TilemapFactory = require('./tilemapFactory')
     , Client = require('./client')
-    , ClientHashmap = require('./clientHashmap')
-    , EntityHashmap = require('../../shared/entityHashmap')
-    , StateHistory = require('../../shared/stateHistory')
-    , config = require('./config.json')
+    , ClientHashmap = require('../utils/clientHashmap')
+    , EntityHashmap = require('../../../shared/utils/entityHashmap')
+    , StateHistory = require('../../../shared/utils/stateHistory')
+    , config = require('../config.json')
     , Room;
 
 /**
@@ -28,8 +28,9 @@ Room = utils.inherit(null, {
     , tilemap: null
     , clients: null
     , entities: null
+    , _world: null
+    , _bodies: null
     , _stateHistory: null
-    , _chatMessages: null
     , _lastSyncAt: null
     , _lastTickAt: null
     , _packetSequence: 0
@@ -42,7 +43,7 @@ Room = utils.inherit(null, {
         this.id = shortid.generate();
         this.primus = primus;
 
-        var dataPath = path.resolve(__dirname + '/../data');
+        var dataPath = path.resolve(__dirname + '/../../data');
         DataManager.loadData(dataPath);
 
         // TODO change this to not be hard-coded
@@ -51,7 +52,6 @@ Room = utils.inherit(null, {
         this.entities = new EntityHashmap();
 
         this._stateHistory = new StateHistory(1000);
-        this._chatMessages = [];
 
         console.log(' room %s created', this.id);
     }
@@ -89,17 +89,23 @@ Room = utils.inherit(null, {
      * @method server.Room#gameLoop
      */
     , gameLoop: function() {
-        var now = +new Date()
+        var now = _.now()
             , elapsed;
 
         this._lastTickAt = this._lastTickAt || now;
         elapsed = now - this._lastTickAt;
 
-        this.entities.update(elapsed);
+        this.entities.each(function(entity) {
+            entity.update(elapsed);
+        }, this);
 
         if (!this._lastSyncAt || now - this._lastSyncAt > 1000 / config.syncRate) {
             var worldState = this.createWorldState();
-            this.clients.sync(worldState);
+
+            this.clients.each(function(client, id) {
+                client.sync(worldState);
+            }, this);
+
             this._lastSyncAt = now;
         }
 
@@ -111,19 +117,16 @@ Room = utils.inherit(null, {
      * @return {object} Current world state.
      */
     , createWorldState: function() {
-        var now = +new Date()
-            , worldState = {sequence: this._packetSequence++, timestamp: now, entities: {}}
-            , entities = this.entities.get()
-            , entity;
+        var now = _.now()
+            , worldState = {sequence: this._packetSequence++, timestamp: now, entities: {}};
 
-        for (var id in entities) {
-            if (entities.hasOwnProperty(id)) {
-                entity = entities[id];
-                worldState.entities[entity.id] = entity.serialize();
-            }
-        }
+        this.entities.each(function(entity, id) {
+            worldState.entities[id] = entity.serialize();
+        });
 
         this._stateHistory.snapshot(worldState);
+
+        //console.log(worldState.entities);
 
         return worldState;
     }

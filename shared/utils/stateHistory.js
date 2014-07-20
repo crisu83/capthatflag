@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('./utils')
+var utils = require('../utils')
     , ListBase = require('./list')
     , StateHistory;
 

@@ -2,8 +2,8 @@
 
 var _ = require('lodash')
     , shortid = require('shortid')
-    , Entity = require('../../shared/entity')
-    , config = require('./config.json')
+    , Entity = require('../../../shared/core/entity')
+    , config = require('../config.json')
     , DataManager = require('./dataManager')
     , EntityFactory;
 
@@ -24,7 +24,7 @@ EntityFactory = {
         var data = this.loadData(key)
             , entity = new Entity(socket, data, config);
 
-        // TODO: consider including components in the data and attaching them here
+        // TODO consider including components in the data and attaching them here
 
         return entity;
     }

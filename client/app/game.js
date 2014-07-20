@@ -2,9 +2,9 @@
 
 var _ = require('lodash')
     , utils = require('../../shared/utils')
-    , EntityHashmap = require('../../shared/entityHashmap')
-    , StateHistory = require('../../shared/stateHistory')
-    , Entity = require('../../shared/entity')
+    , EntityHashmap = require('../../shared/utils/entityHashmap')
+    , StateHistory = require('../../shared/utils/stateHistory')
+    , Entity = require('../../shared/core/entity')
     , ActorComponent = require('./components/actor')
     , PlayerComponent = require('./components/player')
     , SyncComponent = require('./components/sync');
@@ -17,10 +17,12 @@ var _ = require('lodash')
 function run(primus, config) {
     console.log('creating client', config);
 
+    var debug = true;
+
     /**
      * Play state class.
      * @class client.PlayState
-     * @classdesc Game state that runs the acutal game play.
+     * @classdesc Game state that runs the actual game play.
      * @extends Phaser.State
      * @property {shared.EntityHashmap} entities - Map over entities in the state.
      * @property {client.Entity} player - Player entity instance.
@@ -37,7 +39,7 @@ function run(primus, config) {
          */
         , constructor: function() {
             this.entities = new EntityHashmap();
-            this._stateHistory = new StateHistory((1000 / config.tickRate) * 3);
+            this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
         }
         /**
          * Loads the game assets.
@@ -47,18 +49,17 @@ function run(primus, config) {
         , preload: function(game) {
             console.log('loading assets ...');
 
-            game.load.tilemap(config.mapKey, null, config.mapData, config.mapType);
-
+            this.load.tilemap(config.mapKey, null, config.mapData, config.mapType);
             this.loadImages(game);
         }
         /**
          * Loads all image assets.
          * @param {Phaser.Game} game - Game instance.
          */
-        , loadImages: function(game) {
+        , loadImages: function() {
             for (var key in config.images) {
                 if (config.images.hasOwnProperty(key)) {
-                    game.load.image(key, 'static/assets/' + config.images[key]);
+                    this.load.image(key, 'static/assets/' + config.images[key]);
                 }
             }
         }
@@ -86,8 +87,10 @@ function run(primus, config) {
             layer = map.createLayer(config.mapLayer[0]);
             layer.resizeWorld();
 
-            pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
-            pauseKey.onDown.add(this.onGamePause.bind(this, game));
+            if (debug) {
+                pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
+                pauseKey.onDown.add(this.onGamePause.bind(this));
+            }
 
             // bind event handlers
             primus.on('player.create', this.onPlayerCreate.bind(this));
@@ -100,9 +103,9 @@ function run(primus, config) {
          * Event handler for when the game is paused.
          * @method client.PlayState#onGamePause
          */
-        , onGamePause: function(game, event) {
-            game.paused = !game.paused;
-            console.log(game.paused ? 'game paused' : 'game resumed');
+        , onGamePause: function(event) {
+            this.paused = !this.paused;
+            console.log(this.paused ? 'game paused' : 'game resumed');
         }
         /**
          * Event handler for creating the player.
@@ -113,15 +116,7 @@ function run(primus, config) {
             console.log('creating player', state);
 
             var entity = this.createEntity(state)
-                , sprite = this.game.add.sprite(state.attrs.x, state.attrs.y, state.attrs.image)
-                , physics = state.attrs.physics || -1;
-
-            if (physics >= 0) {
-                this.game.physics.enable(sprite, physics);
-                sprite.physicsBodyType = physics;
-                //sprite.body.collideWorldBounds = true;
-                sprite.body.immovable = true;
-            }
+                , sprite = this.add.sprite(state.attrs.x, state.attrs.y, state.attrs.image);
 
             entity.components.add(new ActorComponent(sprite));
             entity.components.add(new PlayerComponent(this.game.input));
@@ -139,8 +134,9 @@ function run(primus, config) {
          * @param {object} worldState - World state.
          */
         , onSync: function(worldState) {
-            var now = +new Date();
+            var now = _.now();
 
+            // TODO This shoud not be done
             worldState.timestamp = now;
             this._stateHistory.snapshot(worldState);
 
@@ -166,15 +162,28 @@ function run(primus, config) {
          * @param {Phaser.Game} game - Game instance.
          */
         , update: function(game) {
-            // TODO: add collision detection
-
-            var now = +new Date()
-                , elapsed = game.time.elapsed;
+            var now = game.time.now
+                , elapsed = game.time.elapsed / 1000;
 
             this.updateWorldState(elapsed);
-            this.entities.update(elapsed);
+            this.updatePhysics(elapsed);
+            this.updateEntities(elapsed);
 
             this._lastTickAt = game.time.lastTime;
+        }
+        /**
+         * TODO
+         */
+        , updateEntities: function(elapsed) {
+            this.entities.each(function(entity, id) {
+                entity.update(elapsed);
+            }, this);
+        }
+        /**
+         * TODO
+         */
+        , updatePhysics: function(elapsed) {
+            // TODO implement collision detection
         }
         /**
          * Updates the world state using the state history.
@@ -185,7 +194,7 @@ function run(primus, config) {
             var worldState = this._stateHistory.last();
 
             if (worldState) {
-                var now = +new Date()
+                var now = _.now()
                     , previousState = this._stateHistory.previous();
 
                 if (previousState) {
@@ -209,19 +218,7 @@ function run(primus, config) {
                         if (!entity) {
                             console.log('creating new entity', state);
                             entity = this.createEntity(state);
-                            sprite = this.game.add.sprite(state.attrs.x, state.attrs.y, state.attrs.image);
-                            physics = state.attrs.physics || -1;
-
-                            if (physics >= 0) {
-                                this.game.physics.enable(sprite, physics);
-                                sprite.physicsBodyType = physics;
-                                //sprite.body.collideWorldBounds = true;
-                                sprite.body.immovable = true;
-                            }
-
-                            if (!entity) {
-                                throw new Error('Failed to create entity ' + state.id + '!');
-                            }
+                            sprite = this.add.sprite(state.attrs.x, state.attrs.y, state.attrs.image);
 
                             entity.components.add(new ActorComponent(sprite));
                             entity.components.add(new SyncComponent());
@@ -255,7 +252,7 @@ function run(primus, config) {
          * @return {boolean} The result.
          */
         , canInterpolate: function() {
-            var endTime = +new Date() - (1000 / config.syncRate)
+            var endTime = _.now() - (1000 / config.syncRate)
                 , last = this._stateHistory.last();
 
             return this._stateHistory.size() >= 2 && last.timestamp < endTime;
@@ -266,7 +263,7 @@ function run(primus, config) {
           * @return {boolean} The result.
           */
         , canExtrapolate: function() {
-            var now = +new Date()
+            var now = _.now()
                 , startTime = now - (1000 / config.syncRate)
                 , endTime = now - config.extrapolationMsec
                 , last = this._stateHistory.last();
@@ -293,13 +290,11 @@ function run(primus, config) {
                             , factor
                         );
                         // TODO Test with a bigger sprite if this "smoothing" is necessary
-                        /*
                         entityState = this.interpolateEntityState(
                             previous.entities[id]
                             , entityState
                             , 0.3
                         );
-                        */
                         worldState.entities[id] = entityState;
                     }
                 }
@@ -315,15 +310,23 @@ function run(primus, config) {
          * @return {object} Interpolated entity state.
          */
         , interpolateEntityState: function(previous, next, factor) {
-            var entityState = _.clone(next);
+            var entityState = _.clone(next)
+                , previousValue;
 
-            for (var name in next.attrs) {
-                if (next.attrs.hasOwnProperty(name) && previous.attrs[name]) {
-                    entityState.attrs[name] = utils.lerp(previous.attrs[name], next.attrs[name], factor);
+            _.forOwn(next.attrs, function(value, name) {
+                previousValue = previous.attrs[name];
+                if (this.canInterpolateValue(previousValue, value)) {
+                    entityState.attrs[name] = utils.lerp(previousValue, value, factor);
                 }
-            }
+            });
 
             return entityState;
+        }
+        /**
+         * TODO
+         */
+        , canInterpolateValue: function(previous, next) {
+            return typeof next === 'number' && typeof previous !== 'undefined';
         }
         /**
          * Creates an approximate snapshot of the world state using linear extrapolation.
@@ -343,10 +346,24 @@ function run(primus, config) {
         , createEntity: function(data) {
             return new Entity(primus, data, config);
         }
+        /**
+         * TODO
+         */
+        , render: function(game) {
+            if (debug) {
+                // TODO implement visual debugging
+            }
+        }
     });
 
     // create the actual game
-    var game = new Phaser.Game(config.canvasWidth, config.canvasHeight, Phaser.AUTO);
+    var game = new Phaser.Game(
+        config.canvasWidth
+        , config.canvasHeight
+        , Phaser.AUTO
+        , 'dungeon'
+    );
+
     game.state.add('play', new PlayState(), true/* autostart */);
 }
 

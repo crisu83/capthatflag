@@ -2,10 +2,11 @@
 
 var _ = require('lodash')
     , shortid = require('shortid')
-    , utils = require('./utils')
+    , utils = require('../utils')
     , Node = require('./node')
-    , EntityAttributes = require('./entityAttributes')
-    , EntityComponents = require('./entityComponents')
+    , Hashmap = require('../utils/hashmap')
+    , SortedList = require('../utils/sortedList')
+    , ComponentList = require('../utils/componentList')
     , Entity;
 
 /**
@@ -40,8 +41,8 @@ Entity = utils.inherit(Node, {
         this.key = data.key;
         this.socket = socket;
         this.config = config;
-        this.attrs = new EntityAttributes(data.attrs);
-        this.components = new EntityComponents(this);
+        this.attrs = new Hashmap(data.attrs);
+        this.components = new ComponentList(this);
     }
     /**
      * Synchronizes the entity attributes.

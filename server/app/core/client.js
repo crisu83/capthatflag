@@ -1,13 +1,13 @@
 'use strict';
 
 var _ = require('lodash')
-    , utils = require('../../shared/utils')
     , shortid = require('shortid')
-    , Node = require('../../shared/node')
+    , utils = require('../../../shared/utils')
+    , Node = require('../../../shared/core/node')
     , DataManager = require('./dataManager')
     , EntityFactory = require('./entityFactory')
-    , PlayerComponent = require('./components/player')
-    , config = require('./config.json')
+    , PlayerComponent = require('../components/player')
+    , config = require('../config.json')
     , Client;
 
 /**
@@ -57,6 +57,7 @@ Client = utils.inherit(Node, {
             id: this.id
             // server configuration
             , tickRate: config.tickRate
+            , syncRate: config.syncRate
             // client configuration
             , enablePrediction: config.enablePrediction
             , enableReconcilation: config.enableReconcilation
@@ -87,7 +88,8 @@ Client = utils.inherit(Node, {
      * @method server.Client#onReady
      */
     , onReady: function() {
-        var player = EntityFactory.create(this.spark, 'player');
+        var player = EntityFactory.create(this.spark, 'player')
+            , body;
 
         // TODO add some logic for where to spawn the player
         player.attrs.set({

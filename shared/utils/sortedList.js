@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('./utils')
+var utils = require('../utils')
     , ListBase = require('./list')
     , SortedList;
 
@@ -16,9 +16,10 @@ SortedList = utils.inherit(ListBase, {
      * Creates a new sorted list.
      * @constructor
      * @param {function} sort sorting function
+     * TODO
      */
-    , constructor: function(sort) {
-        ListBase.apply(this);
+    , constructor: function(sort, items) {
+        ListBase.apply(this, [items]);
         this._sort = sort;
     }
     /**

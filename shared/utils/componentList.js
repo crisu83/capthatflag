@@ -1,27 +1,27 @@
 'use strict';
 
 var _ = require('lodash')
-    , utils = require('./utils')
+    , utils = require('../utils')
     , SortedList = require('./sortedList')
-    , EntityComponents;
+    , ComponentList;
 
 /**
  * Entity components class.
- * @class shared.EntityComponents
+ * @class shared.ComponentList
  * @classdesc Utility class for managing entity components.
- * @property {shared.Entity} _enitty - Associated entity instance.
+ * @property {shared.Entity} _owner - Associated entity instance.
  * @property {shared.SortedList} _components - Internal list of components.
  */
-EntityComponents = utils.inherit(null, {
-    _entity: null
+ComponentList = utils.inherit(null, {
+    _owner: null
     , _components: null
     /**
      * Creates a new set of entity components.
      * @constructor
-     * @param {shared.Entity} entity - Entity instance.
+     * @param {shared.Entity} owner - Entity instance.
      */
-    , constructor: function(entity) {
-        this._entity = entity;
+    , constructor: function(owner) {
+        this._owner = owner;
         this._components = new SortedList(function(a, b) {
             return a.phase < b.phase;
         });
@@ -32,7 +32,7 @@ EntityComponents = utils.inherit(null, {
      * @param {shared.Component} component - Component to add.
      */
     , add: function(component) {
-        component.owner = this._entity;
+        component.owner = this._owner;
         component.init();
         this._components.add(component);
     }
@@ -43,27 +43,21 @@ EntityComponents = utils.inherit(null, {
      * @return {shared.Component|null} Component instance, or null if not found.
      */
     , get: function(key) {
-        var component;
-        for (var i = 0, len = this._components.size(); i < len; i++) {
-            component = this._components.get(i);
+        this._components.each(function(component) {
             if (component.key === key) {
                 return component;
             }
-        }
+        });
         return null;
     }
     /**
      * @override
      */
     , update: function(elapsed) {
-        var component;
-        for (var i = 0, len = this._components.size(); i < len; i++) {
-            component = this._components.get(i);
-            if (typeof component.update === 'function') {
-                component.update(elapsed);
-            }
-        }
+        this._components.each(function(component) {
+            component.update(elapsed);
+        });
     }
 });
 
-module.exports = EntityComponents;
+module.exports = ComponentList;

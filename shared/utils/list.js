@@ -1,7 +1,7 @@
 'use strict';
 
 var _ = require('lodash')
-    , utils = require('./utils')
+    , utils = require('../utils')
     , List;
 
 /**
@@ -14,9 +14,10 @@ List = utils.inherit(null, {
     /**
      * Creates a new list.
      * @constructor
+     * TODO
      */
-    , constructor: function() {
-        this._items = [];
+    , constructor: function(items) {
+        this._items = items || [];
     }
     /**
      * Adds an item to this list.
@@ -34,7 +35,7 @@ List = utils.inherit(null, {
      */
     , get: function(index) {
         if (typeof index === 'undefined') {
-            return this._items;
+            return _.clone(this._items);
         } else {
             return this._items[index];
         }
@@ -70,6 +71,12 @@ List = utils.inherit(null, {
      */
     , isEmpty: function() {
         return this._items.length === 0;
+    }
+    /**
+     * TODO
+     */
+    , each: function(callback, scope) {
+        _.forOwn(this._items, callback, scope);
     }
     /**
      * Filters the items using the given callback function.

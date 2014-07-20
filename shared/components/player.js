@@ -2,7 +2,8 @@
 
 var _ = require('lodash')
     , utils = require('../utils')
-    , ComponentBase = require('../component')
+    , ComponentBase = require('../core/component')
+    , List = require('../utils/list')
     , PlayerComponent;
 
 /**
@@ -25,20 +26,27 @@ PlayerComponent = utils.inherit(ComponentBase, {
         attrs = attrs || this.owner.attrs.get();
         attrs.inputSequence = command.sequence;
 
-        var step = (command.elapsed / 1000) * command.speed;
+        var step = command.speed * command.elapsed
+            , down = new List(command.down);
 
-        for (var i = 0; i < command.down.length; i++) {
-            if (command.down[i] === 'up') {
-                attrs.y -= step;
-            } else if (command.down[i] === 'down') {
-                attrs.y += step;
+        down.each(function(key) {
+            switch (key) {
+                case 'up':
+                    attrs.y -= step;
+                    break;
+                case 'down':
+                    attrs.y += step;
+                    break;
+                case 'left':
+                    attrs.x -= step;
+                    break;
+                case 'right':
+                    attrs.x += step;
+                    break;
+                default:
+                    // do nothing ...
             }
-            if (command.down[i] === 'left') {
-                attrs.x -= step;
-            } else if (command.down[i] === 'right') {
-                attrs.x += step;
-            }
-        }
+        }, this);
 
         return attrs;
     }

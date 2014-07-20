@@ -1,7 +1,7 @@
 'use strict';
 
 var utils = require('../../../shared/utils')
-    , ComponentBase = require('../../../shared/component')
+    , ComponentBase = require('../../../shared/core/component')
     , SyncComponent;
 
 /**

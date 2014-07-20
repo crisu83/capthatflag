@@ -1,7 +1,8 @@
 'use strict';
 
-var utils = require('../../../shared/utils')
-    , ComponentBase = require('../../../shared/component')
+var _ = require('lodash')
+    , utils = require('../../../shared/utils')
+    , ComponentBase = require('../../../shared/core/component')
     , ActorComponent;
 
 /**

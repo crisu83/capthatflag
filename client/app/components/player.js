@@ -3,7 +3,7 @@
 var _ = require('lodash')
     , utils = require('../../../shared/utils')
     , ComponentBase = require('../../../shared/components/player')
-    , List = require('../../../shared/list')
+    , List = require('../../../shared/utils/list')
     , PlayerComponent;
 
 /**
@@ -27,7 +27,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
      */
     , constructor: function(input) {
         this.input = input;
-        this._cursorKeys = this.input.keyboard.createCursorKeys();
+        this._cursorKeys = input.keyboard.createCursorKeys();
         this._commands = new List();
         this._processed = [];
     }
@@ -43,7 +43,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @param {object} attrs - Synchronized attributes.
      */
     , onEntitySync: function(attrs) {
-        if (this.owner.config.enablePrediction && !this.isAttributesProcessed(attrs)) {
+        if (!this.isAttributesProcessed(attrs)) {
             var inputSequence = attrs.inputSequence
                 , command;
 
@@ -53,9 +53,9 @@ PlayerComponent = utils.inherit(ComponentBase, {
                 return command.sequence > inputSequence;
             });
 
-            for (var i = 0, len = this._commands.size(); i < len; i++) {
-                attrs = this.applyCommand(this._commands.get(i), attrs);
-            }
+            this._commands.each(function(command) {
+                attrs = this.applyCommand(command, attrs);
+            }, this);
 
             this.owner.attrs.set(attrs);
             this._processed.push(inputSequence);
@@ -85,6 +85,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
             , down: []
             , speed: speed
             , elapsed: elapsed
+            , processed: false
         };
 
         if (this._cursorKeys.up.isDown) {
@@ -108,9 +109,19 @@ PlayerComponent = utils.inherit(ComponentBase, {
             }
         }
 
-        if (!this._commands.isEmpty() && (now - this._lastSyncAt) > (1000 / this.owner.config.tickRate)) {
-            this.owner.socket.emit('player.input', this._commands.get());
-            this._commands.clear();
+        if ((now - this._lastSyncAt) > (1000 / this.owner.config.tickRate)) {
+            var unprocessed = [];
+            this._commands.each(function(command) {
+                if (!command.processed) {
+                    unprocessed.push(command);
+                    command.processed = true;
+                }
+            });
+
+            if (unprocessed.length) {
+                this.owner.socket.emit('player.input', unprocessed);
+            }
+
             this._lastSyncAt = now;
         }
     }
