@@ -17,6 +17,6 @@
     "tests"
   ],
   "dependencies": {
-    "phaser-official": "~2.0.5"
+    "phaser-official": "~2.0.7"
   }
 }
