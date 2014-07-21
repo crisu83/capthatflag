@@ -7,9 +7,9 @@ var _ = require('lodash')
 
 /**
  * Entity hashmap class.
- * @class shared.EntityHashmap
+ * @class shared.utils.EntityHashmap
  * @classmap Utility class for managing a large number of entities.
- * @extends shared.Hashmap
+ * @extends shared.utils.Hashmap
  */
 EntityHashmap = utils.inherit(HashmapBase, {
     /**
@@ -21,7 +21,7 @@ EntityHashmap = utils.inherit(HashmapBase, {
     }
     /**
      * Event handler for when an entity dies.
-     * @method shared.EntityHashmap#onEntityDeath
+     * @method shared.utils.EntityHashmap#onEntityDeath
      * @param {number} id - Entity identifier.
      */
     , onEntityDeath: function(id) {

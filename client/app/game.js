@@ -12,7 +12,7 @@ var _ = require('lodash')
 
 /**
  * Runs the game.
- * @param {primus.Client} primus - Client instance.
+ * @param {Primus.Client} primus - Client instance.
  * @param {object} config - Game configuration.
  */
 function run(primus, config) {
@@ -41,7 +41,7 @@ function run(primus, config) {
              */
             this.player = null;
 
-            // internal variables
+            // internal properties
             this._playerGroup = null;
             this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
             this._lastSyncAt = null;
@@ -116,18 +116,6 @@ function run(primus, config) {
 
             // let the server know that client is ready
             primus.emit('client.ready');
-        }
-        /**
-         * TODO
-         */
-        , createPlayerSprite: function(x, y, image) {
-            var sprite = this.playerGroup.create(x, y, image);
-            sprite.animations.add('walkDown', [0]);
-            sprite.animations.add('walkRight', [1]);
-            sprite.animations.add('walkUp', [2]);
-            sprite.animations.add('walkLeft', [3]);
-            sprite.animations.play('walkUp', 20, true);
-            return sprite;
         }
         /**
          * Event handler for when the game is paused.
@@ -207,7 +195,8 @@ function run(primus, config) {
             this._lastTickAt = game.time.lastTime;
         }
         /**
-         * TODO
+         * Updates the entities in the state.
+         * @method client.PlayState#updateEntities
          */
         , updateEntities: function(elapsed) {
             this.entities.each(function(entity, id) {
@@ -215,10 +204,11 @@ function run(primus, config) {
             }, this);
         }
         /**
-         * TODO
-         */
+          * Updates the physics in the state.
+          * @method client.PlayState#updatePhysics
+          */
         , updatePhysics: function(elapsed) {
-            // TODO implement collision detection
+            // TODO implement
         }
         /**
          * Updates the world state using the state history.
@@ -257,8 +247,8 @@ function run(primus, config) {
                             entity = this.createEntity(state);
                             sprite = this.playerGroup.create(state.attrs.x, state.attrs.y, state.attrs.image);
 
-                            entity.components.add(new PlayerComponent(sprite));
                             entity.components.add(new SyncComponent());
+                            entity.components.add(new PlayerComponent(sprite));
 
                             this.entities.add(entity.id, entity);
                         }
@@ -327,12 +317,14 @@ function run(primus, config) {
                             , factor
                         );
                         // TODO Test with a bigger sprite if this "smoothing" is necessary
+                        /*
                         entityState = this.interpolateEntityState(
                             previous.entities[id]
                             , entityState
                             , 0.3
                         );
                         worldState.entities[id] = entityState;
+                        */
                     }
                 }, this);
             }
@@ -360,7 +352,11 @@ function run(primus, config) {
             return entityState;
         }
         /**
-         * TODO
+         * Returns whether the given value can be interpolated.
+         * @method client.PlayState#canInterpolateValue
+         * @param {object} previous - Previous value.
+         * @param {object} next - Next value.
+         * @return {boolean} The result.
          */
         , canInterpolateValue: function(previous, next) {
             return typeof next === 'number' && typeof previous !== 'undefined';
@@ -386,7 +382,9 @@ function run(primus, config) {
             return new Entity(primus, data, config);
         }
         /**
-         * TODO
+         * Renders the state.
+         * @method client.PlayState#render
+         * @param {Phaser.Game} game - Game instance.
          */
         , render: function(game) {
             if (debug) {

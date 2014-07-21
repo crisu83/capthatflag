@@ -6,18 +6,17 @@ var _ = require('lodash')
 
 /**
  * Hashmap class.
- * @class shared.Hashmap
+ * @class shared.utils.Hashmap
  * @classdesc Utility class for hashmaps.
- * @property {object} _items - Internal items in this hashmap.
  */
 Hashmap = utils.inherit(null, {
-    _items: null
     /**
      * Creates a new hashmap.
      * @constructor
      * @param {object} items initial items.
      */
-    , constructor: function(items) {
+    constructor: function(items) {
+        // internal properties
         this._items = items || {};
     }
     /**
@@ -30,10 +29,10 @@ Hashmap = utils.inherit(null, {
         this.set(key, value);
     }
     /**
-     * Returns a specific item in this hasmap.
-     * @method shared.Hashmap#get
-     * @param {string} key - Item key.
-     * @return {object} Item, or null if not found.
+     * Returns items from the hashmap
+     * @method shared.utils.Hashmap#get
+     * @param {string|array|null} key - Item key, an array of keys or null.
+     * @return {object} Item, items or null if not found.
      */
     , get: function(key) {
         if (typeof key === 'string' || typeof key === 'number') {
@@ -45,7 +44,10 @@ Hashmap = utils.inherit(null, {
         }
     }
     /**
-     * TODO
+     * Sets a single or multiple values in the hashmap.
+     * @method shared.utils.Hashmap#set
+     * @param {string|object} key - Item key or an object with keys and values.
+     * @param {string} value - Item value.
      */
     , set: function(key, value) {
         // TODO handle the case if key is not an object
@@ -57,7 +59,7 @@ Hashmap = utils.inherit(null, {
     }
     /**
      * Removes an item from this hashmap and returns it.
-     * @method shared.Hashmap#remove
+     * @method shared.utils.Hashmap#remove
      * @param {string} key - Item key
      * @return {object} Removed item.
      */
@@ -67,7 +69,10 @@ Hashmap = utils.inherit(null, {
         return item;
     }
     /**
-     * TODO
+     * Iterates items in the hashmap.
+     * @method shared.utils.Hashmap#each
+     * @param {function} callback - Callback function.
+     * @param {object} scope - Callback scope.
      */
     , each: function(callback, scope) {
         _.forOwn(this._items, callback, scope);

@@ -9,27 +9,29 @@ var _ = require('lodash')
 /**
  * Input component class.
  * @class client.components.InputComponent
- * @classdesc Client-isde component that adds support for taking user input.
+ * @classdesc Component that adds functionality for processing of user input.
  * @extends shared.components.InputComponent
- * @property {Phaser.Input} input - Input manager instance.
  */
 InputComponent = utils.inherit(ComponentBase, {
-    input: null
-    , _cursorKeys: null
-    , _commands: null
-    , _processed: null
-    , _sequence: 0
-    , _lastSyncAt: null
     /**
      * Creates a new component.
      * @constructor
      * @param {Phaser.Input} input - Input manager.
      */
-    , constructor: function(input) {
+    constructor: function(input) {
+        ComponentBase.apply(this);
+
+        /**
+         * @property {Phaser.Input} input - Input manager instance.
+         */
         this.input = input;
+
+        // internal properties
         this._cursorKeys = input.keyboard.createCursorKeys();
         this._commands = new List();
         this._processed = [];
+        this._sequence = 0;
+        this._lastSyncAt = null;
     }
     /**
      * @override

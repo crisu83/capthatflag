@@ -6,9 +6,9 @@ var utils = require('../../../shared/utils')
 
 /**
  * Client hashmap class.
- * @class server.ClientHashmap
+ * @class server.utils.ClientHashmap
  * @classdesc Utility class for managing multiple client connections.
- * @extends shared.Hashmap
+ * @extends shared.utils.Hashmap
  */
 ClientHashmap = utils.inherit(HashmapBase, {
     /**
@@ -20,7 +20,7 @@ ClientHashmap = utils.inherit(HashmapBase, {
     }
     /**
      * Event hanlder for when the client disconnects.
-     * @method server.ClientHashmap#onClientDisconnect
+     * @method server.utils.ClientHashmap#onClientDisconnect
      * @param {string} clientId - Client identifier.
      */
     , onClientDisconnect: function(clientId) {

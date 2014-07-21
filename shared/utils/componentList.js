@@ -7,20 +7,17 @@ var _ = require('lodash')
 
 /**
  * Entity components class.
- * @class shared.ComponentList
+ * @class shared.utils.ComponentList
  * @classdesc Utility class for managing entity components.
- * @property {shared.Entity} _owner - Associated entity instance.
- * @property {shared.SortedList} _components - Internal list of components.
  */
 ComponentList = utils.inherit(null, {
-    _owner: null
-    , _components: null
     /**
      * Creates a new set of entity components.
      * @constructor
-     * @param {shared.Entity} owner - Entity instance.
+     * @param {shared.core.Entity} owner - Entity instance.
      */
-    , constructor: function(owner) {
+    constructor: function(owner) {
+        // internal properties
         this._owner = owner;
         this._components = new SortedList(function(a, b) {
             return a.phase < b.phase;
@@ -28,8 +25,8 @@ ComponentList = utils.inherit(null, {
     }
     /**
      * Adds a component item to this set of components.
-     * @method shared.EntityComponents#add
-     * @param {shared.Component} component - Component to add.
+     * @method shared.utils.EntityComponents#add
+     * @param {shared.core.Component} component - Component to add.
      */
     , add: function(component) {
         component.owner = this._owner;
@@ -38,9 +35,9 @@ ComponentList = utils.inherit(null, {
     }
     /**
      * Returns a specific component from this set of components.
-     * @method shared.EntityComponents#get
+     * @method shared.utils.EntityComponents#get
      * @param {string} key - Component key.
-     * @return {shared.Component|null} Component instance, or null if not found.
+     * @return {shared.core.Component|null} Component instance, or null if not found.
      */
     , get: function(key) {
         this._components.each(function(component) {

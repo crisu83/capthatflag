@@ -6,9 +6,9 @@ var utils = require('../utils')
 
 /**
  * Sorted list class.
- * @class shared.SortedList
+ * @class shared.utils.SortedList
  * @classdesc Utility class for sorted lists.
- * @extends shared.List
+ * @extends shared.utils.List
  */
 SortedList = utils.inherit(ListBase, {
     _sort: null
@@ -24,7 +24,7 @@ SortedList = utils.inherit(ListBase, {
     }
     /**
      * Adds an item to this list.
-     * @method shared.SortedList#add
+     * @method shared.utils.SortedList#add
      * @param {object} item - Item to add.
      */
     , add: function(item) {

@@ -4,11 +4,25 @@ var utils = require('../utils')
     , ComponentBase = require('../core/component')
     , PhysicsComponent;
 
+/**
+ * Physics component class.
+ * @class shared.components.PhysicsComponent
+ * @classdesc Component that adds physics functionality.
+ * @extends shared.core.Component
+ */
 PhysicsComponent = utils.inherit(ComponentBase, {
-    key: 'physics'
-    , phase: ComponentBase.prototype.phases.PHYSICS
-    , body: null
-    , constructor: function(body) {
+    /**
+     * Creates a new component.
+     * @constructor
+     * @param {shared.physics.Body} body - Physical body instance.
+     */
+    constructor: function(body) {
+        ComponentBase.apply(this);
+
+        // inherited properties
+        this.key = 'physics';
+        this.phase = ComponentBase.prototype.phases.PHYSICS;
+
         this.body = body;
     }
     /**
@@ -29,7 +43,7 @@ PhysicsComponent = utils.inherit(ComponentBase, {
     }
     /**
      * Event handler for when the entity dies.
-     * @method client.components.ActorComponent#onEntityDeath
+     * @method shared.components.PhysicsComponent#onEntityDeath
      */
     , onEntityDeath: function() {
         this.body = null;

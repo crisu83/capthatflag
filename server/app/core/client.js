@@ -12,7 +12,8 @@ var _ = require('lodash')
 
 /**
  * Client class.
- * @class server.Client
+ * @class server.core.Client
+ * @classdesc Client connected to the server.
  * @extends shared.Node
  */
 Client = utils.inherit(Node, {
@@ -20,20 +21,18 @@ Client = utils.inherit(Node, {
      * Creates a new client.
      * @constructor
      * @param {string} id - Client identifier.
-     * @param {primus.Spark} spark - Spark instance.
+     * @param {Primus.Spark} spark - Spark instance.
      * @param {server.Room} room - Room instance.
      */
     constructor: function(id, spark, room) {
         Node.apply(this);
-
-        this.key = 'client';
 
         /**
          * @property {string} id - Identifier for the client.
          */
         this.id = id;
         /**
-         * @property {socketio.Socket} socket - Socket interface for the client.
+         * @property {Primus.Spark} spark - Spark interface.
          */
         this.spark = spark;
         /**
@@ -44,12 +43,10 @@ Client = utils.inherit(Node, {
          * @property {server.Entity} entity - Associated player entity instance.
          */
         this.player = null;
-
-        console.log('  client %s created for room %s', this.id, this.room.id);
     }
     /**
      * Initializes this client.
-     * @method server.Client#init
+     * @method server.core.Client#init
      */
     , init: function() {
         // let the client know to which room they have connected
@@ -92,37 +89,41 @@ Client = utils.inherit(Node, {
     }
     /**
      * Event handler for when this client is ready.
-     * @method server.Client#onReady
+     * @method server.core.Client#onReady
      */
     , onReady: function() {
         var player = EntityFactory.create(this.spark, 'player')
+            , team = this.room.weakestTeam()
             , body;
 
-        // TODO add some logic for where to spawn the player
+        team.addPlayer(player);
+        this.room.entities.add(player.id, player);
+
         player.attrs.set({
-            x: Math.abs(Math.random() * (config.gameWidth - player.attrs.get('width')))
-            , y: Math.abs(Math.random() * (config.gameHeight - player.attrs.get('height')))
+            team: team.name
+            , image: 'player-' + team.name
+            , x: team.x
+            , y: team.y
         });
 
         player.components.add(new InputComponent());
 
-        console.log('   player %s created for client %s', player.id, this.id);
+        console.log('  client %s joined %s team as player %s', this.id, team.name, player.id);
 
         this.spark.emit('player.create', player.serialize());
-        this.room.entities.add(player.id, player);
         this.player = player;
     }
     /**
      * Synchronizes this client with the server.
-     * @method server.Client#sync
+     * @method server.core.Client#sync
      * @param {object} worldState - State to synchronize.
      */
     , sync: function(worldState) {
         this.spark.emit('client.sync', worldState);
     }
     /**
-     * Event handler for when this client disconnects.
-     * @method server.Client#onDisconnect
+     * Event handler for when the client is disconnected.
+     * @method server.core.Client#onDisconnect
      */
     , onDisconnect: function() {
         var playerId = this.player.id;

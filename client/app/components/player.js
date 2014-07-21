@@ -8,8 +8,8 @@ var _ = require('lodash')
 /**
  * Player component class.
  * @class client.components.PlayerComponent
- * @classdesc Component that adds player support for the associated entity.
- * @extends shared.Component
+ * @classdesc Component that adds player functionality.
+ * @extends shared.core.Component
  */
 PlayerComponent = utils.inherit(ComponentBase, {
     /**
@@ -18,6 +18,8 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @param {Phaser.Sprite} sprite sprite instance
      */
     constructor: function(sprite) {
+        ComponentBase.apply(this);
+
         // Add the player animations
         sprite.animations.add('walkDown', [0]);
         sprite.animations.add('walkRight', [1]);
@@ -26,7 +28,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         // inherited properties
         this.key = 'player';
-        this.phase = ComponentBase.prototype.phases.RENDER;
+        this.phase = ComponentBase.prototype.phases.MOVEMENT;
 
         /**
          * @property {Phaser.Sprite} sprite - Sprite instance.
@@ -41,27 +43,17 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , init: function() {
+        this.owner.on('entity.sync', this.onEntitySync.bind(this));
         this.owner.on('entity.die', this.onEntityDeath.bind(this));
     }
     /**
      * @override
      */
     , update: function(elapsed) {
-        this.updatePosition(this.owner.attrs.get(['x', 'y']));
         this.updateFacing();
     }
     /**
-     * Updates the position for the associated sprite.
-     * @method client.components.ActorComponent#updatePosition
-     * @param {number} x - Coordinates on the x-axis.
-     * @param {number} y - Coordinates on the y-axis.
-     */
-    , updatePosition: function(position) {
-        this.sprite.x = position.x;
-        this.sprite.y = position.y;
-    }
-    /**
-     * Updates the logic for direction that the player is facing.
+     * Updates the direction that the player is facing.
      * @method client.components.PlayerComponent#updateFacing
      */
     , updateFacing: function() {
@@ -107,11 +99,27 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this.facing = newFacing;
     }
     /**
+     * TODO
+     */
+    , onEntitySync: function() {
+        this.setPosition(this.owner.attrs.get(['x', 'y']));
+    }
+    /**
      * Event handler for when the entity dies.
      * @method client.components.ActorComponent#onEntityDeath
      */
     , onEntityDeath: function() {
         this.sprite.kill();
+    }
+    /**
+     * Sets the position for the associated sprite.
+     * @method client.components.ActorComponent#setPosition
+     * @param {number} x - Coordinates on the x-axis.
+     * @param {number} y - Coordinates on the y-axis.
+     */
+    , setPosition: function(position) {
+        this.sprite.x = position.x;
+        this.sprite.y = position.y;
     }
 });
 

@@ -4,8 +4,8 @@
     , "socketNamespace": "/dungeon"
     , "canvasWidth": 800
     , "canvasHeight": 600
-    , "gameWidth": 800
-    , "gameHeight": 600
+    , "gameWidth": 960
+    , "gameHeight": 960
     , "tickRate": 30
     , "syncRate": 30
     , "enablePrediction": true

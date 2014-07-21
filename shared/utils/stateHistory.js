@@ -6,25 +6,25 @@ var utils = require('../utils')
 
 /**
  * State history class.
- * @class shared.StateHistory
+ * @class shared.utils.StateHistory
  * @classdesc Utility class for tracking snapshots of the game state.
- * @extends shared.List
+ * @extends shared.utils.List
  */
 StateHistory = utils.inherit(ListBase, {
-    _expireMsec: null
     /**
      * Create a new state history.
      * @constructor
      * @param {number} expireMsec - Time for the snapshots to expire (in msec).
      */
-    , constructor: function(expireMsec) {
+    constructor: function(expireMsec) {
         ListBase.apply(this);
 
+        // internal properties
         this._expireMsec = expireMsec;
     }
     /**
      * Creates a new snapshot of the game state.
-     * @method shared.StateHistory#snapshot
+     * @method shared.utils.StateHistory#snapshot
      * @param {object} entityMap - Map of serialized entities.
      */
     , snapshot: function(state) {
@@ -33,7 +33,7 @@ StateHistory = utils.inherit(ListBase, {
     }
     /**
      * Removes expired snapshots from the history.
-     * @method shared.StateHistory#removeExpired
+     * @method shared.utils.StateHistory#removeExpired
      * @param {number} expireTime - Timestamp for snapshot expiration.
      */
     , removeExpired: function(expireTime) {
@@ -41,7 +41,7 @@ StateHistory = utils.inherit(ListBase, {
     }
     /**
      * Returns the state snapshot previous to the current one.
-     * @method shared.StateHistory#previous
+     * @method shared.utils.StateHistory#previous
      * @return {object} World state.
      */
     , previous: function() {

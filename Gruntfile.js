@@ -142,7 +142,8 @@ module.exports = function(grunt) {
                 files: [
                     'client/app/**/*.js',
                     'shared/**/*.js',
-                    'assets/images/**/*.png'
+                    'assets/images/**/*.png',
+                    'data/**/*.json'
                 ],
                 tasks: ['build'],
                 options: {

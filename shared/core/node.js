@@ -5,24 +5,26 @@ var utils = require('../utils')
 
 /**
  * Node class.
- * @class shared.Node
+ * @class shared.core.Node
  * @classdesc Node base class.
- * @property {string} key - Node identifier.
- * @property {object} _eventHandlers - Internal event handlers for the node.
  */
 Node = utils.inherit(null, {
-    key: 'node'
-    , _eventHandlers: null
     /**
      * Creates a new node.
      * @constructor
      */
-    , constructor: function() {
+    constructor: function() {
+        /**
+         * @property {string} key - Node identifier.
+         */
+        this.key = 'node';
+
+        // internal properties
         this._eventHandlers = {};
     }
     /**
      * Adds an event handler to this node.
-     * @method shared.Node#on
+     * @method shared.core.Node#on
      * @param {string} event - Event type.
      * @param {function} handler - Event handler.
      */
@@ -32,7 +34,7 @@ Node = utils.inherit(null, {
     }
     /**
      * Triggers an event for this node.
-     * @method shared.Node#trigger
+     * @method shared.core.Node#trigger
      * @param {string} event - Event type.
      * @param {array} params - Parameters to call the handlers with.
      */

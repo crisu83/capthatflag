@@ -13,11 +13,20 @@ var _ = require('lodash')
  * @extends shared.Component
  */
 InputComponent = utils.inherit(ComponentBase, {
-    key: 'input'
-    , phase: ComponentBase.prototype.phases.LOGIC
+    /**
+     * Creates a new component.
+     * @constructor
+     */
+    constructor: function() {
+        ComponentBase.apply(this);
+
+        // inherited properties
+        this.key = 'input';
+        this.phase = ComponentBase.prototype.phases.LOGIC;
+    }
     /**
      * Applies to user command on the given attributes.
-     * @method shared.components.PlayerComponent#applyCommand
+     * @method shared.components.InputComponent#applyCommand
      * @param {object} command - User command.
      * @param {object|null} attrs - Player attributes, defaults to current attributes.
      * @return {object} Resulting attributes.

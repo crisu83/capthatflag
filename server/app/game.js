@@ -5,7 +5,7 @@ var utils = require('../../shared/utils')
 
 /**
  * Runs the game.
- * @param {primus.Server} io - Primus server instance.
+ * @param {Primus.Server} io - Primus server instance.
  */
 function run(primus) {
 

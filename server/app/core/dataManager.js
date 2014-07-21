@@ -7,16 +7,17 @@ var _ = require('lodash')
 
 /**
  * Data manager static class.
- * @class server.DataManager
+ * @class server.core.DataManager
  * @classdesc Utility class for loading and serving game data.
  */
 DataManager = {
     /**
      * Loads data from the given path.
-     * @method server.DataManager#loadData
+     * @method server.core.DataManager#loadData
      * @param {string} path - Data path.
      */
     loadData: function(basePath) {
+        // internal variables
         this._basePath = basePath;
         this._entities = {};
         this._tilemaps = {};
@@ -30,7 +31,7 @@ DataManager = {
     }
     /**
      * Parses all entity data entires.
-     * @method server.DataManager#parseEntityData
+     * @method server.core.DataManager#parseEntityData
      */
     , parseEntityData: function() {
         var dataPath = path.join(this._basePath, 'entities');
@@ -38,7 +39,7 @@ DataManager = {
     }
     /**
       * Parses all tilemap data entires.
-      * @method server.DataManager#parseTilemapData
+      * @method server.core.DataManager#parseTilemapData
       */
     , parseTilemapData: function() {
         var dataPath = path.join(this._basePath, 'tilemaps');
@@ -46,7 +47,7 @@ DataManager = {
     }
     /**
      * Parses data files from the given path.
-     * @method server.DataManager#parseDataFiles
+     * @method server.core.DataManager#parseDataFiles
      * @param {string} dataPath - Data path.
      */
     , parseDataFiles: function(dataPath) {
@@ -75,8 +76,8 @@ DataManager = {
                     _.forOwn(json.assets.spritesheets, function(spritesheet, key) {
                         this._spritesheets[key] = {
                             src: spritesheet.src
-                            , width: json.attrs.width || 0
-                            , height: json.attrs.height || 0
+                            , width: spritesheet.width || json.attrs.width || 0
+                            , height: spritesheet.height || json.attrs.height || 0
                             , frames: spritesheet.frames
                         };
                     }, this);
@@ -90,7 +91,7 @@ DataManager = {
     }
     /**
      * Returns all images found while parsing data files.
-     * @method server.DataManager#getImages
+     * @method server.core.DataManager#getImages
      * @return {object} Map of images (key => src).
      */
     , getImages: function() {
@@ -104,7 +105,7 @@ DataManager = {
     }
     /**
      * Returns the data for a specific entity.
-     * @method server.DataManager#getEntity
+     * @method server.core.DataManager#getEntity
      * @param {string} key - Entity key.
      * @return {object} Entity data.
      */
@@ -113,7 +114,7 @@ DataManager = {
     }
     /**
       * Returns the data for a specific tilemap.
-      * @method server.DataManager#getTilemap
+      * @method server.core.DataManager#getTilemap
       * @param {string} key - Tilemap key.
       * @return {object} Tilemap data.
       */

@@ -4,61 +4,80 @@ var path = require('path')
     , _ = require('lodash')
     , shortid = require('shortid')
     , utils = require('../../../shared/utils')
+    , Node = require('../../../shared/core/node')
     , DataManager = require('./dataManager')
     , TilemapFactory = require('./tilemapFactory')
     , Client = require('./client')
+    , Hashmap = require('../../../shared/utils/hashmap')
     , ClientHashmap = require('../utils/clientHashmap')
     , EntityHashmap = require('../../../shared/utils/entityHashmap')
     , StateHistory = require('../../../shared/utils/stateHistory')
     , World = require('../../../shared/physics/world')
+    , Team = require('./team')
     , config = require('../config.json')
     , Room;
 
 /**
  * Room class.
- * @class server.Room
- * @property {string} id - Indentifier for the room.
- * @property {socketio.Server} io - Associated socket server instance.
- * @property {object} tilemap - Associated tilemap data.
- * @property {server.ClientHashmap} clients - Map of clients connected to the room.
- * @property {shared.EntityHashmap} entities - Map of entities in the room.
+ * @class server.core.Room
+ * @classdesc Game room that clients can connect to.
+ * @extends shared.core.Node
  */
-Room = utils.inherit(null, {
-    id: null
-    , primus: null
-    , tilemap: null
-    , clients: null
-    , entities: null
-    , world: null
-    , _stateHistory: null
-    , _lastSyncAt: null
-    , _lastTickAt: null
-    , _packetSequence: 0
+Room = utils.inherit(Node, {
     /**
      * Creates a new room.
      * @constructor
-     * @param {socketio.Server} io - Socket server instance.
+     * @param {Primus.Server} primus - Primus server instance.
      */
-    , constructor: function(primus) {
-        this.id = shortid.generate();
-        this.primus = primus;
+    constructor: function(primus) {
+        Node.apply(this);
 
+        // resolve the data path and load the game data
         var dataPath = path.resolve(__dirname + '/../../../data');
         DataManager.loadData(dataPath);
 
-        // TODO change this to not be hard-coded
+        /**
+         * @property {string} id - Indentifier for the room.
+         */
+        this.id = shortid.generate();
+        /**
+         * @property {Primus.Server} primus - Primus server instance.
+         */
+        this.primus = primus;
+        /**
+         * @property {server.core.Tilemap} tilemap - Tilemap instance.
+         */
         this.tilemap = TilemapFactory.create('dungeon');
+        /**
+         * @property {server.ClientHashmap} clients - Map of clients connected to the room.
+         */
         this.clients = new ClientHashmap();
+        /**
+         * @property {shared.EntityHashmap} entities - Map of entities in the room.
+         */
         this.entities = new EntityHashmap();
+        /**
+         * @property {shared.physics.World} world - Physical world.
+         */
         this.world = new World();
 
+        // internal variables
+        this._teams = new Hashmap({
+            cyan: new Team('cyan', 32, 32)
+            , green: new Team('green', config.gameWidth - 64, 32)
+            , magenta: new Team('magenta', 32, config.gameHeight - 96)
+            , yellow: new Team('yellow', config.gameWidth - 64, config.gameHeight - 96)
+        });
         this._stateHistory = new StateHistory(1000);
+        this._lastSyncAt = null;
+        this._lastTickAt = null;
+        this._packageSequence = 0;
 
         console.log(' room %s created', this.id);
     }
     /**
      * Initializes this room.
-     * @method server.Room#init
+     * @method server.core.Room#init
      */
     , init: function() {
         // event handler for when a client connects
@@ -70,8 +89,8 @@ Room = utils.inherit(null, {
     }
     /**
      * Event handler for when a client connects to this room.
-     * @method server.Room#onConnection
-     * @param {primus.Spark} spark - Spark instance.
+     * @method server.core.Room#onConnection
+     * @param {Primus.Spark} spark - Spark instance.
      */
     , onConnection: function(spark) {
         var clientId = shortid.generate()
@@ -87,7 +106,7 @@ Room = utils.inherit(null, {
     }
     /**
      * Updates the logic for this room.
-     * @method server.Room#gameLoop
+     * @method server.core.Room#gameLoop
      */
     , gameLoop: function() {
         var now = _.now()
@@ -114,7 +133,7 @@ Room = utils.inherit(null, {
     }
     /**
      * Creates the current game state.
-     * @method server.Room#createWorldState
+     * @method server.core.Room#createWorldState
      * @return {object} Current world state.
      */
     , createWorldState: function() {
@@ -130,6 +149,24 @@ Room = utils.inherit(null, {
         //console.log(worldState.entities);
 
         return worldState;
+    }
+    /**
+     * Returns the currently weakest team.
+     * @method server.core.Room#weakestTeam
+     * @return {server.core.Team} Team instance.
+     */
+    , weakestTeam: function() {
+        var weakest, teamSize, leastPlayers;
+
+        this._teams.each(function(team, name) {
+            teamSize = team.size();
+            if (typeof leastPlayers === 'undefined' || teamSize < leastPlayers) {
+                leastPlayers = teamSize;
+                weakest = team;
+            }
+        }, this);
+
+        return weakest;
     }
 });
 

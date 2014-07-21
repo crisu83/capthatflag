@@ -31,7 +31,7 @@
  "tilesets":[
         {
          "firstgid":1,
-         "image":"..\/..\/..\/..\/assets\/images\/tilesets\/dungeon.png",
+         "image":"..\/..\/..\/assets\/images\/tilesets\/dungeon.png",
          "imageheight":128,
          "imagewidth":128,
          "margin":0,

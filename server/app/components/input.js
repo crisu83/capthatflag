@@ -8,7 +8,7 @@ var _ = require('lodash')
 /**
  * Input component class.
  * @class server.components.InputComponent
- * @classdesc Server-side component that adds support for receiving user commands.
+ * @classdesc Component that adds functionality for processing of user input.
  * @extends shared.components.InputComponent
  */
 InputComponent = utils.inherit(ComponentBase, {
