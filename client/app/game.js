@@ -37,11 +37,14 @@ function run(primus, config) {
              */
             this.entities = new EntityHashmap();
             /**
-             * @property {client.Entity} player - Player entity instance.
+             * @property {shared.core.Entity} player - Player entity.
              */
             this.player = null;
 
             // internal properties
+            this._ping = 0;
+            this._pingText = null;
+            this._pingSentAt = null;
             this._playerGroup = null;
             this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
             this._lastSyncAt = null;
@@ -87,7 +90,7 @@ function run(primus, config) {
         , create: function(game) {
             console.log('creating game ...');
 
-            var map, layer, pauseKey;
+            var map, layer, style, text, pauseKey;
 
             // define the world bounds
             game.world.setBounds(0, 0, config.gameWidth, config.gameHeight);
@@ -105,12 +108,18 @@ function run(primus, config) {
 
             this.playerGroup = this.add.group();
 
+            style = {font: "12px Arial", fill: "#ffffff", align: "left"};
+            text = this.add.text(config.canvasWidth - 70, 10, '', style);
+            text.fixedToCamera = true;
+            this._pingText = text;
+
             if (debug) {
                 pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
                 pauseKey.onDown.add(this.onGamePause.bind(this));
             }
 
             // bind event handlers
+            primus.on('pong', this.onPong.bind(this));
             primus.on('player.create', this.onPlayerCreate.bind(this));
             primus.on('player.leave', this.onPlayerLeave.bind(this));
 
@@ -188,9 +197,10 @@ function run(primus, config) {
             var now = game.time.now
                 , elapsed = game.time.elapsed / 1000;
 
-            this.updateWorldState(elapsed);
-            this.updatePhysics(elapsed);
+            this.updateWorldState();
+            this.updatePhysics();
             this.updateEntities(elapsed);
+            this.updatePing();
 
             this._lastTickAt = game.time.lastTime;
         }
@@ -207,15 +217,39 @@ function run(primus, config) {
           * Updates the physics in the state.
           * @method client.PlayState#updatePhysics
           */
-        , updatePhysics: function(elapsed) {
+        , updatePhysics: function() {
             // TODO implement
+        }
+        /**
+         * Updates the ping text.
+         * @method client.PlayState#updatePing
+         */
+        , updatePing: function() {
+            var now = _.now();
+
+            if (!this._pingSentAt || now - this._pingSentAt > 100) {
+                var ping = Math.round(this._ping / 10) * 10;
+                if (ping < 10) {
+                    ping = 10;
+                }
+                this._pingText.text = 'ping: ' + ping + 'ms';
+                primus.emit('ping', {timestamp: now});
+                this._pingSentAt = now;
+            }
+        }
+        /**
+         * Event handler for when receiving a ping response.
+         * @method client.PlayState#onPong
+         * @param {object} ping - Ping object.
+         */
+        , onPong: function(ping) {
+            this._ping = _.now() - ping.timestamp;
         }
         /**
          * Updates the world state using the state history.
          * @method client.PlayState#updateWorldState
-         * @param {number} elapsed - Time elapsed since the previous update (ms).
          */
-        , updateWorldState: function(elapsed) {
+        , updateWorldState: function() {
             var worldState = this._stateHistory.last();
 
             if (worldState) {

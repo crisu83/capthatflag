@@ -84,8 +84,16 @@ Client = utils.inherit(Node, {
         });
 
         // bind event handlers
+        this.spark.on('ping', this.onPing.bind(this));
         this.spark.on('client.ready', this.onReady.bind(this));
         this.spark.on('end', this.onDisconnect.bind(this));
+    }
+    /**
+     * Event hanlder for when receiving a ping.
+     * @method server.core.Client#onPing
+     */
+    , onPing: function(ping) {
+        this.spark.emit('pong', ping);
     }
     /**
      * Event handler for when this client is ready.
