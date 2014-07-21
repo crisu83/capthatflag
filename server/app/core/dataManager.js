@@ -1,6 +1,7 @@
 'use strict';
 
-var path = require('path')
+var _ = require('lodash')
+    , path = require('path')
     , fs = require('fs')
     , DataManager;
 
@@ -10,20 +11,17 @@ var path = require('path')
  * @classdesc Utility class for loading and serving game data.
  */
 DataManager = {
-    _basePath: null
-    , _entities: null
-    , _tilemaps: null
-    , _images: null
     /**
      * Loads data from the given path.
      * @method server.DataManager#loadData
      * @param {string} path - Data path.
      */
-    , loadData: function(basePath) {
+    loadData: function(basePath) {
         this._basePath = basePath;
         this._entities = {};
         this._tilemaps = {};
         this._images = {};
+        this._spritesheets = {};
 
         this.parseEntityData();
         this.parseTilemapData();
@@ -59,6 +57,7 @@ DataManager = {
             return fs.statSync(path.join(dataPath, file)).isFile();
         }).forEach(function (file) {
             json = require(path.join(dataPath, file));
+            json.attrs = json.attrs || {};
 
             // load data json
             if (json.data) {
@@ -67,10 +66,20 @@ DataManager = {
 
             // map assets so that they can later be passed to the client
             if (json.assets) {
-                for (var key in json.assets) {
-                    if (json.assets.hasOwnProperty(key)) {
-                        this._images[key] = json.assets[key];
-                    }
+                if (json.assets.images) {
+                    _.forOwn(json.assets.images, function(src, key) {
+                        this._images[key] = src;
+                    }, this);
+                }
+                if (json.assets.spritesheets) {
+                    _.forOwn(json.assets.spritesheets, function(spritesheet, key) {
+                        this._spritesheets[key] = {
+                            src: spritesheet.src
+                            , width: json.attrs.width || 0
+                            , height: json.attrs.height || 0
+                            , frames: spritesheet.frames
+                        };
+                    }, this);
                 }
             }
 
@@ -86,6 +95,12 @@ DataManager = {
      */
     , getImages: function() {
         return this._images;
+    }
+    /**
+     * TODO
+     */
+    , getSpritesheets: function() {
+        return this._spritesheets;
     }
     /**
      * Returns the data for a specific entity.

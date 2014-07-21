@@ -2,128 +2,116 @@
 
 var _ = require('lodash')
     , utils = require('../../../shared/utils')
-    , ComponentBase = require('../../../shared/components/player')
-    , List = require('../../../shared/utils/list')
+    , ComponentBase = require('../../../shared/core/component')
     , PlayerComponent;
 
 /**
  * Player component class.
  * @class client.components.PlayerComponent
- * @classdesc Client-isde component that adds support for taking user input.
+ * @classdesc Component that adds player support for the associated entity.
  * @extends shared.Component
- * @property {Phaser.Input} input - Input manager instance.
  */
 PlayerComponent = utils.inherit(ComponentBase, {
-    input: null
-    , _cursorKeys: null
-    , _commands: null
-    , _processed: null
-    , _sequence: 0
-    , _lastSyncAt: null
     /**
      * Creates a new component.
      * @constructor
-     * @param {Phaser.Input} input - Input manager.
+     * @param {Phaser.Sprite} sprite sprite instance
      */
-    , constructor: function(input) {
-        this.input = input;
-        this._cursorKeys = input.keyboard.createCursorKeys();
-        this._commands = new List();
-        this._processed = [];
+    constructor: function(sprite) {
+        // Add the player animations
+        sprite.animations.add('walkDown', [0]);
+        sprite.animations.add('walkRight', [1]);
+        sprite.animations.add('walkUp', [2]);
+        sprite.animations.add('walkLeft', [3]);
+
+        // inherited properties
+        this.key = 'player';
+        this.phase = ComponentBase.prototype.phases.RENDER;
+
+        /**
+         * @property {Phaser.Sprite} sprite - Sprite instance.
+         */
+        this.sprite = sprite;
+        /**
+         * @property {string} facing - The way the player is facing.
+         */
+        this.facing = 'down';
     }
     /**
      * @override
      */
     , init: function() {
-        this.owner.on('entity.sync', this.onEntitySync.bind(this));
-    }
-    /**
-     * Event handler for when the associated entity is synchronized.
-     * @method client.components.PlayerComponent#onEntitySync
-     * @param {object} attrs - Synchronized attributes.
-     */
-    , onEntitySync: function(attrs) {
-        if (!this.isAttributesProcessed(attrs)) {
-            var inputSequence = attrs.inputSequence
-                , command;
-
-            delete attrs.inputSequence;
-
-            this._commands.filter(function(command) {
-                return command.sequence > inputSequence;
-            });
-
-            this._commands.each(function(command) {
-                attrs = this.applyCommand(command, attrs);
-            }, this);
-
-            this.owner.attrs.set(attrs);
-            this._processed.push(inputSequence);
-        }
-    }
-    /**
-     * Returns whether the given attributes have already been processed.
-     * @method client.components.PlayerComponent#isAttributesProcessed
-     * @param {object} attrs - Entity attributes.
-     * @return {boolean} The result.
-     */
-    , isAttributesProcessed: function(attrs) {
-        return attrs.inputSequence && this._processed.indexOf(attrs.inputSequence) !== -1;
+        this.owner.on('entity.die', this.onEntityDeath.bind(this));
     }
     /**
      * @override
      */
     , update: function(elapsed) {
-        var now = +new Date()
-            , speed = this.owner.attrs.get('speed')
-            , command;
+        this.updatePosition(this.owner.attrs.get(['x', 'y']));
+        this.updateFacing();
+    }
+    /**
+     * Updates the position for the associated sprite.
+     * @method client.components.ActorComponent#updatePosition
+     * @param {number} x - Coordinates on the x-axis.
+     * @param {number} y - Coordinates on the y-axis.
+     */
+    , updatePosition: function(position) {
+        this.sprite.x = position.x;
+        this.sprite.y = position.y;
+    }
+    /**
+     * Updates the logic for direction that the player is facing.
+     * @method client.components.PlayerComponent#updateFacing
+     */
+    , updateFacing: function() {
+        var dx = this.sprite.deltaX
+            , dy = this.sprite.deltaY
+            , newFacing;
 
-        this._lastSyncAt = this._lastSyncAt || now;
-
-        command = {
-            sequence: null
-            , down: []
-            , speed: speed
-            , elapsed: elapsed
-            , processed: false
-        };
-
-        if (this._cursorKeys.up.isDown) {
-            command.down.push('up');
-        } else if (this._cursorKeys.down.isDown) {
-            command.down.push('down');
+        if (dx > 0) {
+            newFacing = 'right';
+        } else if (dx < 0) {
+            newFacing = 'left';
+        } else if (dy < 0) {
+            newFacing = 'up';
+        } else if (dy > 0) {
+            newFacing = 'down';
         }
-        if (this._cursorKeys.left.isDown) {
-            command.down.push('left');
-        } else if (this._cursorKeys.right.isDown) {
-            command.down.push('right');
-        }
 
-        if (command.down.length) {
-            command.sequence = this._sequence++;
-            this._commands.add(command);
+        // sometimes the sprite delta position might be incorrectly set
+        // so we require that the facing is two times the same
+        // before we change the active animation
+        if (newFacing && newFacing === this.facing) {
+            var animation;
 
-            if (this.owner.config.enablePrediction) {
-                var attrs = this.applyCommand(command);
-                this.owner.attrs.set(attrs);
+            switch (newFacing) {
+                case 'left':
+                    animation = 'walkLeft';
+                    break;
+                case 'up':
+                    animation = 'walkUp';
+                    break;
+                case 'right':
+                    animation = 'walkRight';
+                    break;
+                default:
+                case 'down':
+                    animation = 'walkDown';
+                    break;
             }
+
+            this.sprite.animations.play(animation, 20, true);
         }
 
-        if ((now - this._lastSyncAt) > (1000 / this.owner.config.tickRate)) {
-            var unprocessed = [];
-            this._commands.each(function(command) {
-                if (!command.processed) {
-                    unprocessed.push(command);
-                    command.processed = true;
-                }
-            });
-
-            if (unprocessed.length) {
-                this.owner.socket.emit('player.input', unprocessed);
-            }
-
-            this._lastSyncAt = now;
-        }
+        this.facing = newFacing;
+    }
+    /**
+     * Event handler for when the entity dies.
+     * @method client.components.ActorComponent#onEntityDeath
+     */
+    , onEntityDeath: function() {
+        this.sprite.kill();
     }
 });
 

@@ -6,7 +6,7 @@ var _ = require('lodash')
     , Node = require('../../../shared/core/node')
     , DataManager = require('./dataManager')
     , EntityFactory = require('./entityFactory')
-    , PlayerComponent = require('../components/player')
+    , InputComponent = require('../components/input')
     , config = require('../config.json')
     , Client;
 
@@ -14,17 +14,8 @@ var _ = require('lodash')
  * Client class.
  * @class server.Client
  * @extends shared.Node
- * @property {string} id - Identifier for the client.
- * @property {socketio.Socket} socket - Socket interface for the client.
- * @property {server.Room} room - Room instance that the client is connected to.
- * @property {server.Entity} entity - Associated player entity instance.
  */
 Client = utils.inherit(Node, {
-    key: 'client'
-    , id: null
-    , spark: null
-    , room: null
-    , player: null
     /**
      * Creates a new client.
      * @constructor
@@ -32,12 +23,27 @@ Client = utils.inherit(Node, {
      * @param {primus.Spark} spark - Spark instance.
      * @param {server.Room} room - Room instance.
      */
-    , constructor: function(id, spark, room) {
+    constructor: function(id, spark, room) {
         Node.apply(this);
 
+        this.key = 'client';
+
+        /**
+         * @property {string} id - Identifier for the client.
+         */
         this.id = id;
+        /**
+         * @property {socketio.Socket} socket - Socket interface for the client.
+         */
         this.spark = spark;
+        /**
+         * @property {server.Room} room - Room instance that the client is connected to.
+         */
         this.room = room;
+        /**
+         * @property {server.Entity} entity - Associated player entity instance.
+         */
+        this.player = null;
 
         console.log('  client %s created for room %s', this.id, this.room.id);
     }
@@ -77,6 +83,7 @@ Client = utils.inherit(Node, {
             , mapLayer: this.room.tilemap.layers
             // assets
             , images: DataManager.getImages()
+            , spritesheets: DataManager.getSpritesheets()
         });
 
         // bind event handlers
@@ -97,7 +104,7 @@ Client = utils.inherit(Node, {
             , y: Math.abs(Math.random() * (config.gameHeight - player.attrs.get('height')))
         });
 
-        player.components.add(new PlayerComponent());
+        player.components.add(new InputComponent());
 
         console.log('   player %s created for client %s', player.id, this.id);
 

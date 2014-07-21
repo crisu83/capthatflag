@@ -2,16 +2,16 @@
 
 var _ = require('lodash')
     , utils = require('../../../shared/utils')
-    , ComponentBase = require('../../../shared/components/player')
-    , PlayerComponent;
+    , ComponentBase = require('../../../shared/components/input')
+    , InputComponent;
 
 /**
- * Player component class.
- * @class server.components.PlayerComponent
+ * Input component class.
+ * @class server.components.InputComponent
  * @classdesc Server-side component that adds support for receiving user commands.
- * @extends shared.components.PlayerComponent
+ * @extends shared.components.InputComponent
  */
-PlayerComponent = utils.inherit(ComponentBase, {
+InputComponent = utils.inherit(ComponentBase, {
     /**
      * @override
      */
@@ -20,7 +20,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
     }
     /**
      * Event handler for when receiving user input.
-     * @method server.components.PlayerComponent#onCommand
+     * @method server.components.InputComponent#onCommand
      * @param {object} command - User command.
      */
     , onInput: function(commands) {
@@ -34,4 +34,4 @@ PlayerComponent = utils.inherit(ComponentBase, {
     }
 });
 
-module.exports = PlayerComponent;
+module.exports = InputComponent;

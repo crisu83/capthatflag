@@ -10,29 +10,29 @@ var _ = require('lodash');
  * @return {function} constructor
  */
 function inherit(parent, props) {
-    // allow us to pass null as parent
+    // allow us to pass null as both parent and props
     parent = parent || function() {};
+    props = props || {};
 
-    var child;
+    var Child;
 
-    // use the constructor from props if defined otherwise create
-    // an empty constructor that calls the parent constructor
-    if (props && _.has(props, 'constructor')) {
-        child = props.constructor;
-        delete props.constructor;
+    // use the constructor provided with the given properties (if defined)
+    // or create an empty constructor (that calls the parent constructor)
+    if (_.has(props, 'constructor')) {
+        Child = props.constructor;
     } else {
-        child = function() { return parent.apply(this, arguments); };
+        Child = function() { return parent.apply(this, arguments); };
     }
 
     // create the object prototype from the parent prototype
-    child.prototype = Object.create(parent.prototype);
+    // and add properties to the resulting child object prototype
+    Child.prototype = Object.create(parent.prototype);
+    _.extend(Child.prototype, props);
 
-    // add properties to the object prototype if applicable
-    if (props) {
-        _.extend(child.prototype, props);
-    }
+    // fix the constructor reference (lost after calling Object.create)
+    Child.prototype.constructor = Child;
 
-    return child;
+    return Child;
 }
 
 /**

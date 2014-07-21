@@ -4,16 +4,16 @@ var _ = require('lodash')
     , utils = require('../utils')
     , ComponentBase = require('../core/component')
     , List = require('../utils/list')
-    , PlayerComponent;
+    , InputComponent;
 
 /**
- * Shared player component class.
- * @class shared.components.PlayerComponent
- * @classdesc Base class for both server and client-side player components.
+ * Shared input component class.
+ * @class shared.components.InputComponent
+ * @classdesc Base class for both server and client-side input components.
  * @extends shared.Component
  */
-PlayerComponent = utils.inherit(ComponentBase, {
-    key: 'player'
+InputComponent = utils.inherit(ComponentBase, {
+    key: 'input'
     , phase: ComponentBase.prototype.phases.LOGIC
     /**
      * Applies to user command on the given attributes.
@@ -52,4 +52,4 @@ PlayerComponent = utils.inherit(ComponentBase, {
     }
 });
 
-module.exports = PlayerComponent;
+module.exports = InputComponent;

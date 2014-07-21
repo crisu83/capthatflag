@@ -10,6 +10,7 @@ var path = require('path')
     , ClientHashmap = require('../utils/clientHashmap')
     , EntityHashmap = require('../../../shared/utils/entityHashmap')
     , StateHistory = require('../../../shared/utils/stateHistory')
+    , World = require('../../../shared/physics/world')
     , config = require('../config.json')
     , Room;
 
@@ -28,8 +29,7 @@ Room = utils.inherit(null, {
     , tilemap: null
     , clients: null
     , entities: null
-    , _world: null
-    , _bodies: null
+    , world: null
     , _stateHistory: null
     , _lastSyncAt: null
     , _lastTickAt: null
@@ -43,13 +43,14 @@ Room = utils.inherit(null, {
         this.id = shortid.generate();
         this.primus = primus;
 
-        var dataPath = path.resolve(__dirname + '/../../data');
+        var dataPath = path.resolve(__dirname + '/../../../data');
         DataManager.loadData(dataPath);
 
         // TODO change this to not be hard-coded
         this.tilemap = TilemapFactory.create('dungeon');
         this.clients = new ClientHashmap();
         this.entities = new EntityHashmap();
+        this.world = new World();
 
         this._stateHistory = new StateHistory(1000);
 

@@ -1,0 +1,12 @@
+{
+    "key": "dungeon"
+    , "data": "tiled/dungeon/dungeon.json"
+    , "type": 1
+    , "image": "dungeon"
+    , "layers": ["Ground", "Walls"]
+    , "assets": {
+        "images": {
+            "dungeon": "images/tilesets/dungeon.png"
+        }
+    }
+}

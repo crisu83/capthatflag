@@ -8,7 +8,6 @@
     , "gameHeight": 600
     , "tickRate": 30
     , "syncRate": 30
-    , "simulateRate": 30
     , "enablePrediction": true
     , "enableInterpolation": true
     , "enableExtrapolation": false
