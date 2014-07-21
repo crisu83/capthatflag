@@ -3,7 +3,7 @@
     , "data": "tiled/dungeon/dungeon.json"
     , "type": 1
     , "image": "dungeon"
-    , "layers": ["Ground", "Walls"]
+    , "layers": ["Ground", "Walls", "Nodes"]
     , "assets": {
         "images": {
             "dungeon": "images/tilesets/dungeon.png"
