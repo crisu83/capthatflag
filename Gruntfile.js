@@ -85,7 +85,7 @@ module.exports = function(grunt) {
                 files: [
                     {
                         expand: true,
-                        cwd: 'client/assets',
+                        cwd: 'assets',
                         src: ['**/*.{png,json}'],
                         dest: 'client/web/assets',
                         filter: 'isFile'
@@ -141,7 +141,9 @@ module.exports = function(grunt) {
             client: {
                 files: [
                     'client/app/**/*.js',
-                    'shared/**/*.js'
+                    'shared/**/*.js',
+                    'assets/images/**/*.png',
+                    'data/**/*.json'
                 ],
                 tasks: ['build'],
                 options: {

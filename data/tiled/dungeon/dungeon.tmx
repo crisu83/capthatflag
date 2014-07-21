@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="30" height="30" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="dungeon" tilewidth="32" tileheight="32">
+  <image source="../../../assets/images/tilesets/dungeon.png" trans="ff00ff" width="128" height="128"/>
+ </tileset>
+ <layer name="Ground" width="30" height="30">
+  <data encoding="base64" compression="zlib">
+   eJztwwEJAAAMBKHj+4dekCm4aqqqqr57jz8HCQ==
+  </data>
+ </layer>
+ <layer name="Walls" width="30" height="30">
+  <data encoding="base64" compression="zlib">
+   eJztzbENAAAIw7D2/6f5AhgcKbObpEdvx+VyuVwul8vlcrlf3YsHPsUAdQ==
+  </data>
+ </layer>
+ <layer name="Nodes" width="30" height="30">
+  <data encoding="base64" compression="zlib">
+   eJzt1bENAAAIw7BK/P8zVyA62HvmJMCleWoBoIEPQrcFYogADQ==
+  </data>
+ </layer>
+</map>

@@ -6,34 +6,33 @@ var _ = require('lodash');
  * Creates the constructor for a new object by copying the properties
  * from a parent object keeping the prototype chain intact.
  * @param {function} parent parent constructor, or null if no parent
- * @param {object} proto prototype properties
- * @param {object} props properties to define
+ * @param {object} props prototype properties
  * @return {function} constructor
  */
-function inherit(parent, proto, props) {
-    // allow us to pass null as parent
+function inherit(parent, props) {
+    // allow us to pass null as both parent and props
     parent = parent || function() {};
+    props = props || {};
 
-    var child;
+    var Child;
 
-    // use the constructor from props if defined otherwise create
-    // an empty constructor that calls the parent constructor
-    if (proto && _.has(proto, 'constructor')) {
-        child = proto.constructor;
-        delete proto.constructor;
+    // use the constructor provided with the given properties (if defined)
+    // or create an empty constructor (that calls the parent constructor)
+    if (_.has(props, 'constructor')) {
+        Child = props.constructor;
     } else {
-        child = function() { return parent.apply(this, arguments); };
+        Child = function() { return parent.apply(this, arguments); };
     }
 
     // create the object prototype from the parent prototype
-    child.prototype = Object.create(parent.prototype);
+    // and add properties to the resulting child object prototype
+    Child.prototype = Object.create(parent.prototype);
+    _.extend(Child.prototype, props);
 
-    // add properties to the object prototype if applicable
-    if (proto) {
-        _.extend(child.prototype, proto);
-    }
+    // fix the constructor reference (lost after calling Object.create)
+    Child.prototype.constructor = Child;
 
-    return child;
+    return Child;
 }
 
 /**

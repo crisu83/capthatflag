@@ -2,10 +2,10 @@
     "port": 3001
     , "appSecret": "topSecretSequenceOfCharacters"
     , "socketNamespace": "/dungeon"
-    , "canvasWidth": 480
-    , "canvasHeight": 320
-    , "gameWidth": 480
-    , "gameHeight": 320
+    , "canvasWidth": 800
+    , "canvasHeight": 600
+    , "gameWidth": 960
+    , "gameHeight": 960
     , "tickRate": 30
     , "syncRate": 30
     , "enablePrediction": true

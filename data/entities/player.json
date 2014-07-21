@@ -1,0 +1,38 @@
+{
+    "key": "player"
+    , "attrs": {
+        "x": 0
+        , "y": 0
+        , "width": 32
+        , "height": 64
+        , "speed": 250
+        , "image": "player-cyan"
+        , "team": "cyan"
+    }
+    , "assets": {
+        "spritesheets": {
+            "player-cyan": {
+                "src": "images/sprites/player-cyan.png"
+                , "frames": 4
+            }
+            ,"player-green": {
+                "src": "images/sprites/player-green.png"
+                , "frames": 4
+            }
+            ,"player-magenta": {
+                "src": "images/sprites/player-magenta.png"
+                , "frames": 4
+            }
+            ,"player-yellow": {
+                "src": "images/sprites/player-yellow.png"
+                , "frames": 4
+            }
+            , "player-crossair": {
+                "src": "images/sprites/player-crossair.png"
+                , "width": 16
+                , "height": 16
+                , "frames": 2
+            }
+        }
+    }
+}

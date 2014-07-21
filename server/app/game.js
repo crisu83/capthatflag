@@ -1,11 +1,11 @@
 'use strict';
 
 var utils = require('../../shared/utils')
-    , Room = require('./room');
+    , Room = require('./core/room');
 
 /**
  * Runs the game.
- * @param {primus.Server} io - Primus server instance.
+ * @param {Primus.Server} io - Primus server instance.
  */
 function run(primus) {
 

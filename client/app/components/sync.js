@@ -1,18 +1,27 @@
 'use strict';
 
 var utils = require('../../../shared/utils')
-    , ComponentBase = require('../../../shared/component')
+    , ComponentBase = require('../../../shared/core/component')
     , SyncComponent;
 
 /**
  * Synchronization component class.
  * @class client.components.SyncComponent
- * @classdesc Component for synchronizing the associated entity over the network.
- * @extends shared.Component
+ * @classdesc Component that adds functionality synchronizing other players.
+ * @extends shared.core.Component
  */
 SyncComponent = utils.inherit(ComponentBase, {
-    key: 'sync'
-    , phase: ComponentBase.prototype.phases.LOGIC
+    /**
+     * Creates a new component
+     * @constructor
+     */
+    constructor: function() {
+        ComponentBase.apply(this);
+
+        // inherited properties
+        this.key = 'sync';
+        this.phase = ComponentBase.prototype.phases.LOGIC;
+    }
     /**
      * @override
      */
