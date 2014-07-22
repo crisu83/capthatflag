@@ -7,6 +7,7 @@
         , "height": 64
         , "speed": 250
         , "range": 32
+        , "aoe": 5
         , "image": "player-red"
         , "team": "red"
     }

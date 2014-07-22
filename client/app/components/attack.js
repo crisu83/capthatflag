@@ -13,7 +13,7 @@ var _ = require('lodash')
  */
 AttackComponent = utils.inherit(ComponentBase, {
     /**
-     * Creates a new attack component.
+     * Creates a new component.
      * @constructor
      * @param {Phaser.InputManager} input - Input manager instance.
      */
@@ -23,10 +23,6 @@ AttackComponent = utils.inherit(ComponentBase, {
         sprite.animations.add('idle', [4]);
         sprite.animations.add('slash', [0, 1, 2, 3, 4]);
         sprite.animations.play('idle');
-
-        // inherited properties
-        this.key = 'attack';
-        this.phase = ComponentBase.prototype.phases.LOGIC;
 
         // internal properties
         this._sprite = sprite;
@@ -50,8 +46,8 @@ AttackComponent = utils.inherit(ComponentBase, {
      */
     , onAttackDown: function() {
         if (this._attackEnabled) {
-            this.attack();
             this._attackEnabled = false;
+            this.attack();
         }
     }
     /**

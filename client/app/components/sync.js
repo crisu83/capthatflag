@@ -12,7 +12,7 @@ var utils = require('../../../shared/utils')
  */
 SyncComponent = utils.inherit(ComponentBase, {
     /**
-     * Creates a new component
+     * Creates a new component.
      * @constructor
      */
     constructor: function() {

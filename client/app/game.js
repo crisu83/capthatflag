@@ -209,6 +209,8 @@ function run(primus, config) {
             this.updatePing();
             this.updateTimeLeft();
 
+            this.playerGroup.sort('y', Phaser.Group.SORT_ASCENDING);
+
             this._lastTickAt = game.time.lastTime;
         }
         /**

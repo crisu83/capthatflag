@@ -7,9 +7,11 @@ var _ = require('lodash')
     , DataManager = require('./dataManager')
     , EntityFactory = require('./entityFactory')
     , IoComponent = require('../../../shared/components/io')
+    , PhysicsComponent = require('../components/physics')
     , AttackComponent = require('../components/attack')
     , InputComponent = require('../components/input')
     , config = require('../config.json')
+    , Body = require('../../../shared/physics/body')
     , Client;
 
 /**
@@ -119,9 +121,11 @@ Client = utils.inherit(Node, {
      */
     , createPlayer: function() {
         var entity = EntityFactory.create('player')
-            , team = this.room.weakestTeam();
+            , team = this.room.weakestTeam()
+            , body = new Body('player', entity);
 
         entity.components.add(new IoComponent(this.spark));
+        entity.components.add(new PhysicsComponent(body, this.room.world));
         entity.components.add(new AttackComponent());
         entity.components.add(new InputComponent());
 

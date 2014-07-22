@@ -119,9 +119,7 @@ Room = utils.inherit(Node, {
      */
     , gameLoop: function() {
         var now = _.now()
-            , elapsed;
-
-        elapsed = now - this._lastTickAt;
+            , elapsed = now - this._lastTickAt;
 
         this.entities.each(function(entity) {
             entity.update(elapsed);

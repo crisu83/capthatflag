@@ -13,10 +13,21 @@ var _ = require('lodash')
  */
 AttackComponent = utils.inherit(ComponentBase, {
     /**
+     * Creates a new component.
+     * @constructor
+     */
+    constructor: function() {
+        ComponentBase.apply(this);
+
+        // inherited properties
+        this.key = 'attack';
+        this.phase = ComponentBase.prototype.phases.LOGIC;
+    }
+    /**
      * Calculates where the player will hit when attacking based on its attributes.
      * @method shared.components.AttackComponent#calculateTarget
      */
-    calculateTarget: function() {
+    , calculateTarget: function() {
         var target = this.owner.attrs.get(['x', 'y'])
             , dimensions = this.owner.attrs.get(['width', 'height'])
             , direction = this.owner.attrs.get('direction')
