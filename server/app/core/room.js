@@ -73,7 +73,7 @@ Room = utils.inherit(Node, {
         this._lastTickAt = null;
         this._packageSequence = 0;
 
-        console.log(' room %s created', this.id);
+        console.log(' game room %s created', this.id);
     }
     /**
      * Initializes this room.
@@ -84,7 +84,6 @@ Room = utils.inherit(Node, {
         this.primus.on('connection', this.onConnection.bind(this));
 
         // start the game loop for this room with the configured tick rate
-        console.log(' starting game loop for room %s', this.id);
         setInterval(this.gameLoop.bind(this), 1000 / config.tickRate);
     }
     /**
