@@ -47,6 +47,7 @@ function run(primus, config) {
             this._runTimeText = null;
             this._flagGroup = null;
             this._playerGroup = null;
+            this._effectGroup = null;
             this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
             this._lastSyncAt = null;
             this._lastTickAt = null;
@@ -110,6 +111,7 @@ function run(primus, config) {
 
             this.flagGroup = this.add.group();
             this.playerGroup = this.add.group();
+            this.effectGroup = this.add.group();
 
             style = {font: "12px Arial", fill: "#ffffff", align: "right"};
 
@@ -151,17 +153,18 @@ function run(primus, config) {
             this.log('creating player', state);
 
             var entity = this.createEntity(state)
-                , sprite = this.playerGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
+                , playerSprite = this.playerGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
+                , attackSprite = this.effectGroup.create(0, 0, 'attack-sword')
                 , input = this.game.input;
 
-            entity.components.add(new PlayerComponent(sprite));
-            //entity.components.add(new AttackComponent(crossair, input));
+            entity.components.add(new PlayerComponent(playerSprite));
+            entity.components.add(new AttackComponent(attackSprite, input));
             entity.components.add(new IoComponent(primus));
             entity.components.add(new InputComponent(input));
 
             this.entities.add(state.id, entity);
 
-            this.camera.follow(sprite);
+            this.camera.follow(playerSprite);
 
             this.player = entity;
 

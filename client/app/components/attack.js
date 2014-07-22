@@ -15,112 +15,86 @@ AttackComponent = utils.inherit(ComponentBase, {
     /**
      * Creates a new attack component.
      * @constructor
-     * @param {Phaser.Sprite} crossair - Crossair sprite instance.
      * @param {Phaser.InputManager} input - Input manager instance.
      */
-    constructor: function(crossair, input) {
+    constructor: function(sprite, input) {
         ComponentBase.apply(this);
 
-        crossair.animations.add('idle', [0]);
-        crossair.animations.add('attack', [1]);
+        sprite.animations.add('idle', [4]);
+        sprite.animations.add('slash', [0, 1, 2, 3, 4]);
+        sprite.animations.play('idle');
 
         // inherited properties
         this.key = 'attack';
         this.phase = ComponentBase.prototype.phases.LOGIC;
 
-        /**
-         * @property {Phaser.Sprite} crossair - Crossair sprite instance.
-         */
-        this.crossair = crossair;
-        /**
-         * @property {Phaser.InputManager} input - Input manager instance.
-         */
-        this.input = input;
-        /**
-         * @property {number} crossairDistance - Distance between the crossair and the owner.
-         */
-        this.crossairDistance = 48;
-        /**
-         * @property {number} cooldownMsec - Number of milliseconds before the owner can attack again.
-         */
-        this.cooldownMsec = 200;
-
         // internal properties
-        this._angle = 0;
-        this._hasAttacked = false;
-        this._lastAttackAt = null;
+        this._sprite = sprite;
+        this._input = input;
+        this._attackEnabled = true;
     }
     /**
      * @override
      */
     , init: function() {
-        this.owner.on('entity.die', this.onEntityDeath.bind(this));
+        var attackKey = this._input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+        attackKey.onDown.add(this.onAttackDown.bind(this));
+        attackKey.onUp.add(this.onAttackUp.bind(this));
     }
     /**
-     * Event handler for when the owner is killed.
-     * @method client.components.AttackComponent#onEntityDeath
+     * Event handler for when the attack button is pressed.
+     * @method client.components.AttackComponent#onAttackDown
      */
-    , onEntityDeath: function() {
-        this.crossair.kill();
-    }
-    /**
-     * @override
-     */
-    , update: function(elapsed) {
-        var now = _.now()
-            , position = this.owner.attrs.get(['x', 'y']);
-
-        this._angle = this.angleToPointer(position);
-
-        this.crossair.x = position.x + 8 + (this.crossairDistance * Math.cos(this._angle));
-        this.crossair.y = position.y + 8 + (this.crossairDistance * Math.sin(this._angle));
-
-        this._lastAttackAt = this._lastAttackAt || now;
-
-        // check if we are attacking (and can attack)
-        if (this.input.activePointer.isDown && this.canAttack()) {
+    , onAttackDown: function() {
+        if (this._attackEnabled) {
             this.attack();
-            this._hasAttacked = true;
-            this._lastAttackAt = now;
-        }
-
-        if (this.input.activePointer.isUp) {
-            this._hasAttacked = false;
-        }
-
-        if (now - this._lastAttackAt > 200) {
-            this.crossair.animations.play('idle', 20, true);
+            this._attackEnabled = false;
         }
     }
     /**
-     * Returns whether the owner can attack.
-     * @method client.components.AttackComponent#canAttack
-     * @return {boolean} The result.
+     * Event handler for when the attack button is relased.
+     * @method client.components.AttackComponent#onAttackUp
      */
-    , canAttack: function() {
-        return !this._hasAttacked && _.now() - this._lastAttackAt > this.cooldownMsec;
+    , onAttackUp: function() {
+        this._attackEnabled = true;
     }
     /**
      * Performs an attack.
      * @method client.components.AttackComponent#attack
      */
     , attack: function() {
-        this.crossair.animations.play('attack', 20);
-        console.log('player attacking', this.crossair.x, this.crossair.y);
-    }
-    /**
-     * Resolves the angle from the given position to the mouse cursor.
-     * @method client.components.AttackComponent#angleToPointer
-     * @param {object} position - Origo.
-     * @return {number} Angle to the cursor.
-     */
-    , angleToPointer: function(position) {
-        // TODO Move to the World class (physics)
-        var pointer = this.input.activePointer
-            , dx = pointer.worldX - position.x
-            , dy = pointer.worldY - position.y;
+        var position = this.owner.attrs.get(['x', 'y'])
+            , dimensions = this.owner.attrs.get(['width', 'height'])
+            , direction = this.owner.attrs.get('direction')
+            , range = this.owner.attrs.get('range')
+            , halfWidth = dimensions.width / 2
+            , halfHeight = dimensions.height / 2;
 
-        return Math.atan2(dy, dx);
+        position.x += halfWidth;
+        position.y += halfHeight;
+
+        switch (direction) {
+            case 'left':
+                position.x -= halfWidth + range;
+                break;
+            case 'up':
+                position.y -= halfHeight + range;
+                break;
+            case 'right':
+                position.x += halfWidth + range;
+                break;
+            case 'down':
+                position.y += halfHeight + range;
+                break;
+            default:
+                break;
+        }
+
+        console.log('player attacking', position.x, position.y);
+
+        this._sprite.x = position.x - 16;
+        this._sprite.y = position.y - 10;
+        this._sprite.animations.play('slash', 20);
     }
 });
 

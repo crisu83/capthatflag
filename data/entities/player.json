@@ -6,8 +6,9 @@
         , "width": 32
         , "height": 64
         , "speed": 250
-        , "image": "player-cyan"
-        , "team": "cyan"
+        , "range": 32
+        , "image": "player-red"
+        , "team": "red"
     }
     , "assets": {
         "spritesheets": {
@@ -18,6 +19,12 @@
             , "player-blue": {
                 "src": "images/sprites/player-blue.png"
                 , "frames": 24
+            }
+            , "attack-sword": {
+                "src": "images/sprites/attack-sword.png"
+                , "width": 32
+                , "height": 32
+                , "frames": 5
             }
         }
     }
