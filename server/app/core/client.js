@@ -7,6 +7,7 @@ var _ = require('lodash')
     , DataManager = require('./dataManager')
     , EntityFactory = require('./entityFactory')
     , IoComponent = require('../../../shared/components/io')
+    , AttackComponent = require('../components/attack')
     , InputComponent = require('../components/input')
     , config = require('../config.json')
     , Client;
@@ -121,6 +122,7 @@ Client = utils.inherit(Node, {
             , team = this.room.weakestTeam();
 
         entity.components.add(new IoComponent(this.spark));
+        entity.components.add(new AttackComponent());
         entity.components.add(new InputComponent());
 
         team.addPlayer(entity);

@@ -158,8 +158,8 @@ function run(primus, config) {
                 , input = this.game.input;
 
             entity.components.add(new PlayerComponent(playerSprite));
-            entity.components.add(new AttackComponent(attackSprite, input));
             entity.components.add(new IoComponent(primus));
+            entity.components.add(new AttackComponent(attackSprite, input));
             entity.components.add(new InputComponent(input));
 
             this.entities.add(state.id, entity);

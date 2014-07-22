@@ -2,14 +2,14 @@
 
 var _ = require('lodash')
     , utils = require('../../../shared/utils')
-    , ComponentBase = require('../../../shared/core/component')
+    , ComponentBase = require('../../../shared/components/attack')
     , AttackComponent;
 
 /**
  * Attack component class.
  * @class client.components.AttackComponent
  * @classdesc Component that adds the ability to attack other entities.
- * @extends shared.core.Component
+ * @extends shared.components.AttackComponent
  */
 AttackComponent = utils.inherit(ComponentBase, {
     /**
@@ -31,6 +31,7 @@ AttackComponent = utils.inherit(ComponentBase, {
         // internal properties
         this._sprite = sprite;
         this._input = input;
+        this._io = null;
         this._attackEnabled = true;
     }
     /**
@@ -40,6 +41,8 @@ AttackComponent = utils.inherit(ComponentBase, {
         var attackKey = this._input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         attackKey.onDown.add(this.onAttackDown.bind(this));
         attackKey.onUp.add(this.onAttackUp.bind(this));
+
+        this._io = this.owner.components.get('io');
     }
     /**
      * Event handler for when the attack button is pressed.
@@ -63,38 +66,15 @@ AttackComponent = utils.inherit(ComponentBase, {
      * @method client.components.AttackComponent#attack
      */
     , attack: function() {
-        var position = this.owner.attrs.get(['x', 'y'])
-            , dimensions = this.owner.attrs.get(['width', 'height'])
-            , direction = this.owner.attrs.get('direction')
-            , range = this.owner.attrs.get('range')
-            , halfWidth = dimensions.width / 2
-            , halfHeight = dimensions.height / 2;
+        var target = this.calculateTarget();
 
-        position.x += halfWidth;
-        position.y += halfHeight;
+        console.log('player attacking', target.x, target.y);
 
-        switch (direction) {
-            case 'left':
-                position.x -= halfWidth + range;
-                break;
-            case 'up':
-                position.y -= halfHeight + range;
-                break;
-            case 'right':
-                position.x += halfWidth + range;
-                break;
-            case 'down':
-                position.y += halfHeight + range;
-                break;
-            default:
-                break;
-        }
-
-        console.log('player attacking', position.x, position.y);
-
-        this._sprite.x = position.x - 16;
-        this._sprite.y = position.y - 10;
+        this._sprite.x = target.x - 16;
+        this._sprite.y = target.y - 10;
         this._sprite.animations.play('slash', 20);
+
+        this._io.spark.emit('entity.attack');
     }
 });
 
