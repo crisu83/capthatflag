@@ -11,27 +11,13 @@
     }
     , "assets": {
         "spritesheets": {
-            "player-cyan": {
-                "src": "images/sprites/player-cyan.png"
-                , "frames": 4
+            "player-red": {
+                "src": "images/sprites/player-red.png"
+                , "frames": 24
             }
-            ,"player-green": {
-                "src": "images/sprites/player-green.png"
-                , "frames": 4
-            }
-            ,"player-magenta": {
-                "src": "images/sprites/player-magenta.png"
-                , "frames": 4
-            }
-            ,"player-yellow": {
-                "src": "images/sprites/player-yellow.png"
-                , "frames": 4
-            }
-            , "player-crossair": {
-                "src": "images/sprites/player-crossair.png"
-                , "width": 16
-                , "height": 16
-                , "frames": 2
+            , "player-blue": {
+                "src": "images/sprites/player-blue.png"
+                , "frames": 24
             }
         }
     }

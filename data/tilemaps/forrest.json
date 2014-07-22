@@ -1,0 +1,15 @@
+{
+    "key": "forrest"
+    , "data": "tiled/forrest/forrest.json"
+    , "type": 1
+    , "image": "forrest"
+    , "layers": ["Ground", "Walls"]
+    , "entities": [
+        {"key": "flag", "attrs": {"x": 160, "y": 160}}
+    ]
+    , "assets": {
+        "images": {
+            "forrest": "images/tilesets/forrest.png"
+        }
+    }
+}

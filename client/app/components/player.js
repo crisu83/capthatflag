@@ -21,10 +21,11 @@ PlayerComponent = utils.inherit(ComponentBase, {
         ComponentBase.apply(this);
 
         // Add the player animations
-        sprite.animations.add('walkDown', [0]);
-        sprite.animations.add('walkRight', [1]);
-        sprite.animations.add('walkUp', [2]);
-        sprite.animations.add('walkLeft', [3]);
+        sprite.animations.add('walkDown', [0, 1, 2, 3, 4, 5]);
+        sprite.animations.add('walkRight', [6, 7, 8, 9, 10, 11]);
+        sprite.animations.add('walkUp', [12, 13, 14, 15, 16, 17]);
+        sprite.animations.add('walkLeft', [18, 19, 20, 21, 22, 23]);
+        sprite.animations.add('standStill', [0]);
 
         // inherited properties
         this.key = 'player';
@@ -36,7 +37,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this.sprite = sprite;
 
         // internal properties
-        this._lastFacing = null;
+        this._lastDirection = 'none';
     }
     /**
      * @override
@@ -49,19 +50,19 @@ PlayerComponent = utils.inherit(ComponentBase, {
      */
     , update: function(elapsed) {
         this.setPosition(this.owner.attrs.get(['x', 'y']));
-        this.updateFacing();
+        this.updateAnimation();
     }
     /**
-     * Updates the direction that the player is facing.
-     * @method client.components.PlayerComponent#updateFacing
+     * Updates the animations for the player.
+     * @method client.components.PlayerComponent#updateAnimation
      */
-    , updateFacing: function() {
-        var facing = this.owner.attrs.get('facing');
+    , updateAnimation: function() {
+        var direction = this.owner.attrs.get('direction');
 
-        if (facing !== this._lastFacing) {
+        if (direction !== this._lastDirection) {
             var animation;
 
-            switch (facing) {
+            switch (direction) {
                 case 'left':
                     animation = 'walkLeft';
                     break;
@@ -71,16 +72,19 @@ PlayerComponent = utils.inherit(ComponentBase, {
                 case 'right':
                     animation = 'walkRight';
                     break;
-                default:
                 case 'down':
                     animation = 'walkDown';
                     break;
+                default:
+                case 'none':
+                    animation = 'standStill';
+                    break;
             }
 
-            this.sprite.animations.play(animation, 20, true);
+            this.sprite.animations.play(animation, 10, true);
         }
 
-        this._lastFacing = facing;
+        this._lastDirection = direction;
     }
     /**
      * Event handler for when the entity dies.

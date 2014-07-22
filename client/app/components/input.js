@@ -32,6 +32,7 @@ InputComponent = utils.inherit(ComponentBase, {
         this._commands = new List();
         this._processed = [];
         this._sequence = 0;
+        this._lastDirection = 'none';
         this._lastSyncAt = null;
     }
     /**
@@ -88,7 +89,7 @@ InputComponent = utils.inherit(ComponentBase, {
         command = {
             sequence: null
             , down: []
-            , facing: null
+            , direction: 'none'
             , speed: speed
             , elapsed: elapsed
             , processed: false
@@ -96,24 +97,33 @@ InputComponent = utils.inherit(ComponentBase, {
 
         if (this._cursorKeys.up.isDown) {
             command.down.push('up');
+            command.idle = false;
         } else if (this._cursorKeys.down.isDown) {
             command.down.push('down');
+            command.idle = false;
         }
         if (this._cursorKeys.left.isDown) {
             command.down.push('left');
+            command.idle = false;
         } else if (this._cursorKeys.right.isDown) {
             command.down.push('right');
+            command.idle = false;
         }
 
         if (command.down.length) {
+            command.direction = command.down[command.down.length - 1];
+        }
+
+        if (command.down.length || command.direction !== this._lastDirection) {
             command.sequence = this._sequence++;
-            command.facing = command.down[command.down.length - 1];
             this._commands.add(command);
 
             if (this.owner.config.enablePrediction) {
                 var attrs = this.applyCommand(command);
                 this.owner.attrs.set(attrs);
             }
+
+            this._lastDirection = command.direction;
         }
 
         if ((now - this._lastSyncAt) > (1000 / this.owner.config.tickRate)) {

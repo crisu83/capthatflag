@@ -47,7 +47,7 @@ Room = utils.inherit(Node, {
         /**
          * @property {server.core.Tilemap} tilemap - Tilemap instance.
          */
-        this.tilemap = TilemapFactory.create('dungeon');
+        this.tilemap = TilemapFactory.create('forrest');
         /**
          * @property {server.ClientHashmap} clients - Map of clients connected to the room.
          */
@@ -63,10 +63,10 @@ Room = utils.inherit(Node, {
 
         // internal variables
         this._teams = new Hashmap({
-            cyan: new Team('cyan', 32, 32)
-            , green: new Team('green', config.gameWidth - 64, 32)
-            , magenta: new Team('magenta', 32, config.gameHeight - 96)
-            , yellow: new Team('yellow', config.gameWidth - 64, config.gameHeight - 96)
+            red: new Team('red', 32, 32)
+            //, green: new Team('green', config.gameWidth - 64, 32)
+            //, magenta: new Team('magenta', 32, config.gameHeight - 96)
+            , blue: new Team('blue', config.gameWidth - 64, config.gameHeight - 96)
         });
         this._stateHistory = new StateHistory(1000);
         this._lastSyncAt = null;

@@ -152,11 +152,10 @@ function run(primus, config) {
 
             var entity = this.createEntity(state)
                 , sprite = this.playerGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
-                , crossair = this.add.sprite(0, 0, 'player-crossair')
                 , input = this.game.input;
 
             entity.components.add(new PlayerComponent(sprite));
-            entity.components.add(new AttackComponent(crossair, input));
+            //entity.components.add(new AttackComponent(crossair, input));
             entity.components.add(new IoComponent(primus));
             entity.components.add(new InputComponent(input));
 
@@ -205,7 +204,7 @@ function run(primus, config) {
             this.updatePhysics();
             this.updateEntities(elapsed);
             this.updatePing();
-            this.updateRunTime();
+            this.updateTimeLeft();
 
             this._lastTickAt = game.time.lastTime;
         }
@@ -242,7 +241,11 @@ function run(primus, config) {
                 this._pingSentAt = now;
             }
         }
-        , updateRunTime: function() {
+        /**
+         * Updates the time left text.
+         * @method client.PlayState#updateTimeLeft
+         */
+        , updateTimeLeft: function() {
             var timeLeftSec = config.gameLengthSec - Math.round(this._runTimeSec);
             this._runTimeText.text = 'time left: ' + timeLeftSec + ' sec';
         }
@@ -370,11 +373,13 @@ function run(primus, config) {
                             , factor
                         );
                         // TODO Test with a bigger sprite if this "smoothing" is necessary
+                        /*
                         entityState = this.interpolateEntityState(
                             previous.entities[id]
                             , entityState
                             , 0.3
                         );
+                        */
                         worldState.entities[id] = entityState;
                     }
                 }, this);
