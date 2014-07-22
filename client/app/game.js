@@ -351,14 +351,12 @@ function run(primus, config) {
                             , factor
                         );
                         // TODO Test with a bigger sprite if this "smoothing" is necessary
-                        /*
                         entityState = this.interpolateEntityState(
                             previous.entities[id]
                             , entityState
                             , 0.3
                         );
                         worldState.entities[id] = entityState;
-                        */
                     }
                 }, this);
             }
