@@ -43,13 +43,13 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , init: function() {
-        this.owner.on('entity.sync', this.onEntitySync.bind(this));
         this.owner.on('entity.die', this.onEntityDeath.bind(this));
     }
     /**
      * @override
      */
     , update: function(elapsed) {
+        this.setPosition(this.owner.attrs.get(['x', 'y']));
         this.updateFacing();
     }
     /**
@@ -97,12 +97,6 @@ PlayerComponent = utils.inherit(ComponentBase, {
         }
 
         this.facing = newFacing;
-    }
-    /**
-     * TODO
-     */
-    , onEntitySync: function() {
-        this.setPosition(this.owner.attrs.get(['x', 'y']));
     }
     /**
      * Event handler for when the entity dies.
