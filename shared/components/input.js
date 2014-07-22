@@ -34,6 +34,7 @@ InputComponent = utils.inherit(ComponentBase, {
     , applyCommand: function(command, attrs) {
         attrs = attrs || this.owner.attrs.get();
         attrs.inputSequence = command.sequence;
+        attrs.facing = command.facing;
 
         var step = command.speed * command.elapsed
             , down = new List(command.down);

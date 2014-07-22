@@ -85,6 +85,7 @@ InputComponent = utils.inherit(ComponentBase, {
         command = {
             sequence: null
             , down: []
+            , facing: null
             , speed: speed
             , elapsed: elapsed
             , processed: false
@@ -103,6 +104,7 @@ InputComponent = utils.inherit(ComponentBase, {
 
         if (command.down.length) {
             command.sequence = this._sequence++;
+            command.facing = command.down[command.down.length - 1];
             this._commands.add(command);
 
             if (this.owner.config.enablePrediction) {

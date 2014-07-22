@@ -34,10 +34,9 @@ PlayerComponent = utils.inherit(ComponentBase, {
          * @property {Phaser.Sprite} sprite - Sprite instance.
          */
         this.sprite = sprite;
-        /**
-         * @property {string} facing - The way the player is facing.
-         */
-        this.facing = 'down';
+
+        // internal properties
+        this._lastFacing = null;
     }
     /**
      * @override
@@ -57,27 +56,12 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @method client.components.PlayerComponent#updateFacing
      */
     , updateFacing: function() {
-        var dx = this.sprite.deltaX
-            , dy = this.sprite.deltaY
-            , newFacing;
+        var facing = this.owner.attrs.get('facing');
 
-        if (dx > 0) {
-            newFacing = 'right';
-        } else if (dx < 0) {
-            newFacing = 'left';
-        } else if (dy < 0) {
-            newFacing = 'up';
-        } else if (dy > 0) {
-            newFacing = 'down';
-        }
-
-        // sometimes the sprite delta position might be incorrectly set
-        // so we require that the facing is two times the same
-        // before we change the active animation
-        if (newFacing && newFacing === this.facing) {
+        if (facing !== this._lastFacing) {
             var animation;
 
-            switch (newFacing) {
+            switch (facing) {
                 case 'left':
                     animation = 'walkLeft';
                     break;
@@ -96,7 +80,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
             this.sprite.animations.play(animation, 20, true);
         }
 
-        this.facing = newFacing;
+        this._lastFacing = facing;
     }
     /**
      * Event handler for when the entity dies.
