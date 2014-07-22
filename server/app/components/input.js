@@ -16,7 +16,8 @@ InputComponent = utils.inherit(ComponentBase, {
      * @override
      */
     init: function() {
-        this.owner.socket.on('player.input', this.onInput.bind(this));
+        var io = this.owner.components.get('io');
+        io.spark.on('player.input', this.onInput.bind(this));
     }
     /**
      * Event handler for when receiving user input.

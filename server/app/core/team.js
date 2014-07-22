@@ -33,6 +33,13 @@ Team = utils.inherit(null, {
         this._players.add(player.id);
     }
     /**
+     * Removes all the players from the team.
+     * @method server.core.Team#removePlayers
+     */
+    , removePlayers: function() {
+        this._players.clear();
+    }
+    /**
      * Event handler for when a player dies.
      * @method server.core.Team#onEntityDeath
      * @param {string} id - Player identifier.

@@ -51,6 +51,19 @@ AttackComponent = utils.inherit(ComponentBase, {
         this._lastAttackAt = null;
     }
     /**
+     * @override
+     */
+    , init: function() {
+        this.owner.on('entity.die', this.onEntityDeath.bind(this));
+    }
+    /**
+     * Event handler for when the owner is killed.
+     * @method client.components.AttackComponent#onEntityDeath
+     */
+    , onEntityDeath: function() {
+        this.crossair.kill();
+    }
+    /**
      * @override
      */
     , update: function(elapsed) {

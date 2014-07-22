@@ -12,8 +12,8 @@
     "node": true, // node.js
     "trailing": true, // no trailing white-space
     "undef": true, // warn about undefined variables
-    //"unused": true, // warn about unused variables
+    "unused": false, // warn about unused variables
     "camelcase": true, // camel case variable and function names
     "indent": 4, // indent length
-    "predef": ["define", "Phaser"]
+    "predef": ["Phaser", "DEBUG"]
 }

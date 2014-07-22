@@ -16,13 +16,12 @@ EntityFactory = {
     /**
      * Creates a new entity.
      * @method server.core.EntityFactory#create
-     * @param {Socket} socket - Socket interface.
      * @param {string} key - Entity type.
      * @return {shared.core.Entity} Entity instance.
      */
-    create: function(socket, key) {
+    create: function(key) {
         var data = this.loadData(key)
-            , entity = new Entity(socket, data, config);
+            , entity = new Entity(data, config);
 
         // TODO consider including components in the data and attaching them here
 

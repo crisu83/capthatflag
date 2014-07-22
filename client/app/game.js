@@ -2,10 +2,12 @@
 
 var _ = require('lodash')
     , utils = require('../../shared/utils')
+    , List = require('../../shared/utils/list')
     , EntityHashmap = require('../../shared/utils/entityHashmap')
     , StateHistory = require('../../shared/utils/stateHistory')
     , Entity = require('../../shared/core/entity')
     , AttackComponent = require('./components/attack')
+    , IoComponent = require('../../shared/components/io')
     , InputComponent = require('./components/input')
     , PlayerComponent = require('./components/player')
     , SyncComponent = require('./components/sync');
@@ -16,10 +18,6 @@ var _ = require('lodash')
  * @param {object} config - Game configuration.
  */
 function run(primus, config) {
-    console.log('creating client', config);
-
-    var debug = true;
-
     /**
      * Play state class.
      * @class client.PlayState
@@ -45,6 +43,9 @@ function run(primus, config) {
             this._ping = 0;
             this._pingText = null;
             this._pingSentAt = null;
+            this._runTimeSec = 0;
+            this._runTimeText = null;
+            this._flagGroup = null;
             this._playerGroup = null;
             this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
             this._lastSyncAt = null;
@@ -56,13 +57,14 @@ function run(primus, config) {
          * @param {Phaser.Game} game - Game instance.
          */
         , preload: function(game) {
-            console.log('loading assets ...');
+            this.log('creating client', config);
+            this.log('loading assets ...');
 
             this.load.tilemap(config.mapKey, null, config.mapData, config.mapType);
             this.loadAssets(game);
         }
         /**
-         * Loads all assets.
+         * Loads game assets.
          * @param {Phaser.Game} game - Game instance.
          */
         , loadAssets: function() {
@@ -88,7 +90,7 @@ function run(primus, config) {
          * @param {Phaser.Game} game - Game instance.
          */
         , create: function(game) {
-            console.log('creating game ...');
+            this.log('creating game ...');
 
             var map, layer, style, text, pauseKey;
 
@@ -106,14 +108,20 @@ function run(primus, config) {
                 layer.resizeWorld();
             }, this);
 
+            this.flagGroup = this.add.group();
             this.playerGroup = this.add.group();
 
-            style = {font: "12px Arial", fill: "#ffffff", align: "left"};
-            text = this.add.text(config.canvasWidth - 70, 10, '', style);
+            style = {font: "12px Arial", fill: "#ffffff", align: "right"};
+
+            text = this.add.text(10, config.canvasHeight - 20, '', style);
+            text.fixedToCamera = true;
+            this._runTimeText = text;
+
+            text = this.add.text(10, config.canvasHeight - 40, '', style);
             text.fixedToCamera = true;
             this._pingText = text;
 
-            if (debug) {
+            if (DEBUG) {
                 pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
                 pauseKey.onDown.add(this.onGamePause.bind(this));
             }
@@ -130,9 +138,9 @@ function run(primus, config) {
          * Event handler for when the game is paused.
          * @method client.PlayState#onGamePause
          */
-        , onGamePause: function(event) {
+        , onGamePause: function() {
             this.paused = !this.paused;
-            console.log(this.paused ? 'game paused' : 'game resumed');
+            this.log(this.paused ? 'game paused' : 'game resumed');
         }
         /**
          * Event handler for creating the player.
@@ -140,7 +148,7 @@ function run(primus, config) {
          * @param {object} state - Player state.
          */
         , onPlayerCreate: function(state) {
-            console.log('creating player', state);
+            this.log('creating player', state);
 
             var entity = this.createEntity(state)
                 , sprite = this.playerGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
@@ -149,6 +157,7 @@ function run(primus, config) {
 
             entity.components.add(new PlayerComponent(sprite));
             entity.components.add(new AttackComponent(crossair, input));
+            entity.components.add(new IoComponent(primus));
             entity.components.add(new InputComponent(input));
 
             this.entities.add(state.id, entity);
@@ -168,7 +177,7 @@ function run(primus, config) {
         , onSync: function(worldState) {
             var now = _.now();
 
-            // TODO This shoud not be done
+            // TODO This should not be done
             worldState.timestamp = now;
             this._stateHistory.snapshot(worldState);
 
@@ -177,16 +186,11 @@ function run(primus, config) {
         /**
          * Event handler for when a player leaves.
          * @method client.PlayState#onPlayerLeave
-         * @param {string} id - Player identifier.
+         * @param {string} id - Player entity identifier.
          */
-        , onPlayerLeave: function (id) {
-            console.log('player left', id);
-
-            var player = this.entities.get(id);
-
-            if (player) {
-                player.die();
-            }
+        , onPlayerLeave: function (entityId) {
+            this.log('player left', entityId);
+            this.entities.kill(entityId);
         }
         /**
          * Updates the logic for this game.
@@ -201,6 +205,7 @@ function run(primus, config) {
             this.updatePhysics();
             this.updateEntities(elapsed);
             this.updatePing();
+            this.updateRunTime();
 
             this._lastTickAt = game.time.lastTime;
         }
@@ -232,10 +237,14 @@ function run(primus, config) {
                 if (ping < 10) {
                     ping = 10;
                 }
-                this._pingText.text = 'ping: ' + ping + 'ms';
+                this._pingText.text = 'ping: ' + ping + ' ms';
                 primus.emit('ping', {timestamp: now});
                 this._pingSentAt = now;
             }
+        }
+        , updateRunTime: function() {
+            var timeLeftSec = config.gameLengthSec - Math.round(this._runTimeSec);
+            this._runTimeText.text = 'time left: ' + timeLeftSec + ' sec';
         }
         /**
          * Event handler for when receiving a ping response.
@@ -255,7 +264,10 @@ function run(primus, config) {
             if (worldState) {
                 var now = _.now()
                     , previousState = this._stateHistory.previous()
-                    , factor;
+                    , unprocessed = new List(this.entities.keys())
+                    , factor, state, entity, sprite, physics;
+
+                this._runTimeSec = worldState.runTimeSec;
 
                 if (previousState) {
                     if (config.enableInterpolation && this.canInterpolate()) {
@@ -268,28 +280,35 @@ function run(primus, config) {
                     }
                 }
 
-                var state, entity, sprite, physics;
+                _.forOwn(worldState.entities, function(state, entityId) {
+                    entity = this.entities.get(entityId);
 
-                for (var id in worldState.entities) {
-                    if (worldState.entities.hasOwnProperty(id)) {
-                        state = worldState.entities[id];
-                        entity = this.entities.get(state.id);
+                    // if the entity does not exist, we need to create it
+                    if (!entity) {
+                        this.log('creating new entity', state);
+                        entity = this.createEntity(state);
 
-                        // if the entity does not exist, we need to create it
-                        if (!entity) {
-                            console.log('creating new entity', state);
-                            entity = this.createEntity(state);
+                        if (state.key === 'flag') {
+                            sprite = this.flagGroup.create(state.attrs.x, state.attrs.y, state.attrs.image);
+                        } else {
                             sprite = this.playerGroup.create(state.attrs.x, state.attrs.y, state.attrs.image);
 
                             entity.components.add(new SyncComponent());
                             entity.components.add(new PlayerComponent(sprite));
-
-                            this.entities.add(entity.id, entity);
                         }
 
-                        entity.sync(state.attrs);
+                        this.entities.add(entityId, entity);
                     }
-                }
+
+                    entity.sync(state.attrs);
+
+                    unprocessed.remove(entityId);
+                }, this);
+
+                unprocessed.each(function(entityId) {
+                    this.log('removing entity', entityId);
+                    this.entities.kill(entityId);
+                }, this);
             }
         }
         /**
@@ -411,7 +430,7 @@ function run(primus, config) {
          * @param {object} data - Entity data.
          */
         , createEntity: function(data) {
-            return new Entity(primus, data, config);
+            return new Entity(data, config);
         }
         /**
          * Renders the state.
@@ -419,10 +438,18 @@ function run(primus, config) {
          * @param {Phaser.Game} game - Game instance.
          */
         , render: function(game) {
-            if (debug) {
+            if (DEBUG) {
                 // TODO implement visual debugging
             }
         }
+        /**
+         * Logs the a message to the console.
+         */
+        , log: function() {
+             if (DEBUG && typeof console !== 'undefined') {
+                 console.log.apply(console, arguments);
+             }
+         }
     });
 
     // create the actual game

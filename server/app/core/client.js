@@ -6,6 +6,7 @@ var _ = require('lodash')
     , Node = require('../../../shared/core/node')
     , DataManager = require('./dataManager')
     , EntityFactory = require('./entityFactory')
+    , IoComponent = require('../../../shared/components/io')
     , InputComponent = require('../components/input')
     , config = require('../config.json')
     , Client;
@@ -40,6 +41,10 @@ Client = utils.inherit(Node, {
          */
         this.room = room;
         /**
+         * @property {object} config - Client configuration.
+         */
+        this.config = null;
+        /**
          * @property {server.Entity} entity - Associated player entity instance.
          */
         this.player = null;
@@ -54,8 +59,7 @@ Client = utils.inherit(Node, {
 
         console.log('  client %s connected to room %s', this.id, this.room.id);
 
-        // send the configuration to the client
-        this.spark.emit('client.init', {
+        this.config = {
             // client identifier
             id: this.id
             // server configuration
@@ -81,7 +85,12 @@ Client = utils.inherit(Node, {
             // assets
             , images: DataManager.getImages()
             , spritesheets: DataManager.getSpritesheets()
-        });
+            // game configuration
+            , gameLengthSec: config.gameLengthSec
+        };
+
+        // send the configuration to the client
+        this.spark.emit('client.init', this.config, config.debug);
 
         // bind event handlers
         this.spark.on('ping', this.onPing.bind(this));
@@ -100,26 +109,41 @@ Client = utils.inherit(Node, {
      * @method server.core.Client#onReady
      */
     , onReady: function() {
-        var player = EntityFactory.create(this.spark, 'player')
-            , team = this.room.weakestTeam()
-            , body;
+        this.player = this.createPlayer();
+    }
+    /**
+     * Creates the player for the client.
+     * @method server.core.Client#createPlayer
+     * @return {shared.core.Entity} Player entity.
+     */
+    , createPlayer: function() {
+        var entity = EntityFactory.create('player')
+            , team = this.room.weakestTeam();
 
-        team.addPlayer(player);
-        this.room.entities.add(player.id, player);
+        entity.components.add(new IoComponent(this.spark));
+        entity.components.add(new InputComponent());
 
-        player.attrs.set({
+        team.addPlayer(entity);
+        this.room.entities.add(entity.id, entity);
+
+        entity.attrs.set({
             team: team.name
             , image: 'player-' + team.name
             , x: team.x
             , y: team.y
         });
 
-        player.components.add(new InputComponent());
+        console.log('  client %s joined %s team as player %s', this.id, team.name, entity.id);
+        this.spark.emit('player.create', entity.serialize());
 
-        console.log('  client %s joined %s team as player %s', this.id, team.name, player.id);
-
-        this.spark.emit('player.create', player.serialize());
-        this.player = player;
+        return entity;
+    }
+    /**
+     * Resets the game for the client.
+     * @method server.core.Client#resetGame
+     */
+    , resetGame: function() {
+        this.spark.emit('client.reset', this.config, config.debug);
     }
     /**
      * Synchronizes this client with the server.
@@ -139,7 +163,7 @@ Client = utils.inherit(Node, {
         // remove the player
         this.player.die();
 
-        // let other clients know that this client has left the room
+        // let other clients know that the player left
         this.room.primus.forEach(function(spark) {
             spark.emit('player.leave', playerId);
         });

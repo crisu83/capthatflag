@@ -5,8 +5,7 @@ var _ = require('lodash')
     , utils = require('../utils')
     , Node = require('./node')
     , Hashmap = require('../utils/hashmap')
-    , SortedList = require('../utils/sortedList')
-    , ComponentList = require('../utils/componentList')
+    , ComponentManager = require('../core/componentManager')
     , Entity;
 
 /**
@@ -19,10 +18,9 @@ Entity = utils.inherit(Node, {
     /**
      * Creates a new entity.
      * @constructor
-     * @param {socketio.Socket} socket - Socket interface.
      * @param {object} data - Entity data.
      */
-    constructor: function(socket, data, config) {
+    constructor: function(data, config) {
         Node.apply(this);
 
         // inherited properties
@@ -33,17 +31,13 @@ Entity = utils.inherit(Node, {
          */
         this.id = data.id;
         /**
-         * @property {Primus.Client|Primus.Spark} socket - Socket interface.
-         */
-        this.socket = socket;
-        /**
          * @property {shared.utils.Hashmap} attrs - Hashmap over the entities attributes.
          */
         this.attrs = new Hashmap(data.attrs);
         /**
-         * @property {shared.utils.ComponentList} components - List of components.
+         * @property {shared.core.ComponentManager} components - Component manager instance.
          */
-        this.components = new ComponentList(this);
+        this.components = new ComponentManager(this);
         /**
          * @property {object} config - Game configuration.
          */

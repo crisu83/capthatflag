@@ -1,6 +1,8 @@
 'use strict';
 
-var utils = require('../../../shared/utils')
+var _ = require('lodash')
+    , utils = require('../../../shared/utils')
+    , EntityFactory = require('./entityFactory')
     , Tilemap;
 
 /**
@@ -13,8 +15,9 @@ Tilemap = utils.inherit(null, {
      * Creates a new tilemap.
      * @constructor
      * @param {object} data - Tilemap data.
+     * @param {object} config - Game configuration.
      */
-    constructor: function(data) {
+    constructor: function(data, config) {
         /**
          * @property {string} id - Tilemap identifier.
          */
@@ -39,6 +42,34 @@ Tilemap = utils.inherit(null, {
          * @property {string} image - Tilemap image key.
          */
         this.image = data.image;
+        /**
+         * @property {array} entities - Entities on this map.
+         */
+        this.entities = data.entities;
+        /**
+         * @property {object} config - Game configuration.
+         */
+        this.config = config;
+        /**
+         * @property {server.core.Room} room - Room instance.
+         */
+        this.room = null;
+    }
+    /**
+     * Initializes the tilemap.
+     * @method server.core.Tilemap#init
+     */
+    , init: function() {
+        var entity;
+
+        _.forOwn(this.entities, function(json) {
+            var entity = EntityFactory.create('flag')
+                , attrs = json.attrs || {};
+
+            entity.attrs.set(attrs);
+
+            this.room.entities.add(entity.id, entity);
+        }, this);
     }
 });
 

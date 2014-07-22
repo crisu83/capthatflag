@@ -2,17 +2,17 @@
 
 var _ = require('lodash')
     , utils = require('../utils')
-    , SortedList = require('./sortedList')
-    , ComponentList;
+    , SortedList = require('../utils/sortedList')
+    , ComponentManager;
 
 /**
  * Entity components class.
- * @class shared.utils.ComponentList
+ * @class shared.utils.ComponentManager
  * @classdesc Utility class for managing entity components.
  */
-ComponentList = utils.inherit(null, {
+ComponentManager = utils.inherit(null, {
     /**
-     * Creates a new set of entity components.
+     * Creates a new component manager.
      * @constructor
      * @param {shared.core.Entity} owner - Entity instance.
      */
@@ -25,7 +25,7 @@ ComponentList = utils.inherit(null, {
     }
     /**
      * Adds a component item to this set of components.
-     * @method shared.utils.EntityComponents#add
+     * @method shared.utils.ComponentManager#add
      * @param {shared.core.Component} component - Component to add.
      */
     , add: function(component) {
@@ -35,17 +35,18 @@ ComponentList = utils.inherit(null, {
     }
     /**
      * Returns a specific component from this set of components.
-     * @method shared.utils.EntityComponents#get
+     * @method shared.utils.ComponentManager#get
      * @param {string} key - Component key.
      * @return {shared.core.Component|null} Component instance, or null if not found.
      */
     , get: function(key) {
+        var result = null;
         this._components.each(function(component) {
             if (component.key === key) {
-                return component;
+                result = component;
             }
         });
-        return null;
+        return result;
     }
     /**
      * @override
@@ -57,4 +58,4 @@ ComponentList = utils.inherit(null, {
     }
 });
 
-module.exports = ComponentList;
+module.exports = ComponentManager;

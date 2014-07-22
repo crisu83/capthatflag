@@ -20,13 +20,21 @@ Hashmap = utils.inherit(null, {
         this._items = items || {};
     }
     /**
-     * Adds an item to this hashmap.
-     * @method shared.Hashmap#add
+     * Adds an item to the hashmap.
+     * @method shared.utils.Hashmap#add
      * @param {string|object} key - Item key.
      * @param {object} value - Item value.
      */
     , add: function(key, value) {
         this.set(key, value);
+    }
+    /**
+     * Returns all the keys in the hashmap.
+     * @method shared.utils.Hashmap#keys
+     * @return {array} List of keys.
+     */
+    , keys: function() {
+        return _.keys(this._items);
     }
     /**
      * Returns items from the hashmap
@@ -58,7 +66,7 @@ Hashmap = utils.inherit(null, {
         }
     }
     /**
-     * Removes an item from this hashmap and returns it.
+     * Removes an item from the hashmap and returns it.
      * @method shared.utils.Hashmap#remove
      * @param {string} key - Item key
      * @return {object} Removed item.
@@ -67,6 +75,13 @@ Hashmap = utils.inherit(null, {
         var item = this._items[key];
         delete this._items[key];
         return item;
+    }
+    /**
+     * Removes all the items from the hashmap.
+     * @method shared.utils.Hashmap#clear
+     */
+    , clear: function() {
+        this._items = {};
     }
     /**
      * Iterates items in the hashmap.

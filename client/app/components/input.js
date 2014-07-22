@@ -27,6 +27,7 @@ InputComponent = utils.inherit(ComponentBase, {
         this.input = input;
 
         // internal properties
+        this._io = null;
         this._cursorKeys = input.keyboard.createCursorKeys();
         this._commands = new List();
         this._processed = [];
@@ -37,6 +38,8 @@ InputComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , init: function() {
+        this._io = this.owner.components.get('io');
+
         this.owner.on('entity.sync', this.onEntitySync.bind(this));
     }
     /**
@@ -76,7 +79,7 @@ InputComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , update: function(elapsed) {
-        var now = +new Date()
+        var now = _.now()
             , speed = this.owner.attrs.get('speed')
             , command;
 
@@ -123,7 +126,7 @@ InputComponent = utils.inherit(ComponentBase, {
             });
 
             if (unprocessed.length) {
-                this.owner.socket.emit('player.input', unprocessed);
+                this._io.spark.emit('player.input', unprocessed);
             }
 
             this._lastSyncAt = now;

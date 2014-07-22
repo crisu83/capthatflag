@@ -71,7 +71,12 @@ Room = utils.inherit(Node, {
         this._stateHistory = new StateHistory(1000);
         this._lastSyncAt = null;
         this._lastTickAt = null;
+        this._gameStartedAt = null;
         this._packageSequence = 0;
+        this._running = true;
+
+        this.tilemap.room = this;
+        this.tilemap.init();
 
         console.log(' game room %s created', this.id);
     }
@@ -82,6 +87,11 @@ Room = utils.inherit(Node, {
     , init: function() {
         // event handler for when a client connects
         this.primus.on('connection', this.onConnection.bind(this));
+
+        // mark the time when the game started
+        var now = _.now();
+        this._gameStartedAt = now;
+        this._lastTickAt = now;
 
         // start the game loop for this room with the configured tick rate
         setInterval(this.gameLoop.bind(this), 1000 / config.tickRate);
@@ -111,7 +121,6 @@ Room = utils.inherit(Node, {
         var now = _.now()
             , elapsed;
 
-        this._lastTickAt = this._lastTickAt || now;
         elapsed = now - this._lastTickAt;
 
         this.entities.each(function(entity) {
@@ -128,6 +137,10 @@ Room = utils.inherit(Node, {
             this._lastSyncAt = now;
         }
 
+        if (now - this._gameStartedAt > config.gameLengthSec * 1000) {
+            this.resetGame();
+        }
+
         this._lastTickAt = now;
     }
     /**
@@ -137,7 +150,14 @@ Room = utils.inherit(Node, {
      */
     , createWorldState: function() {
         var now = _.now()
-            , worldState = {sequence: this._packetSequence++, timestamp: now, entities: {}};
+            , worldState;
+
+        worldState = {
+            sequence: this._packetSequence++
+            , timestamp: now
+            , runTimeSec: (now - this._gameStartedAt) / 1000
+            , entities: {}
+        };
 
         this.entities.each(function(entity, id) {
             worldState.entities[id] = entity.serialize();
@@ -166,6 +186,27 @@ Room = utils.inherit(Node, {
         }, this);
 
         return weakest;
+    }
+    /**
+     * Restarts the game.
+     * @method server.core.Room#restartGame
+     */
+    , resetGame: function() {
+        console.log(' game in room %s is restarting', this.id);
+
+        this.entities.clear();
+
+        console.log(this.entities.get());
+
+        this._teams.each(function(team) {
+            team.removePlayers();
+        }, this);
+
+        this.clients.each(function(client) {
+            client.resetGame();
+        }, this);
+
+        this._gameStartedAt = _.now();
     }
 });
 

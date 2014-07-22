@@ -27,6 +27,25 @@ EntityHashmap = utils.inherit(HashmapBase, {
     , onEntityDeath: function(id) {
         this.remove(id);
     }
+    /**
+     * Kills all single in this hashmap.
+     * @method shared.utils.EntityHashmap#kill
+     */
+    , kill: function(id) {
+        var entity = this.get(id);
+        if (entity) {
+            entity.die();
+        }
+    }
+    /**
+     * Kills all entities in this hashmap.
+     * @method shared.utils.EntityHashmap#killAll
+     */
+    , killAll: function() {
+        this.each(function(entity) {
+            entity.die();
+        }, this);
+    }
 });
 
 module.exports = EntityHashmap;
