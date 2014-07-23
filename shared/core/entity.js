@@ -52,48 +52,62 @@ Entity = utils.inherit(Node, {
         this.components.update(elapsed);
     }
     /**
-     * Synchronizes the entity attributes.
+     * Triggers the synchronization event for the entity.
      * @method shared.core.Entity#sync
      * @param {object} attrs - Attributes to synchronize.
      */
     , sync: function(attrs) {
-        this.trigger('entity.sync', [attrs]);
+        this.trigger('entity.sync', [attrs, this]);
     }
     /**
-     * Damages the entity.
+     * Triggers the damage event for the entity.
      * @method shared.core.Entity#damage
      * @param {number} amount - Amount of damage.
+     * @param {shared.core.Entity} attacker - Entity attacking.
      */
-    , damage: function(amount) {
-        this.trigger('entity.damage', [amount]);
+    , damage: function(amount, attacker) {
+        this.trigger('entity.damage', [amount, attacker, this]);
     }
     /**
-     * Kills the entity.
+     * Triggers the kill event for the entity.
+     * @method shared.core.Entity#kill
+     * @param {shared.core.Entity} other - Entity killed.
+     */
+    , kill: function(other) {
+        this.trigger('entity.kill', [other, this]);
+    }
+    /**
+     * Triggers the die event for the entity.
      * @method shared.core.Entity#die
      */
     , die: function() {
-        this.trigger('entity.die', [this.id]);
+        this.trigger('entity.die', [this]);
     }
     /**
-     * Revives the entity.
+     * Triggers the revive event for the entity.
      * @method shared.core.Entity#revive
      */
     , revive: function() {
-        this.trigger('entity.revive');
+        this.trigger('entity.revive', [this]);
     }
     /**
-     * Permanently removes the entity.
+     * Triggers the remove event the entity (and kills the entity).
      * @method shared.core.Entity#remove
      */
     , remove: function() {
-        this.trigger('entity.remove', [this.id]);
+        this.die();
+        this.trigger('entity.remove', [this]);
     }
     /**
      * Serializes this entity to a JSON object.
      * @method shared.core.Entity#serialize
      */
     , serialize: function() {
-        return {id: this.id, key: this.key, attrs: this.attrs.get()};
+        return {
+            id: this.id
+            , key: this.key
+            , attrs: this.attrs.get()
+        };
     }
 });
 

@@ -22,6 +22,15 @@ AttackComponent = utils.inherit(ComponentBase, {
         // inherited properties
         this.key = 'attack';
         this.phase = ComponentBase.prototype.phases.LOGIC;
+
+        // internal properties
+        this._lastAttackAt = null;
+    }
+    , canAttack: function() {
+        var now = _.now()
+            , cooldownMsec = this.owner.attrs.get('attackCooldownMsec');
+
+        return !this._lastAttackAt || (now - this._lastAttackAt) > cooldownMsec;
     }
     /**
      * Calculates where the player will hit when attacking based on its attributes.

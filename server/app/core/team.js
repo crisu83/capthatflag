@@ -29,7 +29,7 @@ Team = utils.inherit(null, {
      * @param {shared.core.Entity} player - Player entity.
      */
     , addPlayer: function(player) {
-        player.on('entity.die', this.onEntityDeath.bind(this));
+        player.on('entity.remove', this.onEntityRemove.bind(this));
         this._players.add(player.id);
     }
     /**
@@ -40,12 +40,12 @@ Team = utils.inherit(null, {
         this._players.clear();
     }
     /**
-     * Event handler for when a player dies.
-     * @method server.core.Team#onEntityDeath
-     * @param {string} id - Player identifier.
+     * Event handler for when a player is removed.
+     * @method server.core.Team#onEntityRemove
+     * @param {shared.core.Entity} entity - Entity instance.
      */
-    , onEntityDeath: function(id) {
-        this._players.remove(id);
+    , onEntityRemove: function(entity) {
+        this._players.remove(entity.id);
     }
     /**
      * Returns the amount of players in the team.

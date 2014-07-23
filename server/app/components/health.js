@@ -20,15 +20,16 @@ HealthComponent = utils.inherit(ComponentBase, {
         ComponentBase.apply(this);
 
         // internal properties
-        this._max = 0;
-        this._current = 0;
+        this._maxHealth = 0;
+        this._currentHealth = 0;
+        this._alive = true;
     }
     /**
      * @override
      */
     , init: function() {
-        this._max = this.owner.attrs.get('maxHealth');
-        this._current = this._max;
+        this._maxHealth = this.owner.attrs.get('maxHealth');
+        this._currentHealth = this._maxHealth;
 
         this.owner.on('entity.damage', this.onEntityDamage.bind(this));
         this.owner.on('entity.revive', this.onEntityRevive.bind(this));
@@ -37,19 +38,32 @@ HealthComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , update: function(elapsed) {
-        this.owner.attrs.set({maxHealth: this._max, currentHealth: this._current});
+        // update the aliveness for the entity
+        this._alive = this._currentHealth > 0;
+
+        // kill the entity if it should not be alive anymore
+        if (!this._alive && this.owner.attrs.get('alive')) {
+            this.owner.die();
+        }
+
+        // update entity attributes
+        this.owner.attrs.set({
+            alive: this._alive
+            , maxHealth: this._maxHealth
+            , currentHealth: this._currentHealth
+        });
     }
     /**
      * Event handler for when entity is taking damage.
      * @method server.components.HealthComponent#onEntityDamage
      * @param {number} amount - Amount of damage taken.
+     * @param {shared.core.Entity} attack - Entity attacking.
      */
-    , onEntityDamage: function(amount) {
-        console.log('damage taken', this.owner.id);
-        this._current - amount;
+    , onEntityDamage: function(amount, attacker) {
+        this._currentHealth -= amount;
 
-        if (this._current <= 0) {
-            this.owner.die();
+        if (this._currentHealth <= 0) {
+            attacker.kill(this.owner);
         }
     }
     /**
@@ -57,7 +71,7 @@ HealthComponent = utils.inherit(ComponentBase, {
      * @method server.components.HealthComponent#onEntityRevive
      */
     , onEntityRevive: function() {
-        this._current = this._max;
+        this._currentHealth = this._maxHealth;
     }
 });
 

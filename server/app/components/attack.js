@@ -24,6 +24,7 @@ AttackComponent = utils.inherit(ComponentBase, {
         this._team = null;
         this._body = null;
         this._physics = null;
+        this._lastAttackAt = null;
     }
     /**
      * @override
@@ -41,24 +42,29 @@ AttackComponent = utils.inherit(ComponentBase, {
      * @method server.components.AttackComponent#onAttack
      */
     , onAttack: function() {
-        var target = this.calculateTarget()
-            , aoe = this.owner.attrs.get('attackAoe')
-            , halfAoe = aoe / 2
-            , amount = 0;
+        if (this.canAttack()) {
+            var now = _.now()
+                , target = this.calculateTarget()
+                , aoe = this.owner.attrs.get('attackAoe')
+                , halfAoe = aoe / 2
+                , amount = 0;
 
-        this._body.x = target.x - halfAoe;
-        this._body.y = target.y - halfAoe;
-        this._body.width = aoe;
-        this._body.height = aoe;
+            this._body.x = target.x - halfAoe;
+            this._body.y = target.y - halfAoe;
+            this._body.width = aoe;
+            this._body.height = aoe;
 
-        this._physics.overlap('player', function(body, other) {
-            // make sure that we are not hitting our teammates
-            if (this._team !== other.owner.attrs.get('team')) {
-                amount = this.calculateDamage();
-                console.log('player %s hit opponent %s for %d', body.owner.id, other.owner.id, amount);
-                other.owner.damage(amount);
-            }
-        }, this, this._body/* use the attack body instead of the entity body */);
+            this._physics.overlap('player', function(body, other) {
+                // make sure that we are not hitting our teammates
+                if (this.owner.attrs.get('team') !== other.owner.attrs.get('team') && other.owner.attrs.get('alive')) {
+                    amount = this.calculateDamage();
+                    other.owner.damage(amount, this.owner);
+                    console.log('player %s hit opponent %s for %d', body.owner.id, other.owner.id, amount);
+                }
+            }, this, this._body/* use the attack body instead of the entity body */);
+
+            this._lastAttackAt = now;
+        }
     }
     /**
      * Calculates the amount of damage done.

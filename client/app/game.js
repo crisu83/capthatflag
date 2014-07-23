@@ -38,6 +38,10 @@ function run(primus, config) {
              * @property {shared.core.Entity} player - Player entity.
              */
             this.player = null;
+            /**
+             * @property {Phaser.Sprite} sprite - Player sprite.
+             */
+            this.playerSprite = null;
 
             // internal properties
             this._ping = 0;
@@ -45,6 +49,7 @@ function run(primus, config) {
             this._pingSentAt = null;
             this._runTimeSec = 0;
             this._runTimeText = null;
+            this._statsText = null;
             this._flagGroup = null;
             this._playerGroup = null;
             this._effectGroup = null;
@@ -123,6 +128,10 @@ function run(primus, config) {
             text.fixedToCamera = true;
             this._pingText = text;
 
+            text = this.add.text(10, config.canvasHeight - 60, '', style);
+            text.fixedToCamera = true;
+            this._statsText = text;
+
             if (DEBUG) {
                 pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
                 pauseKey.onDown.add(this.onGamePause.bind(this));
@@ -154,18 +163,18 @@ function run(primus, config) {
 
             var entity = this.createEntity(state)
                 , playerSprite = this.playerGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
-                , attackSprite = this.effectGroup.create(0, 0, 'attack-sword')
-                , input = this.game.input;
-
-            entity.components.add(new PlayerComponent(playerSprite));
-            entity.components.add(new IoComponent(primus));
-            entity.components.add(new AttackComponent(attackSprite, input));
-            entity.components.add(new InputComponent(input));
-
-            this.entities.add(state.id, entity);
+                , attackSprite = this.effectGroup.create(0, 0, 'attack-sword');
 
             this.camera.follow(playerSprite);
 
+            entity.components.add(new PlayerComponent(playerSprite));
+            entity.components.add(new IoComponent(primus));
+            entity.components.add(new AttackComponent(attackSprite, this.game.input));
+            entity.components.add(new InputComponent(this.game.input));
+
+            this.entities.add(state.id, entity);
+
+            this.playerSprite = playerSprite;
             this.player = entity;
 
             // now we are ready to synchronization the world with the server
@@ -192,7 +201,7 @@ function run(primus, config) {
          */
         , onPlayerLeave: function (entityId) {
             this.log('player left', entityId);
-            this.entities.kill(entityId);
+            this.entities.remove(entityId);
         }
         /**
          * Updates the logic for this game.
@@ -208,6 +217,7 @@ function run(primus, config) {
             this.updateEntities(elapsed);
             this.updatePing();
             this.updateTimeLeft();
+            this.updateStats();
 
             this.playerGroup.sort('y', Phaser.Group.SORT_ASCENDING);
 
@@ -253,6 +263,16 @@ function run(primus, config) {
         , updateTimeLeft: function() {
             var timeLeftSec = config.gameLengthSec - Math.round(this._runTimeSec);
             this._runTimeText.text = 'time left: ' + timeLeftSec + ' sec';
+        }
+        /**
+         * Updates the player statistics text.
+         * @method client.PlayState#updateStats
+         */
+        , updateStats: function() {
+            if (this.player) {
+                var stats = this.player.attrs.get(['kills', 'deaths']);
+                this._statsText.text = 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths;
+            }
         }
         /**
          * Event handler for when receiving a ping response.
@@ -315,7 +335,7 @@ function run(primus, config) {
 
                 unprocessed.each(function(entityId) {
                     this.log('removing entity', entityId);
-                    this.entities.kill(entityId);
+                    this.entities.remove(entityId);
                 }, this);
             }
         }

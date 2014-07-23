@@ -21,14 +21,10 @@ InputComponent = utils.inherit(ComponentBase, {
     constructor: function(input) {
         ComponentBase.apply(this);
 
-        /**
-         * @property {Phaser.Input} input - Input manager instance.
-         */
-        this.input = input;
-
         // internal properties
+        this._input = input;
         this._io = null;
-        this._cursorKeys = input.keyboard.createCursorKeys();
+        this._cursorKeys = null;
         this._commands = new List();
         this._processed = [];
         this._sequence = 0;
@@ -40,16 +36,17 @@ InputComponent = utils.inherit(ComponentBase, {
      */
     , init: function() {
         this._io = this.owner.components.get('io');
+        this._cursorKeys = this._input.keyboard.createCursorKeys();
 
         this.owner.on('entity.sync', this.onEntitySync.bind(this));
     }
     /**
      * Event handler for when the associated entity is synchronized.
-     * @method client.components.PlayerComponent#onEntitySync
+     * @method client.components.InputComponent#onEntitySync
      * @param {object} attrs - Synchronized attributes.
      */
     , onEntitySync: function(attrs) {
-        if (!this.isAttributesProcessed(attrs)) {
+        if (!this.inputProcessed(attrs)) {
             var inputSequence = attrs.inputSequence
                 , command;
 
@@ -63,24 +60,34 @@ InputComponent = utils.inherit(ComponentBase, {
                 attrs = this.applyCommand(command, attrs);
             }, this);
 
-            this.owner.attrs.set(attrs);
             this._processed.push(inputSequence);
         }
+
+        this.owner.attrs.set(attrs);
     }
     /**
      * Returns whether the given attributes have already been processed.
-     * @method client.components.PlayerComponent#isAttributesProcessed
+     * @method client.components.InputComponent#inputProcessed
      * @param {object} attrs - Entity attributes.
      * @return {boolean} The result.
      */
-    , isAttributesProcessed: function(attrs) {
+    , inputProcessed: function(attrs) {
         return attrs.inputSequence && this._processed.indexOf(attrs.inputSequence) !== -1;
     }
     /**
      * @override
      */
     , update: function(elapsed) {
+        this.captureInput(elapsed);
+    }
+    /**
+     * Captures input from the player.
+     * @method client.components.PlayerComponent#captureInput
+     * @param {number} elasped - Time elapsed since the logic was last updated.
+     */
+    , captureInput: function(elapsed) {
         var now = _.now()
+            , alive = this.owner.attrs.get('alive')
             , command;
 
         this._lastSyncAt = this._lastSyncAt || now;
@@ -93,51 +100,49 @@ InputComponent = utils.inherit(ComponentBase, {
             , processed: false
         };
 
-        if (this._cursorKeys.up.isDown) {
-            command.down.push('up');
-            command.idle = false;
-        } else if (this._cursorKeys.down.isDown) {
-            command.down.push('down');
-            command.idle = false;
-        }
-        if (this._cursorKeys.left.isDown) {
-            command.down.push('left');
-            command.idle = false;
-        } else if (this._cursorKeys.right.isDown) {
-            command.down.push('right');
-            command.idle = false;
-        }
-
-        if (command.down.length) {
-            command.direction = command.down[command.down.length - 1];
-        }
-
-        if (command.down.length || command.direction !== this._lastDirection) {
-            command.sequence = this._sequence++;
-            this._commands.add(command);
-
-            if (this.owner.config.enablePrediction) {
-                var attrs = this.applyCommand(command);
-                this.owner.attrs.set(attrs);
+        if (alive) {
+            if (this._cursorKeys.up.isDown) {
+                command.down.push('up');
+            } else if (this._cursorKeys.down.isDown) {
+                command.down.push('down');
+            }
+            if (this._cursorKeys.left.isDown) {
+                command.down.push('left');
+            } else if (this._cursorKeys.right.isDown) {
+                command.down.push('right');
             }
 
-            this._lastDirection = command.direction;
-        }
+            if (command.down.length) {
+                command.direction = command.down[command.down.length - 1];
+            }
 
-        if ((now - this._lastSyncAt) > (1000 / this.owner.config.tickRate)) {
-            var unprocessed = [];
-            this._commands.each(function(command) {
-                if (!command.processed) {
-                    unprocessed.push(command);
-                    command.processed = true;
+            if (command.down.length || command.direction !== this._lastDirection) {
+                command.sequence = this._sequence++;
+                this._commands.add(command);
+
+                if (this.owner.config.enablePrediction) {
+                    var attrs = this.applyCommand(command);
+                    this.owner.attrs.set(attrs);
                 }
-            });
 
-            if (unprocessed.length) {
-                this._io.spark.emit('player.input', unprocessed);
+                this._lastDirection = command.direction;
             }
 
-            this._lastSyncAt = now;
+            if ((now - this._lastSyncAt) > (1000 / this.owner.config.tickRate)) {
+                var unprocessed = [];
+                this._commands.each(function(command) {
+                    if (!command.processed) {
+                        unprocessed.push(command);
+                        command.processed = true;
+                    }
+                });
+
+                if (unprocessed.length) {
+                    this._io.spark.emit('player.input', unprocessed);
+                }
+
+                this._lastSyncAt = now;
+            }
         }
     }
 });

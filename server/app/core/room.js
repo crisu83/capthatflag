@@ -194,8 +194,6 @@ Room = utils.inherit(Node, {
 
         this.entities.clear();
 
-        console.log(this.entities.get());
-
         this._teams.each(function(team) {
             team.removePlayers();
         }, this);

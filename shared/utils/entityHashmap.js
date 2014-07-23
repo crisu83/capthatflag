@@ -17,18 +17,18 @@ EntityHashmap = utils.inherit(HashmapBase, {
      */
     add: function(key, value) {
         HashmapBase.prototype.add.apply(this, arguments);
-        value.on('entity.die', this.onEntityDeath.bind(this));
+        value.on('entity.remove', this.onEntityRemove.bind(this));
     }
     /**
-     * Event handler for when an entity dies.
-     * @method shared.utils.EntityHashmap#onEntityDeath
-     * @param {number} id - Entity identifier.
+     * Event handler for when an entity is removed.
+     * @method shared.utils.EntityHashmap#onEntityRemove
+     * @param {shared.core.Entity} entity - Entity instance.
      */
-    , onEntityDeath: function(id) {
-        this.remove(id);
+    , onEntityRemove: function(entity) {
+        this.remove(entity.id);
     }
     /**
-     * Kills all single in this hashmap.
+     * Kills all single in the hashmap.
      * @method shared.utils.EntityHashmap#kill
      */
     , kill: function(id) {
@@ -36,15 +36,6 @@ EntityHashmap = utils.inherit(HashmapBase, {
         if (entity) {
             entity.die();
         }
-    }
-    /**
-     * Kills all entities in this hashmap.
-     * @method shared.utils.EntityHashmap#killAll
-     */
-    , killAll: function() {
-        this.each(function(entity) {
-            entity.die();
-        }, this);
     }
 });
 

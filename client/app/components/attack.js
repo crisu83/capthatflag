@@ -29,6 +29,7 @@ AttackComponent = utils.inherit(ComponentBase, {
         this._input = input;
         this._io = null;
         this._attackEnabled = true;
+        this._lastAttackAt = null;
     }
     /**
      * @override
@@ -45,9 +46,12 @@ AttackComponent = utils.inherit(ComponentBase, {
      * @method client.components.AttackComponent#onAttackDown
      */
     , onAttackDown: function() {
-        if (this._attackEnabled) {
-            this._attackEnabled = false;
+        if (this._attackEnabled && this.canAttack()) {
+            var now = _.now();
+
             this.attack();
+            this._attackEnabled = false;
+            this._lastAttackAt = now;
         }
     }
     /**

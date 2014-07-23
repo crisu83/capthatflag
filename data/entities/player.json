@@ -6,11 +6,13 @@
         , "width": 32
         , "height": 64
         , "runSpeed": 250
+        , "attackCooldownMsec": 500
         , "attackRange": 32
         , "attackAoe": 5
         , "minDamage": 1
         , "maxDamage": 1
         , "maxHealth": 1
+        , "respawnSec": 5
         , "image": "player-red"
         , "team": "red"
     }

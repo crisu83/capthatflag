@@ -10,6 +10,7 @@ var _ = require('lodash')
     , AttackComponent = require('../components/attack')
     , HealthComponent = require('../components/health')
     , InputComponent = require('../components/input')
+    , PlayerComponent = require('../components/player')
     , PhysicsComponent = require('../components/physics')
     , config = require('../config.json')
     , Body = require('../../../shared/physics/body')
@@ -130,6 +131,7 @@ Client = utils.inherit(Node, {
         entity.components.add(new AttackComponent());
         entity.components.add(new InputComponent());
         entity.components.add(new HealthComponent());
+        entity.components.add(new PlayerComponent(team));
 
         team.addPlayer(entity);
         this.room.entities.add(entity.id, entity);
@@ -169,7 +171,7 @@ Client = utils.inherit(Node, {
         var playerId = this.player.id;
 
         // remove the player
-        this.player.die();
+        this.player.remove();
 
         // let other clients know that the player left
         this.room.primus.forEach(function(spark) {
