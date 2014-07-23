@@ -21,11 +21,11 @@ PlayerComponent = utils.inherit(ComponentBase, {
         ComponentBase.apply(this);
 
         // Add the player animations
+        sprite.animations.add('standStill', [0]);
         sprite.animations.add('walkDown', [0, 1, 2, 3, 4, 5]);
         sprite.animations.add('walkRight', [6, 7, 8, 9, 10, 11]);
         sprite.animations.add('walkUp', [12, 13, 14, 15, 16, 17]);
         sprite.animations.add('walkLeft', [18, 19, 20, 21, 22, 23]);
-        sprite.animations.add('standStill', [0]);
 
         // inherited properties
         this.key = 'player';

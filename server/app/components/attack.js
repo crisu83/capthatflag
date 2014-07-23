@@ -21,6 +21,7 @@ AttackComponent = utils.inherit(ComponentBase, {
         ComponentBase.apply(this);
 
         // internal properties
+        this._team = null;
         this._body = null;
         this._physics = null;
     }
@@ -31,6 +32,7 @@ AttackComponent = utils.inherit(ComponentBase, {
         var io = this.owner.components.get('io');
         io.spark.on('entity.attack', this.onAttack.bind(this));
 
+        this._team = this.owner.attrs.get('team');
         this._body = new Body('attack', this.owner);
         this._physics = this.owner.components.get('physics');
     }
@@ -40,8 +42,9 @@ AttackComponent = utils.inherit(ComponentBase, {
      */
     , onAttack: function() {
         var target = this.calculateTarget()
-            , aoe = this.owner.attrs.get('aoe')
-            , halfAoe = aoe / 2;
+            , aoe = this.owner.attrs.get('attackAoe')
+            , halfAoe = aoe / 2
+            , amount = 0;
 
         this._body.x = target.x - halfAoe;
         this._body.y = target.y - halfAoe;
@@ -50,10 +53,21 @@ AttackComponent = utils.inherit(ComponentBase, {
 
         this._physics.overlap('player', function(body, other) {
             // make sure that we are not hitting our teammates
-            if (body.owner.attrs.get('team') !== other.owner.attrs.get('team')) {
-                console.log('player %s hit opponent %s', body.owner.id, other.owner.id);
+            if (this._team !== other.owner.attrs.get('team')) {
+                amount = this.calculateDamage();
+                console.log('player %s hit opponent %s for %d', body.owner.id, other.owner.id, amount);
+                other.owner.damage(amount);
             }
-        }, this, this._body);
+        }, this, this._body/* use the attack body instead of the entity body */);
+    }
+    /**
+     * Calculates the amount of damage done.
+     * @method server.components.AttackComponent#calculateDamage
+     */
+    , calculateDamage: function() {
+        // TODO implement some logic for missing and critical hits
+
+        return this.owner.attrs.get('maxDamage');
     }
 });
 

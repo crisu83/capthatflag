@@ -7,7 +7,7 @@ var _ = require('lodash')
 
 /**
  * Physics component class.
- * @class server.components.AttackComponent
+ * @class server.components.PhysicsComponent
  * @classdesc Component that adds physics functionality.
  * @extends shared.core.Component
  */
@@ -42,10 +42,26 @@ PhysicsComponent = utils.inherit(ComponentBase, {
         this.body.width = dimensions.width;
         this.body.height = dimensions.height;
     }
+    /**
+     * Checks for a collision between physical bodies.
+     * @method server.components.PhysicsComponent#collide
+     * @param {string} type - Body type.
+     * @param {function} callback - Collision callback.
+     * @param {object} scope - Collision scope.
+     * @param {shared.physics.Body} body - Body instance.
+     */
     , collide: function(type, callback, scope, body) {
         body = body || this.body;
         this.world.collide(body, type, callback, scope);
     }
+    /**
+     * Checks for an overlap between physical bodies.
+     * @method server.components.PhysicsComponent#overlap
+     * @param {string} type - Body type.
+     * @param {function} callback - Collision callback.
+     * @param {object} scope - Collision scope.
+     * @param {shared.physics.Body} body - Body instance.
+     */
     , overlap: function(type, callback, scope, body) {
         body = body || this.body;
         this.world.overlap(body, type, callback, scope);

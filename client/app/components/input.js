@@ -81,7 +81,6 @@ InputComponent = utils.inherit(ComponentBase, {
      */
     , update: function(elapsed) {
         var now = _.now()
-            , speed = this.owner.attrs.get('speed')
             , command;
 
         this._lastSyncAt = this._lastSyncAt || now;
@@ -90,7 +89,6 @@ InputComponent = utils.inherit(ComponentBase, {
             sequence: null
             , down: []
             , direction: 'none'
-            , speed: speed
             , elapsed: elapsed
             , processed: false
         };

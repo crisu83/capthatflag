@@ -5,9 +5,12 @@
         , "y": 0
         , "width": 32
         , "height": 64
-        , "speed": 250
-        , "range": 32
-        , "aoe": 5
+        , "runSpeed": 250
+        , "attackRange": 32
+        , "attackAoe": 5
+        , "minDamage": 1
+        , "maxDamage": 1
+        , "maxHealth": 1
         , "image": "player-red"
         , "team": "red"
     }

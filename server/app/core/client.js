@@ -7,9 +7,10 @@ var _ = require('lodash')
     , DataManager = require('./dataManager')
     , EntityFactory = require('./entityFactory')
     , IoComponent = require('../../../shared/components/io')
-    , PhysicsComponent = require('../components/physics')
     , AttackComponent = require('../components/attack')
+    , HealthComponent = require('../components/health')
     , InputComponent = require('../components/input')
+    , PhysicsComponent = require('../components/physics')
     , config = require('../config.json')
     , Body = require('../../../shared/physics/body')
     , Client;
@@ -128,6 +129,7 @@ Client = utils.inherit(Node, {
         entity.components.add(new PhysicsComponent(body, this.room.world));
         entity.components.add(new AttackComponent());
         entity.components.add(new InputComponent());
+        entity.components.add(new HealthComponent());
 
         team.addPlayer(entity);
         this.room.entities.add(entity.id, entity);

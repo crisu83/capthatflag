@@ -44,14 +44,6 @@ Entity = utils.inherit(Node, {
         this.config = config;
     }
     /**
-     * Synchronizes the entity attributes.
-     * @method shared.core.Entity#sync
-     * @param {object} attrs - Attributes to synchronize.
-     */
-    , sync: function(attrs) {
-        this.trigger('entity.sync', [attrs]);
-    }
-    /**
      * Updates the entity logic.
      * @method shared.core.Entity#update
      * @param {number} elapsed - Time elapsed since the previous update (ms).
@@ -60,11 +52,41 @@ Entity = utils.inherit(Node, {
         this.components.update(elapsed);
     }
     /**
-     * Kills this entity.
+     * Synchronizes the entity attributes.
+     * @method shared.core.Entity#sync
+     * @param {object} attrs - Attributes to synchronize.
+     */
+    , sync: function(attrs) {
+        this.trigger('entity.sync', [attrs]);
+    }
+    /**
+     * Damages the entity.
+     * @method shared.core.Entity#damage
+     * @param {number} amount - Amount of damage.
+     */
+    , damage: function(amount) {
+        this.trigger('entity.damage', [amount]);
+    }
+    /**
+     * Kills the entity.
      * @method shared.core.Entity#die
      */
     , die: function() {
         this.trigger('entity.die', [this.id]);
+    }
+    /**
+     * Revives the entity.
+     * @method shared.core.Entity#revive
+     */
+    , revive: function() {
+        this.trigger('entity.revive');
+    }
+    /**
+     * Permanently removes the entity.
+     * @method shared.core.Entity#remove
+     */
+    , remove: function() {
+        this.trigger('entity.remove', [this.id]);
     }
     /**
      * Serializes this entity to a JSON object.

@@ -36,7 +36,7 @@ World = utils.inherit(null, {
         this._bodies.remove(body);
     }
     /**
-     * Checks for a collision between the given body and other bodies.
+     * Checks for a collision between physical bodies.
      * @method shared.physics.World#collide
      * @param {shared.physics.Body} body - Body instance.
      * @param {string} type - Body type.
@@ -67,7 +67,7 @@ World = utils.inherit(null, {
         }
     }
     /**
-     * Checks for an overlap between the given body and other bodies.
+     * Checks for an overlap between physical bodies.
      * @method shared.physics.World#overlap
      * @param {shared.physics.Body} body - Body instance.
      * @param {string} type - Body type.
@@ -125,6 +125,8 @@ World = utils.inherit(null, {
         if (!this.intersects(body, other)) {
             return false;
         }
+
+        // TODO add separation logic
 
         return true;
     }

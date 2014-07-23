@@ -31,7 +31,7 @@ AttackComponent = utils.inherit(ComponentBase, {
         var target = this.owner.attrs.get(['x', 'y'])
             , dimensions = this.owner.attrs.get(['width', 'height'])
             , direction = this.owner.attrs.get('direction')
-            , range = this.owner.attrs.get('range')
+            , range = this.owner.attrs.get('attackRange')
             , halfWidth = dimensions.width / 2
             , halfHeight = dimensions.height / 2;
 
