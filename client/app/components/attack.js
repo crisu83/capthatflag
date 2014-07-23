@@ -15,6 +15,7 @@ AttackComponent = utils.inherit(ComponentBase, {
     /**
      * Creates a new component.
      * @constructor
+     * @param {Phaser.Sprite} sprite - Attack sprite.
      * @param {Phaser.InputManager} input - Input manager instance.
      */
     constructor: function(sprite, input) {

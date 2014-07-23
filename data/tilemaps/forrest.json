@@ -5,7 +5,7 @@
     , "image": "forrest"
     , "layers": ["Ground", "Walls"]
     , "entities": [
-        {"key": "flag", "attrs": {"x": 160, "y": 160}}
+        {"key": "banner", "attrs": {"x": 160, "y": 160}}
     ]
     , "assets": {
         "images": {

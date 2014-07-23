@@ -6,8 +6,9 @@ var _ = require('lodash')
     , EntityHashmap = require('../../shared/utils/entityHashmap')
     , StateHistory = require('../../shared/utils/stateHistory')
     , Entity = require('../../shared/core/entity')
-    , AttackComponent = require('./components/attack')
     , IoComponent = require('../../shared/components/io')
+    , AttackComponent = require('./components/attack')
+    , BannerComponent = require('./components/banner')
     , InputComponent = require('./components/input')
     , PlayerComponent = require('./components/player')
     , SyncComponent = require('./components/sync');
@@ -50,8 +51,7 @@ function run(primus, config) {
             this._runTimeSec = 0;
             this._runTimeText = null;
             this._statsText = null;
-            this._flagGroup = null;
-            this._playerGroup = null;
+            this._entityGroup = null;
             this._effectGroup = null;
             this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
             this._lastSyncAt = null;
@@ -114,8 +114,7 @@ function run(primus, config) {
                 layer.resizeWorld();
             }, this);
 
-            this.flagGroup = this.add.group();
-            this.playerGroup = this.add.group();
+            this.entityGroup = this.add.group();
             this.effectGroup = this.add.group();
 
             style = {font: "12px Arial", fill: "#ffffff", align: "right"};
@@ -162,7 +161,7 @@ function run(primus, config) {
             this.log('creating player', state);
 
             var entity = this.createEntity(state)
-                , playerSprite = this.playerGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
+                , playerSprite = this.entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
                 , attackSprite = this.effectGroup.create(0, 0, 'attack-sword');
 
             this.camera.follow(playerSprite);
@@ -219,7 +218,7 @@ function run(primus, config) {
             this.updateTimeLeft();
             this.updateStats();
 
-            this.playerGroup.sort('y', Phaser.Group.SORT_ASCENDING);
+            this.entityGroup.sort('y', Phaser.Group.SORT_ASCENDING);
 
             this._lastTickAt = game.time.lastTime;
         }
@@ -315,14 +314,20 @@ function run(primus, config) {
                     if (!entity) {
                         this.log('creating new entity', state);
                         entity = this.createEntity(state);
+                        sprite = this.entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image);
 
-                        if (state.key === 'flag') {
-                            sprite = this.flagGroup.create(state.attrs.x, state.attrs.y, state.attrs.image);
-                        } else {
-                            sprite = this.playerGroup.create(state.attrs.x, state.attrs.y, state.attrs.image);
+                        // all entities should be synchronized
+                        entity.components.add(new SyncComponent());
 
-                            entity.components.add(new SyncComponent());
-                            entity.components.add(new PlayerComponent(sprite));
+                        switch (state.key) {
+                            case 'player':
+                                entity.components.add(new PlayerComponent(sprite));
+                                break;
+                            case 'banner':
+                                entity.components.add(new BannerComponent(sprite));
+                                break;
+                            default:
+                                break;
                         }
 
                         this.entities.add(entityId, entity);

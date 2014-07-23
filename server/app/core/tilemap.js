@@ -3,6 +3,9 @@
 var _ = require('lodash')
     , utils = require('../../../shared/utils')
     , EntityFactory = require('./entityFactory')
+    , Body = require('../../../shared/physics/body')
+    , BannerComponent = require('../components/banner')
+    , PhysicsComponent = require('../components/physics')
     , Tilemap;
 
 /**
@@ -54,6 +57,8 @@ Tilemap = utils.inherit(null, {
          * @property {server.core.Room} room - Room instance.
          */
         this.room = null;
+
+        // TODO: add a list of banners in this tilemap
     }
     /**
      * Initializes the tilemap.
@@ -63,10 +68,18 @@ Tilemap = utils.inherit(null, {
         var entity;
 
         _.forOwn(this.entities, function(json) {
-            var entity = EntityFactory.create('flag')
+            var entity = EntityFactory.create(json.key)
                 , attrs = json.attrs || {};
 
             entity.attrs.set(attrs);
+
+            switch (json.key) {
+                case 'banner':
+                    var body = new Body('banner', entity);
+
+                    entity.components.add(new PhysicsComponent(body, this.room.world));
+                    entity.components.add(new BannerComponent());
+            }
 
             this.room.entities.add(entity.id, entity);
         }, this);

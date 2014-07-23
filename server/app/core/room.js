@@ -202,6 +202,8 @@ Room = utils.inherit(Node, {
             client.resetGame();
         }, this);
 
+        this.tilemap.init();
+
         this._gameStartedAt = _.now();
     }
 });
