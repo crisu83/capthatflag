@@ -59,8 +59,10 @@ InputComponent = utils.inherit(ComponentBase, {
             }, this);
 
             this._processed.push(attrs.inputSequence);
-        } else if (attrs.alive) {
-            //attrs = _.omit(attrs, ['x', 'y', 'direction']);
+        }
+
+        if (!attrs.moving) {
+            attrs = _.omit(attrs, ['x', 'y']);
         }
 
         this.owner.attrs.set(attrs);

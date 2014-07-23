@@ -43,6 +43,7 @@ InputComponent = utils.inherit(ComponentBase, {
             attrs = this.processCommand(commands[i], attrs);
         }
 
+        attrs.moving = true;
         this.owner.attrs.set(attrs);
 
         this._lastDirection = attrs.direction;
@@ -55,7 +56,7 @@ InputComponent = utils.inherit(ComponentBase, {
         var now = _.now();
 
         if (this._lastDirection !== 'none' && this._lastInputAt && (now - this._lastInputAt) > 200) {
-            this.owner.attrs.set('direction', 'none');
+            this.owner.attrs.set({direction: 'none', moving: false});
         }
     }
 });
