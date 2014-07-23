@@ -5,7 +5,7 @@
         , "y": 0
         , "width": 32
         , "height": 64
-        , "runSpeed": 250
+        , "runSpeed": 300
         , "attackCooldownMsec": 500
         , "attackRange": 32
         , "attackAoe": 5

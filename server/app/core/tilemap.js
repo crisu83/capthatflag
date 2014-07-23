@@ -78,7 +78,12 @@ Tilemap = utils.inherit(null, {
                     var body = new Body('banner', entity);
 
                     entity.components.add(new PhysicsComponent(body, this.room.world));
-                    entity.components.add(new BannerComponent());
+                    entity.components.add(new BannerComponent(this.room));
+
+                    this.room.bannerCount++;
+                    break;
+                default:
+                    break;
             }
 
             this.room.entities.add(entity.id, entity);

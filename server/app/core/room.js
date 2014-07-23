@@ -60,6 +60,10 @@ Room = utils.inherit(Node, {
          * @property {shared.physics.World} world - Physical world.
          */
         this.world = new World(config.gameWidth, config.gameHeight);
+        /**
+         * @property {number} bannerCount - Number of available banners.
+         */
+        this.bannerCount = 0;
 
         // internal variables
         this._teams = null;
@@ -68,6 +72,7 @@ Room = utils.inherit(Node, {
         this._lastTickAt = null;
         this._gameStartedAt = null;
         this._packageSequence = 0;
+        this._banners = null;
         this._running = true;
 
         this.tilemap.room = this;
@@ -89,6 +94,11 @@ Room = utils.inherit(Node, {
             //, magenta: new Team('magenta', 32, config.gameHeight - 96)
             , blue: new Team('blue', config.gameWidth - 64, config.gameHeight - 96)
         });
+
+        this._banners = {
+            red: []
+            , blue: []
+        };
 
         // mark the time when the game started
         var now = _.now();
@@ -157,6 +167,8 @@ Room = utils.inherit(Node, {
             , timestamp: now
             , runTimeSec: (now - this._gameStartedAt) / 1000
             , entities: {}
+            , banners: this._banners
+            , totalBanners: this.bannerCount
         };
 
         this.entities.each(function(entity, id) {
@@ -168,6 +180,13 @@ Room = utils.inherit(Node, {
         //console.log(worldState.entities);
 
         return worldState;
+    }
+    , captureBanner: function(bannerId, fromTeam, toTeam) {
+        if (fromTeam !== 'neutral') {
+            this._banners[fromTeam].splice(this._banners[fromTeam].indexOf(bannerId), 1);
+            console.log('banner captured from team %s to team %s', fromTeam, toTeam);
+        }
+        this._banners[toTeam].push(bannerId);
     }
     /**
      * Returns the currently weakest team.

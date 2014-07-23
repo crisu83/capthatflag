@@ -54,6 +54,9 @@ function run(primus, config) {
             this._runTimeSec = 0;
             this._runTimeText = null;
             this._statsText = null;
+            this._bannerText = null;
+            this._teamBanners = 0;
+            this._totalBanners = 0;
             this._entityGroup = null;
             this._effectGroup = null;
             this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
@@ -133,6 +136,10 @@ function run(primus, config) {
             text = this.add.text(10, config.canvasHeight - 60, '', style);
             text.fixedToCamera = true;
             this._statsText = text;
+
+            text = this.add.text(10, config.canvasHeight - 80, '', style);
+            text.fixedToCamera = true;
+            this._bannerText = text;
 
             if (DEBUG) {
                 pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
@@ -220,6 +227,7 @@ function run(primus, config) {
             this.updatePing();
             this.updateTimeLeft();
             this.updateStats();
+            this.updateBannerCount();
 
             this.entityGroup.sort('y', Phaser.Group.SORT_ASCENDING);
 
@@ -269,6 +277,9 @@ function run(primus, config) {
                 this._statsText.text = 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths;
             }
         }
+        , updateBannerCount: function() {
+            this._bannerText.text = 'banners: ' + this._teamBanners + ' / ' + this._totalBanners;
+        }
         /**
          * Event handler for when receiving a ping response.
          * @method client.PlayState#onPong
@@ -286,11 +297,14 @@ function run(primus, config) {
 
             if (worldState) {
                 var now = _.now()
+                    , playerTeam = this.player.attrs.get('team')
                     , previousState = this._stateHistory.previous()
                     , unprocessed = new List(this.entities.keys())
                     , factor, state, entity, sprite, body;
 
                 this._runTimeSec = worldState.runTimeSec;
+                this._teamBanners = worldState.banners[playerTeam].length;
+                this._totalBanners = worldState.totalBanners;
 
                 if (previousState) {
                     if (config.enableInterpolation && this.canInterpolate()) {
