@@ -64,6 +64,10 @@ Room = utils.inherit(Node, {
          * @property {number} bannerCount - Number of available banners.
          */
         this.bannerCount = 0;
+        /**
+         * @property {number} playerCount - Number of players online.
+         */
+        this.playerCount = 0;
 
         // internal variables
         this._teams = null;
@@ -169,6 +173,7 @@ Room = utils.inherit(Node, {
             , entities: {}
             , banners: this._banners
             , totalBanners: this.bannerCount
+            , totalPlayers: this.playerCount
         };
 
         this.entities.each(function(entity, id) {
@@ -214,6 +219,14 @@ Room = utils.inherit(Node, {
         console.log(' game in room %s is restarting', this.id);
 
         this.entities.clear();
+
+        this.bannerCount = 0;
+        this.playerCount = 0;
+
+        this._banners = {
+            red: []
+            , blue: []
+        };
 
         this._teams.each(function(team) {
             team.removePlayers();

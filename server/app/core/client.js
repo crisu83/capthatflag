@@ -146,6 +146,8 @@ Client = utils.inherit(Node, {
         console.log('  client %s joined %s team as player %s', this.id, team.name, entity.id);
         this.spark.emit('player.create', entity.serialize());
 
+        this.room.playerCount++;
+
         return entity;
     }
     /**
@@ -177,6 +179,8 @@ Client = utils.inherit(Node, {
         this.room.primus.forEach(function(spark) {
             spark.emit('player.leave', playerId);
         });
+
+        this.room.playerCount--;
 
         console.log('  client %s disconnected from room %s', this.id, this.room.id);
         this.trigger('client.disconnect', [this.id]);

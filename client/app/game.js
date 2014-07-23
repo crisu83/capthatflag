@@ -57,6 +57,8 @@ function run(primus, config) {
             this._bannerText = null;
             this._teamBanners = 0;
             this._totalBanners = 0;
+            this._playerText = null;
+            this._totalPlayers = 0;
             this._entityGroup = null;
             this._effectGroup = null;
             this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
@@ -123,23 +125,30 @@ function run(primus, config) {
             this.entityGroup = this.add.group();
             this.effectGroup = this.add.group();
 
-            style = {font: "12px Arial", fill: "#ffffff", align: "right"};
+            style = {font: "14px Courier", stroke: "#000000", strokeThickness: 5, fill: "#ffffff", align: "right"};
 
-            text = this.add.text(10, config.canvasHeight - 20, '', style);
+            text = this.add.text(10, 10, '', style);
             text.fixedToCamera = true;
-            this._runTimeText = text;
+            this._playerText = text;
 
-            text = this.add.text(10, config.canvasHeight - 40, '', style);
+            text = this.add.text(10, 30, '', style);
             text.fixedToCamera = true;
             this._pingText = text;
 
-            text = this.add.text(10, config.canvasHeight - 60, '', style);
+            text = this.add.text(10, config.canvasHeight - 70, '', style);
+            text.fixedToCamera = true;
+            this._bannerText = text;
+
+            text = this.add.text(10, config.canvasHeight - 50, '', style);
             text.fixedToCamera = true;
             this._statsText = text;
 
-            text = this.add.text(10, config.canvasHeight - 80, '', style);
+            text = this.add.text(10, config.canvasHeight - 30, '', style);
             text.fixedToCamera = true;
-            this._bannerText = text;
+            this._runTimeText = text;
+
+            text = this.add.text(config.canvasWidth - 145, 10, 'OH NO GO! v0.1.0', style);
+            text.fixedToCamera = true;
 
             if (DEBUG) {
                 pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
@@ -228,6 +237,7 @@ function run(primus, config) {
             this.updateTimeLeft();
             this.updateStats();
             this.updateBannerCount();
+            this.updatePlayerCount();
 
             this.entityGroup.sort('y', Phaser.Group.SORT_ASCENDING);
 
@@ -277,8 +287,19 @@ function run(primus, config) {
                 this._statsText.text = 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths;
             }
         }
+        /**
+         * Updates the banners text.
+         * @method client.PlayState#updateBannerCount
+         */
         , updateBannerCount: function() {
             this._bannerText.text = 'banners: ' + this._teamBanners + ' / ' + this._totalBanners;
+        }
+        /**
+         * Updates the players online text.
+         * @method client.PlayState#updatePlayerCount
+         */
+        , updatePlayerCount: function() {
+            this._playerText.text = 'players online: ' + this._totalPlayers;
         }
         /**
          * Event handler for when receiving a ping response.
@@ -305,6 +326,7 @@ function run(primus, config) {
                 this._runTimeSec = worldState.runTimeSec;
                 this._teamBanners = worldState.banners[playerTeam].length;
                 this._totalBanners = worldState.totalBanners;
+                this._totalPlayers = worldState.totalPlayers;
 
                 if (previousState) {
                     if (config.enableInterpolation && this.canInterpolate()) {
