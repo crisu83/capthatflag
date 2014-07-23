@@ -46,6 +46,8 @@ InputComponent = utils.inherit(ComponentBase, {
      * @param {object} attrs - Synchronized attributes.
      */
     , onEntitySync: function(attrs) {
+        var state = _.omit(attrs, ['x', 'y']);
+
         if (!this.inputProcessed(attrs)) {
             var inputSequence = attrs.inputSequence
                 , command;
@@ -63,7 +65,7 @@ InputComponent = utils.inherit(ComponentBase, {
             this._processed.push(inputSequence);
         }
 
-        this.owner.attrs.set(attrs);
+        this.owner.attrs.set(state);
     }
     /**
      * Returns whether the given attributes have already been processed.
