@@ -3,8 +3,8 @@
     , "port": 3001
     , "appSecret": "topSecretSequenceOfCharacters"
     , "socketNamespace": "/dungeon"
-    , "canvasWidth": 800
-    , "canvasHeight": 600
+    , "canvasWidth": 1024
+    , "canvasHeight": 640
     , "gameWidth": 1600
     , "gameHeight": 1600
     , "tickRate": 30

@@ -40,7 +40,7 @@ InputComponent = utils.inherit(ComponentBase, {
             , attrs = this.owner.attrs.get();
 
         for (var i = 0; i < commands.length; i++) {
-            attrs = this.applyCommand(commands[i], attrs);
+            attrs = this.processCommand(commands[i], attrs);
         }
 
         this.owner.attrs.set(attrs);

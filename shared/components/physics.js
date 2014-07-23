@@ -1,8 +1,8 @@
 'use strict';
 
 var _ = require('lodash')
-    , utils = require('../../../shared/utils')
-    , ComponentBase = require('../../../shared/core/component')
+    , utils = require('../utils')
+    , ComponentBase = require('../core/component')
     , PhysicsComponent;
 
 /**
@@ -25,22 +25,44 @@ PhysicsComponent = utils.inherit(ComponentBase, {
         this.key = 'physics';
         this.phase = ComponentBase.prototype.phases.PHYSICS;
 
-        this.world = world;
-        this.body = body;
-
-        this.world.add(this.body);
+        // internal variables
+        this._world = world;
+        this._body = body;
+    }
+    /**
+     * @override
+     */
+    , init: function() {
+        this._world.add(this._body);
     }
     /**
      * @override
      */
     , update: function(elapsed) {
         var position = this.owner.attrs.get(['x', 'y'])
-            , dimensions = this.owner.attrs.get(['width', 'height']);
+            , dimensions = this.owner.attrs.get(['width', 'height'])
+            , right = position.x + dimensions.width
+            , bottom = position.y + dimensions.height
+            , worldRight = this._world.right()
+            , worldBottom = this._world.bottom();
 
-        this.body.x = position.x;
-        this.body.y = position.y;
-        this.body.width = dimensions.width;
-        this.body.height = dimensions.height;
+        if (position.x < this._world.x) {
+            position.x = this._world.x;
+        } else if (right > worldRight) {
+            position.x = worldRight - dimensions.width;
+        }
+        if (position.y < this._world.y) {
+            position.y = this._world.y;
+        } else if (bottom > worldBottom) {
+            position.y = worldBottom - dimensions.height;
+        }
+
+        this._body.x = position.x;
+        this._body.y = position.y;
+        this._body.width = dimensions.width;
+        this._body.height = dimensions.height;
+
+        this.owner.attrs.set({x: position.x, y: position.y});
     }
     /**
      * Checks for a collision between physical bodies.
@@ -51,8 +73,8 @@ PhysicsComponent = utils.inherit(ComponentBase, {
      * @param {shared.physics.Body} body - Body instance.
      */
     , collide: function(type, callback, scope, body) {
-        body = body || this.body;
-        this.world.collide(body, type, callback, scope);
+        body = body || this._body;
+        this._world.collide(body, type, callback, scope);
     }
     /**
      * Checks for an overlap between physical bodies.
@@ -63,8 +85,8 @@ PhysicsComponent = utils.inherit(ComponentBase, {
      * @param {shared.physics.Body} body - Body instance.
      */
     , overlap: function(type, callback, scope, body) {
-        body = body || this.body;
-        this.world.overlap(body, type, callback, scope);
+        body = body || this._body;
+        this._world.overlap(body, type, callback, scope);
     }
 });
 

@@ -14,9 +14,16 @@ World = utils.inherit(null, {
     /**
      * Creates a new world.
      * @constructor
+     * @param {number} width - World width (in pixels).
+     * @param {number} height - World height (in pixels).
      */
-    constructor: function() {
+    constructor: function(width, height) {
         this._bodies = new List();
+
+        this.x = 0;
+        this.y = 0;
+        this.width = width;
+        this.height = height;
     }
     /**
      * Adds a body to the world.
@@ -151,6 +158,18 @@ World = utils.inherit(null, {
             return false;
         }
         return true;
+    }
+    /**
+     * TODO
+     */
+    , right: function() {
+        return this.x + this.width;
+    }
+    /**
+     * TODO
+     */
+    , bottom: function() {
+        return this.y + this.height;
     }
 });
 

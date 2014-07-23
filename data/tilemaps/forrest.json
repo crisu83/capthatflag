@@ -3,9 +3,13 @@
     , "data": "tiled/forrest/forrest.json"
     , "type": 1
     , "image": "forrest"
-    , "layers": ["Ground", "Walls"]
+    , "layers": ["Ground"]
     , "entities": [
-        {"key": "banner", "attrs": {"x": 160, "y": 160}}
+        {"key": "banner", "attrs": {"x": 320, "y": 288}}
+        , {"key": "banner", "attrs": {"x": 1248, "y": 288}}
+        , {"key": "banner", "attrs": {"x": 800, "y": 768}}
+        , {"key": "banner", "attrs": {"x": 320, "y": 1216}}
+        , {"key": "banner", "attrs": {"x": 1248, "y": 1216}}
     ]
     , "assets": {
         "images": {

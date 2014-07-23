@@ -25,13 +25,13 @@ InputComponent = utils.inherit(ComponentBase, {
         this.phase = ComponentBase.prototype.phases.LOGIC;
     }
     /**
-     * Applies to user command on the given attributes.
-     * @method shared.components.InputComponent#applyCommand
+     * Processes to user command on the given attributes.
+     * @method shared.components.InputComponent#processCommand
      * @param {object} command - User command.
      * @param {object|null} attrs - Player attributes, defaults to current attributes.
      * @return {object} Resulting attributes.
      */
-    , applyCommand: function(command, attrs) {
+    , processCommand: function(command, attrs) {
         attrs = attrs || this.owner.attrs.get();
         attrs.inputSequence = command.sequence;
         attrs.direction = command.direction;

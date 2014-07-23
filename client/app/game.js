@@ -3,10 +3,13 @@
 var _ = require('lodash')
     , utils = require('../../shared/utils')
     , List = require('../../shared/utils/list')
+    , World = require('../../shared/physics/world')
+    , Body = require('../../shared/physics/body')
     , EntityHashmap = require('../../shared/utils/entityHashmap')
     , StateHistory = require('../../shared/utils/stateHistory')
     , Entity = require('../../shared/core/entity')
     , IoComponent = require('../../shared/components/io')
+    , PhysicsComponent = require('../../shared/components/physics')
     , AttackComponent = require('./components/attack')
     , BannerComponent = require('./components/banner')
     , InputComponent = require('./components/input')
@@ -40,9 +43,9 @@ function run(primus, config) {
              */
             this.player = null;
             /**
-             * @property {Phaser.Sprite} sprite - Player sprite.
+             * @property {shared.physics.World} foo - World instance.
              */
-            this.playerSprite = null;
+            this.foo = new World(config.gameWidth, config.gameHeight);
 
             // internal properties
             this._ping = 0;
@@ -101,10 +104,10 @@ function run(primus, config) {
             var map, layer, style, text, pauseKey;
 
             // define the world bounds
-            game.world.setBounds(0, 0, config.gameWidth, config.gameHeight);
+            this.world.setBounds(0, 0, config.gameWidth, config.gameHeight);
 
             // set the background color for the stage
-            game.stage.backgroundColor = '#000';
+            this.stage.backgroundColor = '#000';
 
             // create the map
             map = game.add.tilemap(config.mapKey);
@@ -162,7 +165,8 @@ function run(primus, config) {
 
             var entity = this.createEntity(state)
                 , playerSprite = this.entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
-                , attackSprite = this.effectGroup.create(0, 0, 'attack-sword');
+                , attackSprite = this.effectGroup.create(0, 0, 'attack-sword')
+                , body = new Body('player', entity);
 
             this.camera.follow(playerSprite);
 
@@ -170,10 +174,10 @@ function run(primus, config) {
             entity.components.add(new IoComponent(primus));
             entity.components.add(new AttackComponent(attackSprite, this.game.input));
             entity.components.add(new InputComponent(this.game.input));
+            entity.components.add(new PhysicsComponent(body, this.foo));
 
             this.entities.add(state.id, entity);
 
-            this.playerSprite = playerSprite;
             this.player = entity;
 
             // now we are ready to synchronization the world with the server
@@ -212,7 +216,6 @@ function run(primus, config) {
                 , elapsed = game.time.elapsed / 1000;
 
             this.updateWorldState();
-            this.updatePhysics();
             this.updateEntities(elapsed);
             this.updatePing();
             this.updateTimeLeft();
@@ -230,13 +233,6 @@ function run(primus, config) {
             this.entities.each(function(entity, id) {
                 entity.update(elapsed);
             }, this);
-        }
-        /**
-          * Updates the physics in the state.
-          * @method client.PlayState#updatePhysics
-          */
-        , updatePhysics: function() {
-            // TODO implement
         }
         /**
          * Updates the ping text.
@@ -292,7 +288,7 @@ function run(primus, config) {
                 var now = _.now()
                     , previousState = this._stateHistory.previous()
                     , unprocessed = new List(this.entities.keys())
-                    , factor, state, entity, sprite, physics;
+                    , factor, state, entity, sprite, body;
 
                 this._runTimeSec = worldState.runTimeSec;
 
@@ -315,9 +311,11 @@ function run(primus, config) {
                         this.log('creating new entity', state);
                         entity = this.createEntity(state);
                         sprite = this.entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image);
+                        body = new Body(state.key, entity);
 
                         // all entities should be synchronized
                         entity.components.add(new SyncComponent());
+                        entity.components.add(new PhysicsComponent(body, this.foo));
 
                         switch (state.key) {
                             case 'player':
@@ -493,6 +491,9 @@ function run(primus, config) {
         , config.canvasHeight
         , Phaser.AUTO
         , 'dungeon'
+        , null/* state */
+        , false/* transparent */
+        , false/* antialias */
     );
 
     game.state.add('play', new PlayState(), true/* autostart */);

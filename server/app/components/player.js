@@ -55,13 +55,13 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , update: function(elapsed) {
+        this.owner.attrs.set({kills: this._kills, deaths: this._deaths});
+
         if (this.canRevive()) {
             this.owner.attrs.set({x: this._team.x, y: this._team.y});
             this.owner.revive();
             this._lastDeadAt = null;
         }
-
-        this.owner.attrs.set({kills: this._kills, deaths: this._deaths});
     }
     /**
      * Returns whether the entity can be revived.

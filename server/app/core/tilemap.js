@@ -4,8 +4,8 @@ var _ = require('lodash')
     , utils = require('../../../shared/utils')
     , EntityFactory = require('./entityFactory')
     , Body = require('../../../shared/physics/body')
+    , PhysicsComponent = require('../../../shared/components/physics')
     , BannerComponent = require('../components/banner')
-    , PhysicsComponent = require('../components/physics')
     , Tilemap;
 
 /**

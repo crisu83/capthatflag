@@ -59,15 +59,10 @@ Room = utils.inherit(Node, {
         /**
          * @property {shared.physics.World} world - Physical world.
          */
-        this.world = new World();
+        this.world = new World(config.gameWidth, config.gameHeight);
 
         // internal variables
-        this._teams = new Hashmap({
-            red: new Team('red', 32, 32)
-            //, green: new Team('green', config.gameWidth - 64, 32)
-            //, magenta: new Team('magenta', 32, config.gameHeight - 96)
-            , blue: new Team('blue', config.gameWidth - 64, config.gameHeight - 96)
-        });
+        this._teams = null;
         this._stateHistory = new StateHistory(1000);
         this._lastSyncAt = null;
         this._lastTickAt = null;
@@ -87,6 +82,13 @@ Room = utils.inherit(Node, {
     , init: function() {
         // event handler for when a client connects
         this.primus.on('connection', this.onConnection.bind(this));
+
+        this._teams = new Hashmap({
+            red: new Team('red', 32, 32)
+            //, green: new Team('green', config.gameWidth - 64, 32)
+            //, magenta: new Team('magenta', 32, config.gameHeight - 96)
+            , blue: new Team('blue', config.gameWidth - 64, config.gameHeight - 96)
+        });
 
         // mark the time when the game started
         var now = _.now();

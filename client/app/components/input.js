@@ -46,35 +46,33 @@ InputComponent = utils.inherit(ComponentBase, {
      * @param {object} attrs - Synchronized attributes.
      */
     , onEntitySync: function(attrs) {
-        var state = _.omit(attrs, ['x', 'y']);
+        var inputSequence = attrs.inputSequence;
+        delete attrs.inputSequence;
 
-        if (!this.inputProcessed(attrs)) {
-            var inputSequence = attrs.inputSequence
-                , command;
-
-            delete attrs.inputSequence;
-
+        if (!this.inputProcessed(inputSequence)) {
             this._commands.filter(function(command) {
-                return command.sequence > inputSequence;
+                return command.sequence > attrs.inputSequence;
             });
 
             this._commands.each(function(command) {
-                attrs = this.applyCommand(command, attrs);
+                attrs = this.processCommand(command, attrs);
             }, this);
 
-            this._processed.push(inputSequence);
+            this._processed.push(attrs.inputSequence);
+        } else if (attrs.alive) {
+            //attrs = _.omit(attrs, ['x', 'y', 'direction']);
         }
 
-        this.owner.attrs.set(state);
+        this.owner.attrs.set(attrs);
     }
     /**
      * Returns whether the given attributes have already been processed.
      * @method client.components.InputComponent#inputProcessed
-     * @param {object} attrs - Entity attributes.
+     * @param {number} sequence - Input sequence.
      * @return {boolean} The result.
      */
-    , inputProcessed: function(attrs) {
-        return attrs.inputSequence && this._processed.indexOf(attrs.inputSequence) !== -1;
+    , inputProcessed: function(sequence) {
+        return this._processed.indexOf(sequence) !== -1;
     }
     /**
      * @override
@@ -123,7 +121,7 @@ InputComponent = utils.inherit(ComponentBase, {
                 this._commands.add(command);
 
                 if (this.owner.config.enablePrediction) {
-                    var attrs = this.applyCommand(command);
+                    var attrs = this.processCommand(command);
                     this.owner.attrs.set(attrs);
                 }
 
