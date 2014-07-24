@@ -6,7 +6,7 @@ var utils = require('../utils')
 /**
  * Node class.
  * @class shared.core.Node
- * @classdesc Node base class.
+ * @classdesc Node base class that adds event dispatching functionality.
  */
 Node = utils.inherit(null, {
     /**
@@ -36,9 +36,9 @@ Node = utils.inherit(null, {
      * Triggers an event for this node.
      * @method shared.core.Node#trigger
      * @param {string} event - Event type.
-     * @param {array} params - Parameters to call the handlers with.
      */
-    , trigger: function(event, params) {
+    , trigger: function(event) {
+        var params = Array.prototype.slice.call(arguments, 1);
         if (this._eventHandlers[event]) {
             for (var i = 0; i < this._eventHandlers[event].length; i++) {
                 this._eventHandlers[event][i].apply(this, params);

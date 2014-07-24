@@ -39,7 +39,7 @@ Team = utils.inherit(null, {
      */
     , awardPointsToPlayers: function(points) {
         this._players.each(function(player, playerId) {
-            player.trigger('player.awardPoints', [points]);
+            player.trigger('player.awardPoints', points);
         }, this);
     }
     /**

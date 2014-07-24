@@ -198,7 +198,7 @@ Client = utils.inherit(Node, {
         }
 
         console.log('  client %s disconnected from room %s', this.id, this.room.id);
-        this.trigger('client.disconnect', [this.id]);
+        this.trigger('client.disconnect', this.id);
     }
 });
 

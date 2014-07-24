@@ -26,15 +26,21 @@ AttackComponent = utils.inherit(ComponentBase, {
         // internal properties
         this._lastAttackAt = null;
     }
+    /**
+     * Returns whether the entity can attack.
+     * @method shared.components.AttackComponent#canAttack
+     * @return {boolean} The result.
+     */
     , canAttack: function() {
         var now = _.now()
             , cooldownMsec = this.owner.attrs.get('attackCooldownMsec');
 
-        return !this._lastAttackAt || (now - this._lastAttackAt) > cooldownMsec;
+        return _.isUndefined(this._lastAttackAt) || (now - this._lastAttackAt) > cooldownMsec;
     }
     /**
      * Calculates where the player will hit when attacking based on its attributes.
      * @method shared.components.AttackComponent#calculateTarget
+     * @return {object} Target position object.
      */
     , calculateTarget: function() {
         var target = this.owner.attrs.get(['x', 'y'])

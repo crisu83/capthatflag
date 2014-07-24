@@ -24,6 +24,14 @@ ComponentManager = utils.inherit(null, {
         });
     }
     /**
+     * @override
+     */
+    , update: function(elapsed) {
+        this._components.each(function(component) {
+            component.update(elapsed);
+        });
+    }
+    /**
      * Adds a component item to this set of components.
      * @method shared.utils.ComponentManager#add
      * @param {shared.core.Component} component - Component to add.
@@ -47,14 +55,6 @@ ComponentManager = utils.inherit(null, {
             }
         });
         return result;
-    }
-    /**
-     * @override
-     */
-    , update: function(elapsed) {
-        this._components.each(function(component) {
-            component.update(elapsed);
-        });
     }
 });
 

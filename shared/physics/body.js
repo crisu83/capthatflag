@@ -1,10 +1,12 @@
+'use strict';
+
 var shortid = require('shortid')
     , utils = require('../utils')
     , Node = require('../core/node')
     , Body;
 
 /**
- * Body clas..
+ * Body class.
  * @class shared.physics.Body
  * @classdesc Represents a physical body.
  * @extends shared.core.Node

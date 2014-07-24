@@ -37,7 +37,7 @@ StateHistory = utils.inherit(ListBase, {
      * @param {number} expireTime - Timestamp for snapshot expiration.
      */
     , removeExpired: function(expireTime) {
-        this.filter(function(item) { return item.timestamp > expireTime; });
+        this.filter(function(item) { return item.timestamp > expireTime; }, true);
     }
     /**
      * Returns the state snapshot previous to the current one.
