@@ -174,7 +174,7 @@ function run(primus, config) {
             text.fixedToCamera = true;
             this._runTimeText = text;
 
-            text = this.add.text(config.canvasWidth - 150, 10, config.gameName + ' ' + config.gameVersion, style);
+            text = this.add.text(config.canvasWidth - 230, 10, config.gameName + ' ' + config.gameVersion, style);
             text.fixedToCamera = true;
 
             if (DEBUG) {

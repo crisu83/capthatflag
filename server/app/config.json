@@ -12,7 +12,7 @@
     , "enableInterpolation": true
     , "enableExtrapolation": false
     , "extrapolationMsec": 200
-    , "gameName": "STAND FIRM"
+    , "gameName": "CAPTURE THAT BANNER"
     , "gameVersion": "v0.1.0"
     , "gameLengthSec": 300
     , "gamePointsSec": 30
