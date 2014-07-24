@@ -53,8 +53,6 @@ Client = utils.inherit(Node, {
          * @property {server.Entity} entity - Associated player entity instance.
          */
         this.player = null;
-
-        this._initialized = false;
     }
     /**
      * Initializes this client.
@@ -120,10 +118,7 @@ Client = utils.inherit(Node, {
      * @method server.core.Client#onReady
      */
     , onReady: function() {
-        if (!this._initialized) {
-            this.player = this.createPlayer();
-            this._initialized = true;
-        }
+        this.player = this.createPlayer();
     }
     /**
      * Creates the player for the client.
@@ -167,8 +162,6 @@ Client = utils.inherit(Node, {
         if (this.player) {
             this.player.remove();
         }
-
-        this._initialized = false;
 
         this.spark.emit('client.reset', this.config, config.debug);
     }

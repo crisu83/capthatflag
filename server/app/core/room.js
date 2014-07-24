@@ -247,6 +247,7 @@ Room = utils.inherit(Node, {
         console.log(' game in room %s is restarting', this.id);
 
         this.entities.clear();
+        this.clients.clear();
 
         this.bannerCount = 0;
 

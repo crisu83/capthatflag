@@ -174,8 +174,8 @@ function run(primus, config) {
             text.fixedToCamera = true;
             this._runTimeText = text;
 
-            text = this.add.text(config.canvasWidth - 230, 10, config.gameName + ' ' + config.gameVersion, style);
-            text.fixedToCamera = true;
+            //text = this.add.text(config.canvasWidth - 230, 10, config.gameName + ' ' + config.gameVersion, style);
+            //text.fixedToCamera = true;
 
             if (DEBUG) {
                 pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
