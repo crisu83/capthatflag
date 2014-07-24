@@ -27,16 +27,6 @@ EntityHashmap = utils.inherit(HashmapBase, {
     , onEntityRemove: function(entity) {
         this.remove(entity.id);
     }
-    /**
-     * Kills all single in the hashmap.
-     * @method shared.utils.EntityHashmap#kill
-     */
-    , kill: function(id) {
-        var entity = this.get(id);
-        if (entity) {
-            entity.die();
-        }
-    }
 });
 
 module.exports = EntityHashmap;
