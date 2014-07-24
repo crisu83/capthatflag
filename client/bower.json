@@ -1,0 +1,22 @@
+{
+  "name": "dungeon-client",
+  "version": "0.1.0",
+  "homepage": "https://github.com/crisu83/dungeon-game",
+  "authors": [
+    "Crisu83 <ChristofferNiska@gmail.com>"
+  ],
+  "description": "A fast-paced multiplayer action role playing game.",
+  "main": "web/index.html",
+  "license": "BSD-3-Clause",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "phaser-official": "~2.0.7"
+  }
+}

@@ -1,0 +1,18 @@
+{
+    "key": "banner"
+    , "attrs": {
+        "x": 0
+        , "y": 0
+        , "width": 32
+        , "height": 64
+        , "image": "banner"
+    }
+    , "assets": {
+        "spritesheets": {
+            "banner": {
+                "src": "images/sprites/banner.png"
+                , "frames": 3
+            }
+        }
+    }
+}

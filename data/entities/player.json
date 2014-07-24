@@ -1,0 +1,37 @@
+{
+    "key": "player"
+    , "attrs": {
+        "x": 0
+        , "y": 0
+        , "width": 32
+        , "height": 64
+        , "runSpeed": 400
+        , "attackCooldownMsec": 500
+        , "attackRange": 32
+        , "attackAoe": 5
+        , "minDamage": 1
+        , "maxDamage": 1
+        , "maxHealth": 1
+        , "respawnSec": 5
+        , "image": "player-red"
+        , "team": "red"
+    }
+    , "assets": {
+        "spritesheets": {
+            "player-red": {
+                "src": "images/sprites/player-red.png"
+                , "frames": 24
+            }
+            , "player-blue": {
+                "src": "images/sprites/player-blue.png"
+                , "frames": 24
+            }
+            , "attack-sword": {
+                "src": "images/sprites/attack-sword.png"
+                , "width": 32
+                , "height": 32
+                , "frames": 7
+            }
+        }
+    }
+}

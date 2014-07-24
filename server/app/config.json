@@ -1,0 +1,20 @@
+{
+    "debug": true
+    , "port": 3001
+    , "socketNamespace": "/game"
+    , "canvasWidth": 1024
+    , "canvasHeight": 640
+    , "gameWidth": 1600
+    , "gameHeight": 1600
+    , "tickRate": 30
+    , "syncRate": 30
+    , "enablePrediction": true
+    , "enableInterpolation": true
+    , "enableExtrapolation": false
+    , "extrapolationMsec": 200
+    , "gameName": "CAPTURE THAT BANNER"
+    , "gameVersion": "v0.1.0"
+    , "gameLengthSec": 300
+    , "gamePointsSec": 30
+    , "gamePointsPerBanner": 100
+}

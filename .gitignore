@@ -1,0 +1,8 @@
+client/bower_components
+client/web/assets
+client/web/js
+node_modules
+npm-debug.log
+
+.idea
+.DS_Store
