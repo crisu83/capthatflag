@@ -1,6 +1,6 @@
-CAP THAT BANNER
-===============
+CAP THAT FLAG
+=============
 
-Cap that banner is a fast-paced online game written in JavaScript.
-The idea is to capture as many banners as you can together with your team
+Cap that flag is a fast-paced online game written in JavaScript.
+The idea is to capture as many flags as you can together with your team
 and keep control of them to score points.
