@@ -67,7 +67,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         if (alive === false && this._lastAlive) {
             this._sprite.kill('player');
-            this._sprite.setPosition('grave', {x: position.x, y: position.y + 16});
+            this._sprite.setPosition('grave', position);
             this._sprite.revive('grave');
             this.owner.die();
         } else if (alive === true && !this._lastAlive) {
