@@ -53,6 +53,8 @@ Client = utils.inherit(Node, {
          * @property {server.Entity} entity - Associated player entity instance.
          */
         this.player = null;
+
+        this._ready = false;
     }
     /**
      * Initializes this client.
@@ -118,7 +120,10 @@ Client = utils.inherit(Node, {
      * @method server.core.Client#onReady
      */
     , onReady: function() {
-        this.player = this.createPlayer();
+        if (!this._ready) {
+            this.player = this.createPlayer();
+            this._ready = true;
+        }
     }
     /**
      * Creates the player for the client.
