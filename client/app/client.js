@@ -5,14 +5,14 @@ var $ = require('jquery')
     , primus;
 
 // TODO this should not be a console.log messages
-console.log('connecting to server ...');
+//console.log('connecting to server ...');
 
 /* global Primus */
 primus = Primus.connect();
 
 // TODO this should not be a console.log messages
 primus.on('open', function() {
-    console.log('connection established');
+    //console.log('connection established');
 });
 
 function run(config, debug) {
@@ -40,5 +40,5 @@ primus.on('client.reset', function(config, debug) {
 
 // event handler for when an error has occurred
 primus.on('error', function error(err) {
-    console.error('Something went wrong', err.stack);
+    //console.error('Something went wrong', err.stack);
 });

@@ -267,7 +267,9 @@ function run(primus, config) {
         , onPlayerLeave: function (entityId) {
             this.log('player left', entityId);
             var entity = this.entities.get(entityId);
-            entity.remove();
+            if (entity) {
+                entity.remove();
+            }
         }
         /**
          * Updates the logic for this game.
