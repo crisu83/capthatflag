@@ -266,7 +266,8 @@ function run(primus, config) {
          */
         , onPlayerLeave: function (entityId) {
             this.log('player left', entityId);
-            this.entities.remove(entityId);
+            var entity = this.entities.get(entityId);
+            entity.remove();
         }
         /**
          * Updates the logic for this game.
@@ -376,7 +377,6 @@ function run(primus, config) {
                 var now = _.now()
                     , playerTeam = this.player.attrs.get('team')
                     , previousState = this._stateHistory.previous()
-                    , unprocessed = new List(this.entities.keys())
                     , factor, state, entity, sprites, body;
 
                 this._runTimeSec = worldState.runTimeSec;
@@ -434,13 +434,6 @@ function run(primus, config) {
                     }
 
                     entity.sync(state.attrs);
-
-                    unprocessed.remove(entityId);
-                }, this);
-
-                unprocessed.each(function(entityId) {
-                    this.log('removing entity', entityId);
-                    this.entities.remove(entityId);
                 }, this);
             }
         }

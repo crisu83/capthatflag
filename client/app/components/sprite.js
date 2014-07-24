@@ -29,6 +29,22 @@ SpriteComponent = utils.inherit(ComponentBase, {
         this._sprites = new Hashmap(sprites);
     }
     /**
+     * @override
+     */
+    , init: function() {
+        this.owner.on('entity.remove', this.onEntityRemove.bind(this));
+    }
+    /**
+     * Event handler for when the entity is removed.
+     * @method client.components.SpriteComponent#onEntityRemove
+     * @param {shared.core.Entity} entity - Entity that was removed.
+     */
+    , onEntityRemove: function(entity) {
+        this._sprites.each(function(sprite) {
+            sprite.destroy();
+        }, this);
+    }
+    /**
      * Plays an aniamtion for a specific sprite.
      * @method client.components.SpriteComponent#playAnimation
      * @param {string} key - Sprite key.
