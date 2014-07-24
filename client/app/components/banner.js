@@ -15,19 +15,24 @@ BannerComponent = utils.inherit(ComponentBase, {
     /**
      * Creates a new component.
      * @constructor
-     * @param {Phaser.Sprite} sprite - Banner sprite.
      */
-    constructor: function(sprite) {
+    constructor: function() {
         ComponentBase.apply(this);
 
+        // internal properties
+        this._sprite = null;
+        this._team = 'neutral';
+    }
+    /**
+     * @override
+     */
+    , init: function() {
+        this._sprite = this.owner.components.get('sprite');
+        var sprite = this._sprite.get('banner');
         sprite.animations.add('neutral', [0]);
         sprite.animations.add('red', [1]);
         sprite.animations.add('blue', [2]);
         sprite.animations.play('neutral', 20, true);
-
-        // internal properties
-        this._sprite = sprite;
-        this._team = 'neutral';
     }
     /**
      * @override
@@ -36,7 +41,7 @@ BannerComponent = utils.inherit(ComponentBase, {
         var team = this.owner.attrs.get('team');
 
         if (team !== this._team) {
-            this._sprite.animations.play(team, 20, true);
+            this._sprite.playAnimation('banner', team, 20, true);
             this._team = team;
         }
     }

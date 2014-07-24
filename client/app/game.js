@@ -14,6 +14,7 @@ var _ = require('lodash')
     , BannerComponent = require('./components/banner')
     , InputComponent = require('./components/input')
     , PlayerComponent = require('./components/player')
+    , SpriteComponent = require('./components/sprite')
     , SyncComponent = require('./components/sync');
 
 /**
@@ -54,14 +55,14 @@ function run(primus, config) {
             this._runTimeSec = 0;
             this._runTimeText = null;
             this._statsText = null;
-            this._bannerText = null;
-            this._teamBanners = 0;
-            this._totalBanners = 0;
+            this._flagText = null;
+            this._teamFlagCount = 0;
+            this._totalFlagCount = 0;
             this._playerText = null;
             this._totalPlayers = 0;
             this._pointsText = null;
-            this._entityGroup = null;
-            this._effectGroup = null;
+            this.__entityGroup = null;
+            this.__effectGroup = null;
             this._music = null;
             this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
             this._lastSyncAt = null;
@@ -133,6 +134,7 @@ function run(primus, config) {
                 layer.resizeWorld();
             }, this);
 
+            // create the music
             this._music = this.add.audio(
                 config.mapMusic
                 , 0.1/* volume */
@@ -140,8 +142,10 @@ function run(primus, config) {
             );
             this._music.play();
 
-            this.entityGroup = this.add.group();
-            this.effectGroup = this.add.group();
+            this._entityGroup = this.add.group();
+            this._effectGroup = this.add.group();
+
+            // TODO clean up the text creation
 
             style = {
                 font: "14px Courier"
@@ -164,7 +168,7 @@ function run(primus, config) {
 
             text = this.add.text(10, config.canvasHeight - 70, '', style);
             text.fixedToCamera = true;
-            this._bannerText = text;
+            this._flagText = text;
 
             text = this.add.text(10, config.canvasHeight - 50, '', style);
             text.fixedToCamera = true;
@@ -174,8 +178,8 @@ function run(primus, config) {
             text.fixedToCamera = true;
             this._runTimeText = text;
 
-            //text = this.add.text(config.canvasWidth - 230, 10, config.gameName + ' ' + config.gameVersion, style);
-            //text.fixedToCamera = true;
+            text = this.add.text(config.canvasWidth - 172, 10, config.gameName + ' ' + config.gameVersion, style);
+            text.fixedToCamera = true;
 
             if (DEBUG) {
                 pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
@@ -218,15 +222,19 @@ function run(primus, config) {
             this.log('creating player', state);
 
             var entity = this.createEntity(state)
-                , playerSprite = this.entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
-                , attackSprite = this.effectGroup.create(0, 0, 'attack-sword')
+                , sprites = {
+                    player: this._entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
+                    , grave: this._entityGroup.create(state.attrs.x, state.attrs.y, 'grave')
+                    , attack: this._effectGroup.create(state.attrs.x, state.attrs.y, 'attack-sword')
+                }
                 , body = new Body('player', entity);
 
-            this.camera.follow(playerSprite);
+            this.camera.follow(sprites.player);
 
-            entity.components.add(new PlayerComponent(playerSprite));
+            entity.components.add(new SpriteComponent(sprites));
+            entity.components.add(new PlayerComponent());
             entity.components.add(new IoComponent(primus));
-            entity.components.add(new AttackComponent(attackSprite, this.game.input));
+            entity.components.add(new AttackComponent(sprites.attack, this.game.input));
             entity.components.add(new InputComponent(this.game.input));
             entity.components.add(new PhysicsComponent(body, this.foo));
 
@@ -278,7 +286,7 @@ function run(primus, config) {
             this.updatePlayerCount();
             this.updatePoints();
 
-            this.entityGroup.sort('y', Phaser.Group.SORT_ASCENDING);
+            this._entityGroup.sort('y', Phaser.Group.SORT_ASCENDING);
 
             this._lastTickAt = now;
         }
@@ -331,7 +339,7 @@ function run(primus, config) {
          * @method client.PlayState#updateBannerCount
          */
         , updateBannerCount: function() {
-            this._bannerText.text = 'banners: ' + this._teamBanners + ' / ' + this._totalBanners;
+            this._flagText.text = 'flags: ' + this._teamFlagCount + ' / ' + this._totalFlagCount;
         }
         /**
          * Updates the players online text.
@@ -369,11 +377,11 @@ function run(primus, config) {
                     , playerTeam = this.player.attrs.get('team')
                     , previousState = this._stateHistory.previous()
                     , unprocessed = new List(this.entities.keys())
-                    , factor, state, entity, sprite, body;
+                    , factor, state, entity, sprites, body;
 
                 this._runTimeSec = worldState.runTimeSec;
-                this._teamBanners = worldState.banners[playerTeam].length;
-                this._totalBanners = worldState.totalBanners;
+                this._teamFlagCount = worldState.banners[playerTeam].length;
+                this._totalFlagCount = worldState.totalBanners;
                 this._totalPlayers = worldState.totalPlayers;
 
                 if (previousState) {
@@ -394,7 +402,6 @@ function run(primus, config) {
                     if (!entity) {
                         this.log('creating new entity', state);
                         entity = this.createEntity(state);
-                        sprite = this.entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image);
                         body = new Body(state.key, entity);
 
                         // all entities should be synchronized
@@ -403,10 +410,21 @@ function run(primus, config) {
 
                         switch (state.key) {
                             case 'player':
-                                entity.components.add(new PlayerComponent(sprite));
+                                sprites = {
+                                    player: this._entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
+                                    , grave: this._entityGroup.create(state.attrs.x, state.attrs.y, 'grave')
+                                };
+
+                                entity.components.add(new SpriteComponent(sprites));
+                                entity.components.add(new PlayerComponent());
                                 break;
                             case 'banner':
-                                entity.components.add(new BannerComponent(sprite));
+                                sprites = {
+                                    banner: this._entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
+                                };
+
+                                entity.components.add(new SpriteComponent(sprites));
+                                entity.components.add(new BannerComponent());
                                 break;
                             default:
                                 break;

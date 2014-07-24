@@ -15,22 +15,31 @@ PlayerComponent = utils.inherit(ComponentBase, {
     /**
      * Creates a new component.
      * @constructor
-     * @param {Phaser.Sprite} sprite - Sprite instance.
      */
-    constructor: function(sprite) {
+    constructor: function() {
         ComponentBase.apply(this);
 
-        // Add the player animations
-        sprite.animations.add('standStill', [0]);
-        sprite.animations.add('walkDown', [0, 1, 2, 3, 4, 5]);
-        sprite.animations.add('walkRight', [6, 7, 8, 9, 10, 11]);
-        sprite.animations.add('walkUp', [12, 13, 14, 15, 16, 17]);
-        sprite.animations.add('walkLeft', [18, 19, 20, 21, 22, 23]);
-
         // internal properties
-        this._sprite = sprite;
+        this._sprite = null;
         this._lastDirection = 'none';
         this._lastAlive = true;
+    }
+    , init: function() {
+        var playerSprite, graveSprite;
+
+        this._sprite = this.owner.components.get('sprite');
+
+        playerSprite = this._sprite.get('player');
+        playerSprite.animations.add('standStill', [0]);
+        playerSprite.animations.add('walkDown', [0, 1, 2, 3, 4, 5]);
+        playerSprite.animations.add('walkRight', [6, 7, 8, 9, 10, 11]);
+        playerSprite.animations.add('walkUp', [12, 13, 14, 15, 16, 17]);
+        playerSprite.animations.add('walkLeft', [18, 19, 20, 21, 22, 23]);
+        playerSprite.animations.play('standStill', 15, true);
+
+        graveSprite = this._sprite.get('grave');
+        graveSprite.animations.add('default', [0]);
+        graveSprite.kill();
     }
     /**
      * @override
@@ -46,22 +55,24 @@ PlayerComponent = utils.inherit(ComponentBase, {
      */
     , updatePosition: function() {
         var position = this.owner.attrs.get(['x', 'y']);
-
-        this._sprite.x = position.x;
-        this._sprite.y = position.y;
+        this._sprite.setPosition('player', position);
     }
     /**
      * Updates the aliveness of the player.
      * @method client.components.PlayerComponent#updateAlive
      */
     , updateAlive: function() {
-        var alive = this.owner.attrs.get('alive');
+        var alive = this.owner.attrs.get('alive')
+            , position = this.owner.attrs.get(['x', 'y']);
 
         if (alive === false && this._lastAlive) {
-            this._sprite.kill();
+            this._sprite.kill('player');
+            this._sprite.setPosition('grave', {x: position.x, y: position.y + 16});
+            this._sprite.revive('grave');
             this.owner.die();
-        } else if (alive && !this._lastAlive) {
-            this._sprite.revive();
+        } else if (alive === true && !this._lastAlive) {
+            this._sprite.kill('grave');
+            this._sprite.revive('player');
             this.owner.revive();
         }
 
@@ -96,7 +107,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
                     break;
             }
 
-            this._sprite.animations.play(animation, 15, true);
+            this._sprite.playAnimation('player', animation, 15, true);
 
             this._lastDirection = direction;
         }

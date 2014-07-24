@@ -12,8 +12,8 @@
     , "enableInterpolation": true
     , "enableExtrapolation": false
     , "extrapolationMsec": 200
-    , "gameName": "CAPTURE THAT BANNER"
-    , "gameVersion": "v0.1.0"
+    , "gameName": "CAP THAT FLAG"
+    , "gameVersion": "v0.2.0"
     , "gameLengthSec": 300
     , "gamePointsSec": 30
     , "gamePointsPerBanner": 100

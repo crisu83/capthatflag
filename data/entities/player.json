@@ -32,6 +32,12 @@
                 , "height": 32
                 , "frames": 7
             }
+            , "grave": {
+                "src": "images/sprites/grave.png"
+                , "width": 32
+                , "height": 32
+                , "frames": 1
+            }
         }
     }
 }
