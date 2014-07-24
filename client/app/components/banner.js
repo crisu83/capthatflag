@@ -23,6 +23,7 @@ BannerComponent = utils.inherit(ComponentBase, {
         sprite.animations.add('neutral', [0]);
         sprite.animations.add('red', [1]);
         sprite.animations.add('blue', [2]);
+        sprite.animations.play('neutral', 20, true);
 
         // internal properties
         this._sprite = sprite;
