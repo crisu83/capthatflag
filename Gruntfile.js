@@ -37,7 +37,7 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         clean: {
-            client: 'client/web',
+            web: 'client/web',
             build: 'client/build'
         },
         browserify: {
@@ -188,7 +188,7 @@ module.exports = function(grunt) {
         'browserify:client',
         'copy:libs',
         'concat:client',
-        'clean:client',
+        'clean:web',
         'copy:assets',
         'copy:client',
         'clean:build',
@@ -200,7 +200,7 @@ module.exports = function(grunt) {
         'browserify:client',
         'copy:libs',
         'concat:client',
-        'clean:client',
+        'clean:web',
         'copy:assets',
         'uglify:client',
         'clean:build',
