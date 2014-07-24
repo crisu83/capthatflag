@@ -2,21 +2,52 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>OH NO GO!</title>
+    <title>STAND FIRM</title>
     <style type="text/css">
         body {
             background-color: #000;
-            margin: 0;
+            color: #fff;
+            font-family: "Courier New";
+            font-size: 14px;
         }
 
         canvas {
-            margin: 40px auto;
+            margin: 20px auto;
+        }
+
+        .how-to-play {
+            margin: 0 auto;
+            width: 1024px;
+        }
+
+        .how-to-play h2 {
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .how-to-play ul {
+            margin: 0 0 10px;
+            padding-left: 15px;
+        }
+
+        .how-to-play li {
+            padding-left: 0;
         }
     </style>
 </head>
 <body>
-    <div id="dungeon"></div>
-    <script src="dungeon/primus.js"></script>
+    <div id="game"></div>
+    <div class="how-to-play">
+        <h2>HOW TO PLAY</h2>
+        <ul>
+            <li>Use ARROW keys to move and SPACE to attack.</li>
+            <li>Collect points by tagging banners and killing opponents.</li>
+            <li>Walk over banners to tag them for your team.</li>
+            <li>Game resets automatically when the game time is up.</li>
+        </ul>
+        Press 'M' to mute the music.
+    </div>
+    <script src="game/primus.js"></script>
     <script type="text/javascript" src="static/js/client.js"></script>
 </body>
 </html>

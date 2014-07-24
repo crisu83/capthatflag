@@ -97,7 +97,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
                         break;
                 }
 
-                this._sprite.animations.play(animation, 10, true);
+                this._sprite.animations.play(animation, 15, true);
             }
 
             this._lastDirection = direction;

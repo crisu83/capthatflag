@@ -22,6 +22,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         // internal properties
         this._team = team;
+        this._points = 0;
         this._kills = 0;
         this._deaths = 0;
         this._respawnSec = null;
@@ -35,6 +36,8 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         this.owner.on('entity.kill', this.onEntityKill.bind(this));
         this.owner.on('entity.die', this.onEntityDeath.bind(this));
+        this.owner.on('player.awardPoints', this.onPlayerAwardPoints.bind(this));
+        this.owner.on('player.resetPoints', this.onPlayerResetPoints.bind(this));
     }
     /**
      * Event handler for when the entity kills another entity.
@@ -52,10 +55,26 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this._lastDeadAt = _.now();
     }
     /**
+     * TODO
+     */
+    , onPlayerResetPoints: function() {
+        this._points = 0;
+    }
+    /**
+     * TODO
+     */
+    , onPlayerAwardPoints: function(points) {
+        this._points += points;
+    }
+    /**
      * @override
      */
     , update: function(elapsed) {
-        this.owner.attrs.set({kills: this._kills, deaths: this._deaths});
+        this.owner.attrs.set({
+            points: this._points
+            , kills: this._kills
+            , deaths: this._deaths
+        });
 
         if (this.canRevive()) {
             this.owner.attrs.set({x: this._team.x, y: this._team.y});

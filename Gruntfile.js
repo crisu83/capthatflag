@@ -86,7 +86,7 @@ module.exports = function(grunt) {
                     {
                         expand: true,
                         cwd: 'assets',
-                        src: ['**/*.{png,json}'],
+                        src: ['**/*.*'],
                         dest: 'client/web/assets',
                         filter: 'isFile'
                     }

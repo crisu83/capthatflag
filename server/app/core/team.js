@@ -30,7 +30,26 @@ Team = utils.inherit(null, {
      */
     , addPlayer: function(player) {
         player.on('entity.remove', this.onEntityRemove.bind(this));
-        this._players.add(player.id);
+        this._players.add(player);
+    }
+    /**
+     * Awards points to players on the team.
+     * @method server.core.Team#awardPointsToPlayers
+     * @param {number} points - Amount of points.
+     */
+    , awardPointsToPlayers: function(points) {
+        this._players.each(function(player, playerId) {
+            player.trigger('player.awardPoints', [points]);
+        }, this);
+    }
+    /**
+     * Resets points for players on the team.
+     * @method server.core.Team#resetPointsForPlayers
+     */
+    , resetPointsForPlayers: function() {
+        this._players.each(function(player, playerId) {
+            player.trigger('player.resetPoints');
+        }, this);
     }
     /**
      * Removes all the players from the team.
@@ -45,7 +64,7 @@ Team = utils.inherit(null, {
      * @param {shared.core.Entity} entity - Entity instance.
      */
     , onEntityRemove: function(entity) {
-        this._players.remove(entity.id);
+        this._players.remove(entity);
     }
     /**
      * Returns the amount of players in the team.

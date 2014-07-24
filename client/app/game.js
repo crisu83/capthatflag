@@ -59,8 +59,10 @@ function run(primus, config) {
             this._totalBanners = 0;
             this._playerText = null;
             this._totalPlayers = 0;
+            this._pointsText = null;
             this._entityGroup = null;
             this._effectGroup = null;
+            this._music = null;
             this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
             this._lastSyncAt = null;
             this._lastTickAt = null;
@@ -97,6 +99,15 @@ function run(primus, config) {
                     , spritesheet.frames
                 );
             }, this);
+
+            // load audio
+            _.forOwn(config.audio, function(files, key) {
+                _.forOwn(files, function(src, index) {
+                    files[index] = 'static/assets/' + src;
+                }, this);
+
+                this.load.audio(key, files);
+            }, this);
         }
         /**
          * Creates the game objects.
@@ -106,7 +117,7 @@ function run(primus, config) {
         , create: function(game) {
             this.log('creating game ...');
 
-            var map, layer, style, text, pauseKey;
+            var map, layer, style, text, pauseKey, muteKey;
 
             // define the world bounds
             this.world.setBounds(0, 0, config.gameWidth, config.gameHeight);
@@ -115,17 +126,29 @@ function run(primus, config) {
             this.stage.backgroundColor = '#000';
 
             // create the map
-            map = game.add.tilemap(config.mapKey);
+            map = this.add.tilemap(config.mapKey);
             map.addTilesetImage(config.mapKey, config.mapImage);
             _.forOwn(config.mapLayer, function(layerData) {
                 layer = map.createLayer(layerData);
                 layer.resizeWorld();
             }, this);
 
+            this._music = this.add.audio(
+                config.mapMusic
+                , 0.1/* volume */
+                , true/* loop */
+            );
+            this._music.play();
+
             this.entityGroup = this.add.group();
             this.effectGroup = this.add.group();
 
-            style = {font: "14px Courier", stroke: "#000000", strokeThickness: 5, fill: "#ffffff", align: "right"};
+            style = {
+                font: "14px Courier"
+                , stroke: "#000000"
+                , strokeThickness: 5
+                , fill: "#ffffff"
+            };
 
             text = this.add.text(10, 10, '', style);
             text.fixedToCamera = true;
@@ -134,6 +157,10 @@ function run(primus, config) {
             text = this.add.text(10, 30, '', style);
             text.fixedToCamera = true;
             this._pingText = text;
+
+            text = this.add.text(10, config.canvasHeight - 90, '', style);
+            text.fixedToCamera = true;
+            this._pointsText = text;
 
             text = this.add.text(10, config.canvasHeight - 70, '', style);
             text.fixedToCamera = true;
@@ -147,13 +174,16 @@ function run(primus, config) {
             text.fixedToCamera = true;
             this._runTimeText = text;
 
-            text = this.add.text(config.canvasWidth - 145, 10, 'OH NO GO! v0.1.0', style);
+            text = this.add.text(config.canvasWidth - 150, 10, config.gameName + ' ' + config.gameVersion, style);
             text.fixedToCamera = true;
 
             if (DEBUG) {
                 pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
                 pauseKey.onDown.add(this.onGamePause.bind(this));
             }
+
+            muteKey = game.input.keyboard.addKey(Phaser.Keyboard.M);
+            muteKey.onDown.add(this.onMusicMuted.bind(this));
 
             // bind event handlers
             primus.on('pong', this.onPong.bind(this));
@@ -170,6 +200,14 @@ function run(primus, config) {
         , onGamePause: function() {
             this.paused = !this.paused;
             this.log(this.paused ? 'game paused' : 'game resumed');
+        }
+        /**
+         * Event handler for when mute is pressed.
+         * @method client.PlayState#onMusicMuted
+         */
+        , onMusicMuted: function() {
+            this._music.mute = !this._music.mute;
+            this.log(this._music.mute ? 'game music muted' : 'game music unmuted');
         }
         /**
          * Event handler for creating the player.
@@ -238,6 +276,7 @@ function run(primus, config) {
             this.updateStats();
             this.updateBannerCount();
             this.updatePlayerCount();
+            this.updatePoints();
 
             this.entityGroup.sort('y', Phaser.Group.SORT_ASCENDING);
 
@@ -300,6 +339,15 @@ function run(primus, config) {
          */
         , updatePlayerCount: function() {
             this._playerText.text = 'players online: ' + this._totalPlayers;
+        }
+        /**
+         * Updates the points text.
+         * @method client.PlayState#updatePoints
+         */
+        , updatePoints: function() {
+            if (this.player) {
+                this._pointsText.text = 'points: ' + this.player.attrs.get('points');
+            }
         }
         /**
          * Event handler for when receiving a ping response.
@@ -526,7 +574,7 @@ function run(primus, config) {
         config.canvasWidth
         , config.canvasHeight
         , Phaser.AUTO
-        , 'dungeon'
+        , 'game'
         , null/* state */
         , false/* transparent */
         , false/* antialias */

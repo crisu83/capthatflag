@@ -23,6 +23,7 @@ DataManager = {
         this._tilemaps = {};
         this._images = {};
         this._spritesheets = {};
+        this._audio = {};
 
         this.parseEntityData();
         this.parseTilemapData();
@@ -82,6 +83,11 @@ DataManager = {
                         };
                     }, this);
                 }
+                if (json.assets.audio) {
+                    _.forOwn(json.assets.audio, function(src, key) {
+                        this._audio[key] = src;
+                    }, this);
+                }
             }
 
             data[json.key] = json;
@@ -102,6 +108,12 @@ DataManager = {
      */
     , getSpritesheets: function() {
         return this._spritesheets;
+    }
+    /**
+     * TODO
+     */
+    , getAudio: function() {
+        return this._audio;
     }
     /**
      * Returns the data for a specific entity.

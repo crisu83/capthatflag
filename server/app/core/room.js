@@ -71,12 +71,12 @@ Room = utils.inherit(Node, {
 
         // internal variables
         this._teams = null;
-        this._stateHistory = new StateHistory(1000);
+        this._banners = {};
         this._lastSyncAt = null;
         this._lastTickAt = null;
         this._gameStartedAt = null;
+        this._lastDingAt = null;
         this._packageSequence = 0;
-        this._banners = null;
         this._running = true;
 
         this.tilemap.room = this;
@@ -99,10 +99,7 @@ Room = utils.inherit(Node, {
             , blue: new Team('blue', config.gameWidth - 64, config.gameHeight - 96)
         });
 
-        this._banners = {
-            red: []
-            , blue: []
-        };
+        this.resetBanners();
 
         // mark the time when the game started
         var now = _.now();
@@ -151,6 +148,10 @@ Room = utils.inherit(Node, {
             this._lastSyncAt = now;
         }
 
+        if (!this._lastDingAt || now - this._lastDingAt > config.gamePointsSec * 1000) {
+            this.awardBannerPoints();
+        }
+
         if (now - this._gameStartedAt > config.gameLengthSec * 1000) {
             this.resetGame();
         }
@@ -180,8 +181,6 @@ Room = utils.inherit(Node, {
             worldState.entities[id] = entity.serialize();
         });
 
-        this._stateHistory.snapshot(worldState);
-
         //console.log(worldState.entities);
 
         return worldState;
@@ -191,6 +190,7 @@ Room = utils.inherit(Node, {
             this._banners[fromTeam].splice(this._banners[fromTeam].indexOf(bannerId), 1);
             console.log('banner captured from team %s to team %s', fromTeam, toTeam);
         }
+
         this._banners[toTeam].push(bannerId);
     }
     /**
@@ -212,6 +212,33 @@ Room = utils.inherit(Node, {
         return weakest;
     }
     /**
+     * Awards points for banners.
+     * @method server.core.Room#awardBannerPoints
+     */
+    , awardBannerPoints: function() {
+        var now = _.now()
+            , points = 0
+            , team;
+
+        _.forOwn(this._banners, function(bannerId, key) {
+            points = config.gamePointsPerBanner * this._banners[key].length;
+            team = this._teams.get(key);
+            team.awardPointsToPlayers(points);
+            console.log('   players on team %s received %d points', key, points);
+        }, this);
+
+        this._lastDingAt = now;
+    }
+    /**
+     * Resets the banners in the room.
+     * @method server.core.Room#resetBanners
+     */
+    , resetBanners: function() {
+        this._teams.each(function(team, key) {
+            this._banners[key] = [];
+        }, this);
+    }
+    /**
      * Restarts the game.
      * @method server.core.Room#restartGame
      */
@@ -223,12 +250,10 @@ Room = utils.inherit(Node, {
         this.bannerCount = 0;
         this.playerCount = 0;
 
-        this._banners = {
-            red: []
-            , blue: []
-        };
+        this.resetBanners();
 
         this._teams.each(function(team) {
+            team.resetPointsForPlayers();
             team.removePlayers();
         }, this);
 

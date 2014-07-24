@@ -21,8 +21,8 @@ AttackComponent = utils.inherit(ComponentBase, {
     constructor: function(sprite, input) {
         ComponentBase.apply(this);
 
-        sprite.animations.add('idle', [4]);
-        sprite.animations.add('slash', [0, 1, 2, 3, 4]);
+        sprite.animations.add('idle', [6]);
+        sprite.animations.add('slash', [0, 1, 2, 3, 4, 5, 6]);
         sprite.animations.play('idle');
 
         // internal properties
@@ -73,7 +73,7 @@ AttackComponent = utils.inherit(ComponentBase, {
 
         this._sprite.x = target.x - 16;
         this._sprite.y = target.y - 10;
-        this._sprite.animations.play('slash', 20);
+        this._sprite.animations.play('slash', 30);
 
         this._io.spark.emit('entity.attack');
     }

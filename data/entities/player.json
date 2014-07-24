@@ -30,7 +30,7 @@
                 "src": "images/sprites/attack-sword.png"
                 , "width": 32
                 , "height": 32
-                , "frames": 5
+                , "frames": 7
             }
         }
     }

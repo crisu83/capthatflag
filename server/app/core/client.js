@@ -87,10 +87,14 @@ Client = utils.inherit(Node, {
             , mapType: this.room.tilemap.type
             , mapImage: this.room.tilemap.image
             , mapLayer: this.room.tilemap.layers
+            , mapMusic: this.room.tilemap.music
             // assets
             , images: DataManager.getImages()
             , spritesheets: DataManager.getSpritesheets()
+            , audio: DataManager.getAudio()
             // game configuration
+            , gameName: config.gameName
+            , gameVersion: config.gameVersion
             , gameLengthSec: config.gameLengthSec
         };
 
@@ -170,15 +174,17 @@ Client = utils.inherit(Node, {
      * @method server.core.Client#onDisconnect
      */
     , onDisconnect: function() {
-        var playerId = this.player.id;
+        if (this.player) {
+            var playerId = this.player.id;
 
-        // remove the player
-        this.player.remove();
+            // remove the player
+            this.player.remove();
 
-        // let other clients know that the player left
-        this.room.primus.forEach(function(spark) {
-            spark.emit('player.leave', playerId);
-        });
+            // let other clients know that the player left
+            this.room.primus.forEach(function(spark) {
+                spark.emit('player.leave', playerId);
+            });
+        }
 
         this.room.playerCount--;
 

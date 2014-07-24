@@ -46,6 +46,10 @@ Tilemap = utils.inherit(null, {
          */
         this.image = data.image;
         /**
+         * @property {string} music - Tilemap music key.
+         */
+        this.music = data.music;
+        /**
          * @property {array} entities - Entities on this map.
          */
         this.entities = data.entities;

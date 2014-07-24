@@ -1,8 +1,7 @@
 {
     "debug": true
     , "port": 3001
-    , "appSecret": "topSecretSequenceOfCharacters"
-    , "socketNamespace": "/dungeon"
+    , "socketNamespace": "/game"
     , "canvasWidth": 1024
     , "canvasHeight": 640
     , "gameWidth": 1600
@@ -13,5 +12,9 @@
     , "enableInterpolation": true
     , "enableExtrapolation": false
     , "extrapolationMsec": 200
-    , "gameLengthSec": 300
+    , "gameName": "STAND FIRM"
+    , "gameVersion": "v0.1.0"
+    , "gameLengthSec": 70
+    , "gamePointsSec": 30
+    , "gamePointsPerBanner": 100
 }
