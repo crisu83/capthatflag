@@ -37,7 +37,7 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         clean: {
-            client: 'client/web/js',
+            client: 'client/web',
             build: 'client/build'
         },
         browserify: {
@@ -68,6 +68,17 @@ module.exports = function(grunt) {
                     }
                 ]
             },
+            index: {
+                files: [
+                    {
+                        expand: true,
+                        cwd: 'client',
+                        src: ['index.html'],
+                        dest: 'client/web',
+                        filter: 'isFile'
+                    }
+                ]
+            },
             // copies the client application files for the build
             libs: {
                 files: [
@@ -91,6 +102,17 @@ module.exports = function(grunt) {
                         filter: 'isFile'
                     }
                 ]
+            }
+        },
+        htmlmin: {
+            dist: {
+                options: {
+                    removeComments: true,
+                    collapseWhitespace: true
+                },
+                files: {
+                    'client/web/index.html': 'client/index.html'
+                }
             }
         },
         // documentation parser configuration
@@ -166,10 +188,11 @@ module.exports = function(grunt) {
         'browserify:client',
         'copy:libs',
         'concat:client',
-        'copy:assets',
         'clean:client',
+        'copy:assets',
         'copy:client',
-        'clean:build'
+        'clean:build',
+        'copy:index'
     ]);
 
     // distribution build task
@@ -177,10 +200,11 @@ module.exports = function(grunt) {
         'browserify:client',
         'copy:libs',
         'concat:client',
-        'copy:assets',
         'clean:client',
+        'copy:assets',
         'uglify:client',
         'clean:build',
+        'htmlmin:dist',
         'imagemin:assets'
     ]);
 
