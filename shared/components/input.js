@@ -36,7 +36,7 @@ InputComponent = utils.inherit(ComponentBase, {
         attrs.inputSequence = command.sequence;
         attrs.direction = command.direction;
 
-        var step = attrs.runSpeed * command.elapsed
+        var step = attrs.runSpeed / 100
             , down = new List(command.down);
 
         down.each(function(key) {

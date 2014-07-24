@@ -20,7 +20,6 @@ InputComponent = utils.inherit(ComponentBase, {
         ComponentBase.apply(this);
 
         // internal properties
-        this._lastDirection = 'none';
         this._lastInputAt = null;
     }
     /**
@@ -35,18 +34,12 @@ InputComponent = utils.inherit(ComponentBase, {
      * @method server.components.InputComponent#onCommand
      * @param {object} command - User command.
      */
-    , onInput: function(commands) {
+    , onInput: function(command) {
         var now = _.now()
-            , attrs = this.owner.attrs.get();
+            , attrs = this.processCommand(command);
 
-        for (var i = 0; i < commands.length; i++) {
-            attrs = this.processCommand(commands[i], attrs);
-        }
-
-        attrs.moving = true;
         this.owner.attrs.set(attrs);
 
-        this._lastDirection = attrs.direction;
         this._lastInputAt = now;
     }
     /**
@@ -55,8 +48,8 @@ InputComponent = utils.inherit(ComponentBase, {
     , update: function(elapsed) {
         var now = _.now();
 
-        if (this._lastDirection !== 'none' && this._lastInputAt && (now - this._lastInputAt) > 200) {
-            this.owner.attrs.set({direction: 'none', moving: false});
+        if (!_.isUndefined(this._lastInputAt) && (now - this._lastInputAt) > 100) {
+            this.owner.attrs.set('direction', 'none');
         }
     }
 });

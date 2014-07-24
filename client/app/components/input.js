@@ -46,26 +46,37 @@ InputComponent = utils.inherit(ComponentBase, {
      * @param {object} attrs - Synchronized attributes.
      */
     , onEntitySync: function(attrs) {
-        var inputSequence = attrs.inputSequence;
-        delete attrs.inputSequence;
-
-        if (!this.inputProcessed(inputSequence)) {
+        if (_.has(attrs, 'inputSequence')) {
             this._commands.filter(function(command) {
                 return command.sequence > attrs.inputSequence;
+            }, true/* replace */);
+
+            this._commands.each(function(command) {
+                attrs = this.processCommand(command, attrs);
+            }, this);
+
+            attrs = _.omit(attrs, 'inputSequence');
+        }
+
+        this.owner.attrs.set(attrs);
+        /*
+        if (!this.inputProcessed(inputSequence)) {
+            this._commands.filter(function(command) {
+                return command.sequence > inputSequence;
             });
 
             this._commands.each(function(command) {
                 attrs = this.processCommand(command, attrs);
             }, this);
 
-            this._processed.push(attrs.inputSequence);
-        }
-
-        if (!attrs.moving) {
+            this._processed.push(inputSequence);
+        } else if (_.has(attrs, 'moving') && attrs.moving === true) {
+            // omit the position only if we are not moving
             attrs = _.omit(attrs, ['x', 'y']);
         }
 
         this.owner.attrs.set(attrs);
+        */
     }
     /**
      * Returns whether the given attributes have already been processed.
@@ -92,17 +103,14 @@ InputComponent = utils.inherit(ComponentBase, {
             , alive = this.owner.attrs.get('alive')
             , command;
 
-        this._lastSyncAt = this._lastSyncAt || now;
-
         command = {
             sequence: null
             , down: []
             , direction: 'none'
-            , elapsed: elapsed
             , processed: false
         };
 
-        if (alive) {
+        if (_.isUndefined(alive) || alive === true) {
             if (this._cursorKeys.up.isDown) {
                 command.down.push('up');
             } else if (this._cursorKeys.down.isDown) {
@@ -118,19 +126,26 @@ InputComponent = utils.inherit(ComponentBase, {
                 command.direction = command.down[command.down.length - 1];
             }
 
-            if (command.down.length || command.direction !== this._lastDirection) {
-                command.sequence = this._sequence++;
-                this._commands.add(command);
+            if (_.isUndefined(this._lastSyncAt) || (now - this._lastSyncAt) > 10) {
+                if (command.down.length || command.direction !== this._lastDirection) {
+                    command.sequence = this._sequence++;
+                    this._commands.add(command);
 
-                if (this.owner.config.enablePrediction) {
-                    var attrs = this.processCommand(command);
-                    this.owner.attrs.set(attrs);
+                    if (this.owner.config.enablePrediction) {
+                        var attrs = this.processCommand(command);
+                        this.owner.attrs.set(attrs);
+                    }
+
+                    this._io.spark.emit('player.input', command);
+
+                    this._lastDirection = command.direction;
                 }
 
-                this._lastDirection = command.direction;
+                this._lastSyncAt = now;
             }
 
-            if ((now - this._lastSyncAt) > (1000 / this.owner.config.tickRate)) {
+            /*
+            if (_.isUndefined(this._lastSync) || (now - this._lastSyncAt) > (1000 / this.owner.config.syncRate)) {
                 var unprocessed = [];
                 this._commands.each(function(command) {
                     if (!command.processed) {
@@ -145,6 +160,7 @@ InputComponent = utils.inherit(ComponentBase, {
 
                 this._lastSyncAt = now;
             }
+            */
         }
     }
 });

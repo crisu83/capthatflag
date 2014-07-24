@@ -69,7 +69,7 @@ AttackComponent = utils.inherit(ComponentBase, {
     , attack: function() {
         var target = this.calculateTarget();
 
-        console.log('player attacking', target.x, target.y);
+        //console.log('player attacking', target.x, target.y);
 
         this._sprite.x = target.x - 16;
         this._sprite.y = target.y - 10;

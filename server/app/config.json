@@ -14,7 +14,7 @@
     , "extrapolationMsec": 200
     , "gameName": "STAND FIRM"
     , "gameVersion": "v0.1.0"
-    , "gameLengthSec": 70
+    , "gameLengthSec": 300
     , "gamePointsSec": 30
     , "gamePointsPerBanner": 100
 }

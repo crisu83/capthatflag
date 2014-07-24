@@ -53,6 +53,8 @@ Client = utils.inherit(Node, {
          * @property {server.Entity} entity - Associated player entity instance.
          */
         this.player = null;
+
+        this._initialized = false;
     }
     /**
      * Initializes this client.
@@ -118,7 +120,10 @@ Client = utils.inherit(Node, {
      * @method server.core.Client#onReady
      */
     , onReady: function() {
-        this.player = this.createPlayer();
+        if (!this._initialized) {
+            this.player = this.createPlayer();
+            this._initialized = true;
+        }
     }
     /**
      * Creates the player for the client.
@@ -159,6 +164,12 @@ Client = utils.inherit(Node, {
      * @method server.core.Client#resetGame
      */
     , resetGame: function() {
+        if (this.player) {
+            this.player.remove();
+        }
+
+        this._initialized = false;
+
         this.spark.emit('client.reset', this.config, config.debug);
     }
     /**
@@ -184,9 +195,9 @@ Client = utils.inherit(Node, {
             this.room.primus.forEach(function(spark) {
                 spark.emit('player.leave', playerId);
             });
-        }
 
-        this.room.playerCount--;
+            this.room.playerCount--;
+        }
 
         console.log('  client %s disconnected from room %s', this.id, this.room.id);
         this.trigger('client.disconnect', [this.id]);

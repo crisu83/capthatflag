@@ -69,11 +69,11 @@ Tilemap = utils.inherit(null, {
      * @method server.core.Tilemap#init
      */
     , init: function() {
-        var entity;
+        var entity, attrs;
 
         _.forOwn(this.entities, function(json) {
-            var entity = EntityFactory.create(json.key)
-                , attrs = json.attrs || {};
+            entity = EntityFactory.create(json.key);
+            attrs = json.attrs || {};
 
             entity.attrs.set(attrs);
 

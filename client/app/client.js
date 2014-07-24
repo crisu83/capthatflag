@@ -31,7 +31,12 @@ function run(config, debug) {
 primus.on('client.init', run);
 
 // event handler for resetting the client
-primus.on('client.reset', run);
+primus.on('client.reset', function(config, debug) {
+    /* global window */
+    window.location.reload();
+
+    run(config, debug);
+});
 
 // event handler for when an error has occurred
 primus.on('error', function error(err) {

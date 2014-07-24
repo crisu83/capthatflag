@@ -266,8 +266,8 @@ function run(primus, config) {
          * @param {Phaser.Game} game - Game instance.
          */
         , update: function(game) {
-            var now = game.time.now
-                , elapsed = game.time.elapsed / 1000;
+            var now = _.now()
+                , elapsed = (now - this._lastTickAt) / 1000;
 
             this.updateWorldState();
             this.updateEntities(elapsed);
@@ -280,7 +280,7 @@ function run(primus, config) {
 
             this.entityGroup.sort('y', Phaser.Group.SORT_ASCENDING);
 
-            this._lastTickAt = game.time.lastTime;
+            this._lastTickAt = now;
         }
         /**
          * Updates the entities in the state.

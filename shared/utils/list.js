@@ -93,9 +93,16 @@ List = utils.inherit(null, {
      * Filters the items using the given callback function.
      * @method shared.utils.List#filter
      * @param {function} filter - Filtering function.
+     * @param {boolean} replace - Wheter the original items should be replaced.
      */
-    , filter: function(filter) {
-        this._items = _.filter(this._items, filter);
+    , filter: function(filter, replace) {
+        // TODO change the default to false when all uses has been overhauled
+        replace = replace || true;
+        var items = _.filter(this._items, filter);
+        if (replace) {
+            this._items = items;
+        }
+        return items;
     }
     /**
      * Returns the first item in the list.

@@ -72,33 +72,31 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @method client.components.PlayerComponent#updateAnimation
      */
     , updateAnimation: function() {
-        if (this._lastAlive) {
-            var direction = this.owner.attrs.get('direction');
+        var direction = this.owner.attrs.get('direction');
 
-            if (direction !== this._lastDirection) {
-                var animation;
+        if (direction !== this._lastDirection) {
+            var animation;
 
-                switch (direction) {
-                    case 'left':
-                        animation = 'walkLeft';
-                        break;
-                    case 'up':
-                        animation = 'walkUp';
-                        break;
-                    case 'right':
-                        animation = 'walkRight';
-                        break;
-                    case 'down':
-                        animation = 'walkDown';
-                        break;
-                    default:
-                    case 'none':
-                        animation = 'standStill';
-                        break;
-                }
-
-                this._sprite.animations.play(animation, 15, true);
+            switch (direction) {
+                case 'left':
+                    animation = 'walkLeft';
+                    break;
+                case 'up':
+                    animation = 'walkUp';
+                    break;
+                case 'right':
+                    animation = 'walkRight';
+                    break;
+                case 'down':
+                    animation = 'walkDown';
+                    break;
+                default:
+                case 'none':
+                    animation = 'standStill';
+                    break;
             }
+
+            this._sprite.animations.play(animation, 15, true);
 
             this._lastDirection = direction;
         }

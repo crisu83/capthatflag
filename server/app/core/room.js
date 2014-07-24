@@ -78,6 +78,7 @@ Room = utils.inherit(Node, {
         this._lastDingAt = null;
         this._packageSequence = 0;
         this._running = true;
+        this._resetting = false;
 
         this.tilemap.room = this;
         this.tilemap.init();
@@ -248,7 +249,6 @@ Room = utils.inherit(Node, {
         this.entities.clear();
 
         this.bannerCount = 0;
-        this.playerCount = 0;
 
         this.resetBanners();
 
