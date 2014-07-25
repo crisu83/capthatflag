@@ -3,6 +3,7 @@
 var _ = require('lodash')
     , utils = require('../../shared/utils')
     , List = require('../../shared/utils/list')
+    , Tile = require('../../shared/core/tile')
     , World = require('../../shared/physics/world')
     , Body = require('../../shared/physics/body')
     , EntityHashmap = require('../../shared/utils/entityHashmap')
@@ -118,7 +119,7 @@ function run(primus, config) {
         , create: function(game) {
             this.log('creating game ...');
 
-            var map, layer, style, text, pauseKey, muteKey;
+            var map, layer, tile, body, style, text, pauseKey, muteKey;
 
             // define the world bounds
             this.world.setBounds(0, 0, config.gameWidth, config.gameHeight);
@@ -132,6 +133,19 @@ function run(primus, config) {
             _.forOwn(config.mapLayer, function(layerData) {
                 layer = map.createLayer(layerData);
                 layer.resizeWorld();
+            }, this);
+
+            // add the collision layer tiles to the physical world
+            _.forOwn(config.mapCollisionTiles, function(json) {
+                tile = new Tile(json.x, json.y, json.width, json.height);
+                
+                body = new Body('tile', tile);
+                body.x = tile.x;
+                body.y = tile.y;
+                body.width = tile.width;
+                body.height = tile.height;
+
+                this.foo.add(body);
             }, this);
 
             // create the music

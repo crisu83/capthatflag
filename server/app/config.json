@@ -13,7 +13,7 @@
     , "enableExtrapolation": false
     , "extrapolationMsec": 200
     , "gameName": "CAP THAT FLAG"
-    , "gameVersion": "v0.3.0"
+    , "gameVersion": "v0.4.0"
     , "gameLengthSec": 300
     , "gamePointsSec": 30
     , "gamePointsPerBanner": 100

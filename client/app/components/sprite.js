@@ -23,7 +23,7 @@ SpriteComponent = utils.inherit(ComponentBase, {
 
         // inherited properties
         this.key = 'sprite';
-        this.phase = ComponentBase.prototype.phases.LOGIC;
+        this.phase = ComponentBase.prototype.phases.RENDER;
 
         // internal properties
         this._sprites = new Hashmap(sprites);
