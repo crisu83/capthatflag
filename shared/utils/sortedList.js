@@ -31,7 +31,7 @@ SortedList = utils.inherit(ListBase, {
      */
     , add: function(item) {
         ListBase.prototype.add.apply(this, arguments);
-        this._items = _.sortBy(this._items, this._sort);
+        this._items.sort(this._sort);
     }
 });
 
