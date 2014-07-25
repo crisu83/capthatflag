@@ -72,6 +72,14 @@ AttackComponent = utils.inherit(ComponentBase, {
 
         return target;
     }
+    /**
+     * Sets the last attack at property.
+     * @method shared.components.AttackComponent#setLastAttackAt
+     * @param {number} timestamp - Timestamp.
+     */
+    , setLastAttackAt: function(timestamp) {
+        this._lastAttackAt = timestamp;
+    }
 });
 
 module.exports = AttackComponent;

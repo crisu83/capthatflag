@@ -15,22 +15,16 @@ AttackComponent = utils.inherit(ComponentBase, {
     /**
      * Creates a new component.
      * @constructor
-     * @param {Phaser.Sprite} sprite - Attack sprite.
      * @param {Phaser.InputManager} input - Input manager instance.
      */
-    constructor: function(sprite, input) {
+    constructor: function(input) {
         ComponentBase.apply(this);
 
-        sprite.animations.add('idle', [6]);
-        sprite.animations.add('slash', [0, 1, 2, 3, 4, 5, 6]);
-        sprite.animations.play('idle');
-
         // internal properties
-        this._sprite = sprite;
         this._input = input;
         this._io = null;
+        this._sprite = null;
         this._attackEnabled = true;
-        this._lastAttackAt = null;
     }
     /**
      * @override
@@ -41,6 +35,12 @@ AttackComponent = utils.inherit(ComponentBase, {
         attackKey.onUp.add(this.onAttackUp.bind(this));
 
         this._io = this.owner.components.get('io');
+        this._sprite = this.owner.components.get('sprite');
+
+        var sprite = this._sprite.get('attack');
+        sprite.animations.add('idle', [6]);
+        sprite.animations.add('slash', [0, 1, 2, 3, 4, 5, 6]);
+        sprite.animations.play('idle');
     }
     /**
      * Event handler for when the attack button is pressed.
@@ -51,8 +51,7 @@ AttackComponent = utils.inherit(ComponentBase, {
             var now = _.now();
 
             this.attack();
-            this._attackEnabled = false;
-            this._lastAttackAt = now;
+            this.setLastAttackAt(now);
         }
     }
     /**
@@ -67,15 +66,15 @@ AttackComponent = utils.inherit(ComponentBase, {
      * @method client.components.AttackComponent#attack
      */
     , attack: function() {
-        var target = this.calculateTarget();
+        var target = this.calculateTarget()
+            , position = {x: target.x - 16, y: target.y - 10};
 
-        //console.log('player attacking', target.x, target.y);
-
-        this._sprite.x = target.x - 16;
-        this._sprite.y = target.y - 10;
-        this._sprite.animations.play('slash', 30);
+        this._sprite.setPosition('attack', position);
+        this._sprite.playAnimation('attack', 'slash', 30);
 
         this._io.spark.emit('entity.attack');
+
+        this._attackEnabled = false;
     }
 });
 
