@@ -78,6 +78,7 @@ Client = utils.inherit(Node, {
             , mapImage: this._room.tilemap.image
             , mapLayer: this._room.tilemap.layers
             , mapMusic: this._room.tilemap.music
+            , mapCollisionTiles: this._room.tilemap.getCollisionTiles()
             // assets
             , images: DataManager.getImages()
             , spritesheets: DataManager.getSpritesheets()
@@ -132,6 +133,7 @@ Client = utils.inherit(Node, {
             , y: position.y
         });
 
+        // TODO use the entity factory to add the entity components
         entity.components.add(new IoComponent(this._spark));
         entity.components.add(new PhysicsComponent(body, this._room.world));
         entity.components.add(new AttackComponent());
@@ -139,13 +141,13 @@ Client = utils.inherit(Node, {
         entity.components.add(new HealthComponent());
         entity.components.add(new PlayerComponent(team));
 
+        // add the player to the team, the room and increase the player count
         team.addPlayer(entity);
-
         this._room.entities.add(entity.id, entity);
         this._room.playerCount++;
-
         console.log('  client %s joined %s team as player %s', this.id, team.name, entity.id);
 
+        // let the client know that it can now create the player
         this._spark.emit('player.create', entity.serialize());
 
         return entity;

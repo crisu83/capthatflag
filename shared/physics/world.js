@@ -70,7 +70,9 @@ World = utils.inherit(null, {
     , handleCollision: function(body, other, callback, scope) {
         // seprate the bodies from each other (if necessary)
         if (this.separate(body, other)) {
-            callback.call(scope, body, other);
+            if (_.isFunction(callback)) {
+                callback.call(scope, body, other);
+            }
         }
     }
     /**
@@ -101,7 +103,9 @@ World = utils.inherit(null, {
     , handleOverlap: function(body, other, callback, scope) {
         // make sure that the bodies intersect
         if (this.intersects(body, other)) {
-            callback.call(scope, body, other);
+            if (_.isFunction(callback)) {
+                callback.call(scope, body, other);
+            }
         }
     }
     /**
@@ -133,7 +137,41 @@ World = utils.inherit(null, {
             return false;
         }
 
-        // TODO add separation logic
+        var depths, absoluteDepth, smallestDepth, collidingSide;
+
+        depths = {
+            left: body.right() - other.x
+            , right: body.x - other.right()
+            , top: body.bottom() - other.y
+            , bottom: body.y - other.bottom()
+        };
+
+        _.forOwn(depths, function(depth, side) {
+            absoluteDepth = Math.abs(depth);
+            if (_.isUndefined(smallestDepth) || absoluteDepth < smallestDepth) {
+                collidingSide = side;
+                smallestDepth = absoluteDepth;
+            }
+        }, this);
+
+        console.log('colliding from %s', collidingSide);
+
+        switch (collidingSide) {
+            case 'left':
+                body.x = other.x - body.width;
+                break;
+            case 'right':
+                body.x = other.right();
+                break;
+            case 'top':
+                body.y = other.y - body.height;
+                break;
+            case 'bottom':
+                body.y = other.bottom();
+                break;
+            default:
+                break;
+        }
 
         return true;
     }
@@ -148,10 +186,10 @@ World = utils.inherit(null, {
         if (body.right() <= other.x) {
             return false;
         }
-        if (body.bottom() <= other.y) {
+        if (body.x >= other.right()) {
             return false;
         }
-        if (body.x >= other.right()) {
+        if (body.bottom() <= other.y) {
             return false;
         }
         if (body.y >= other.bottom()) {

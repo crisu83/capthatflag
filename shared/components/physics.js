@@ -72,11 +72,24 @@ PhysicsComponent = utils.inherit(ComponentBase, {
         this._body.width = dimensions.width;
         this._body.height = dimensions.height;
 
+        // update entity attribute
         this.owner.attrs.set({x: position.x, y: position.y});
+
+        // check for collision with tiles
+        this.collide('tile', this.onCollideTile.bind(this));
+    }
+    /**
+     * Callback for when the body collides with a tile.
+     * @method shared.components.PhysicsComponent#onCollideTile
+     * @param {shared.physics.Body} body - Body instance.
+     * @param {shared.physics.Body} other - Other body instance.
+     */
+    , onCollideTile: function(body, other) {
+        this.owner.attrs.set({x: body.x, y: body.y});
     }
     /**
      * Checks for a collision between physical bodies.
-     * @method server.components.PhysicsComponent#collide
+     * @method shared.components.PhysicsComponent#collide
      * @param {string} type - Body type.
      * @param {function} callback - Collision callback.
      * @param {object} scope - Collision scope.
@@ -84,6 +97,7 @@ PhysicsComponent = utils.inherit(ComponentBase, {
      */
     , collide: function(type, callback, scope, body) {
         body = body || this._body;
+        scope = scope || this;
         this._world.collide(body, type, callback, scope);
     }
     /**
@@ -96,6 +110,7 @@ PhysicsComponent = utils.inherit(ComponentBase, {
      */
     , overlap: function(type, callback, scope, body) {
         body = body || this._body;
+        scope = scope || this;
         this._world.overlap(body, type, callback, scope);
     }
 });
