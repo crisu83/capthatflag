@@ -27,6 +27,16 @@ AttackComponent = utils.inherit(ComponentBase, {
         this._lastAttackAt = null;
     }
     /**
+     * @override
+     */
+    , update: function() {
+        var action = this.owner.attrs.get('action');
+
+        if (!_.isUndefined('action') && action === 'attack' && this.canAttack()) {
+            this.attack();
+        }
+    }
+    /**
      * Returns whether the entity can attack.
      * @method shared.components.AttackComponent#canAttack
      * @return {boolean} The result.
@@ -36,6 +46,13 @@ AttackComponent = utils.inherit(ComponentBase, {
             , cooldownMsec = this.owner.attrs.get('attackCooldownMsec');
 
         return _.isUndefined(this._lastAttackAt) || (now - this._lastAttackAt) > cooldownMsec;
+    }
+    /**
+     * Performs an attack.
+     * @method shared.components.AttackComponent#attack
+     */
+    , attack: function() {
+
     }
     /**
      * Calculates where the player will hit when attacking based on its attributes.

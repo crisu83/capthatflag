@@ -15,26 +15,17 @@ AttackComponent = utils.inherit(ComponentBase, {
     /**
      * Creates a new component.
      * @constructor
-     * @param {Phaser.InputManager} input - Input manager instance.
      */
-    constructor: function(input) {
+    constructor: function() {
         ComponentBase.apply(this);
 
         // internal properties
-        this._input = input;
-        this._io = null;
         this._sprite = null;
-        this._attackEnabled = true;
     }
     /**
      * @override
      */
     , init: function() {
-        var attackKey = this._input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-        attackKey.onDown.add(this.onAttackDown.bind(this));
-        attackKey.onUp.add(this.onAttackUp.bind(this));
-
-        this._io = this.owner.components.get('io');
         this._sprite = this.owner.components.get('sprite');
 
         var sprite = this._sprite.get('attack');
@@ -43,38 +34,17 @@ AttackComponent = utils.inherit(ComponentBase, {
         sprite.animations.play('idle');
     }
     /**
-     * Event handler for when the attack button is pressed.
-     * @method client.components.AttackComponent#onAttackDown
-     */
-    , onAttackDown: function() {
-        if (this._attackEnabled && this.canAttack()) {
-            var now = _.now();
-
-            this.attack();
-            this.setLastAttackAt(now);
-        }
-    }
-    /**
-     * Event handler for when the attack button is relased.
-     * @method client.components.AttackComponent#onAttackUp
-     */
-    , onAttackUp: function() {
-        this._attackEnabled = true;
-    }
-    /**
-     * Performs an attack.
-     * @method client.components.AttackComponent#attack
+     * @override
      */
     , attack: function() {
-        var target = this.calculateTarget()
+        var now = _.now()
+            , target = this.calculateTarget()
             , position = {x: target.x - 16, y: target.y - 10};
 
         this._sprite.setPosition('attack', position);
         this._sprite.playAnimation('attack', 'slash', 30);
 
-        this._io.spark.emit('entity.attack');
-
-        this._attackEnabled = false;
+        this.setLastAttackAt(now);
     }
 });
 

@@ -30,18 +30,14 @@ AttackComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , init: function() {
-        var io = this.owner.components.get('io');
-        io.spark.on('entity.attack', this.onAttack.bind(this));
-
         this._team = this.owner.attrs.get('team');
         this._body = new Body('attack', this.owner);
         this._physics = this.owner.components.get('physics');
     }
     /**
-     * Event handler for when the entity is attacking.
-     * @method server.components.AttackComponent#onAttack
+     * @override
      */
-    , onAttack: function() {
+    , attack: function() {
         if (this.canAttack()) {
             var now = _.now()
                 , target = this.calculateTarget()

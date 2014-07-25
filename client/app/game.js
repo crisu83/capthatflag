@@ -235,7 +235,7 @@ function run(primus, config) {
             entity.components.add(new SpriteComponent(sprites));
             entity.components.add(new PlayerComponent());
             entity.components.add(new IoComponent(primus));
-            entity.components.add(new AttackComponent(this.game.input));
+            entity.components.add(new AttackComponent());
             entity.components.add(new InputComponent(this.game.input));
             entity.components.add(new PhysicsComponent(body, this.foo));
 
@@ -357,11 +357,14 @@ function run(primus, config) {
                     if (config.enableInterpolation && this.canInterpolate()) {
                         factor = this.calculateInterpolationFactor(previousState, worldState);
                         worldState = this.interpolateWorldState(previousState, worldState, factor);
-                    }/* else if (config.enableExtrapolation && this.canExtrapolate()) {
+                    }
+                    /*
+                    else if (config.enableExtrapolation && this.canExtrapolate()) {
                         // TODO add support for world state extrapolation
                         factor = 1;
                         worldState = this.extrapolateWorldState(previousState, worldState, factor);
-                    }*/
+                    }
+                    */
                 }
 
                 _.forOwn(worldState.entities, function(state, entityId) {
@@ -382,11 +385,13 @@ function run(primus, config) {
                             case 'player':
                                 sprites = {
                                     player: this._entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
+                                    , attack: this._effectGroup.create(state.attrs.x, state.attrs.y, 'attack-sword')
                                     , grave: this._entityGroup.create(state.attrs.x, state.attrs.y, 'grave')
                                 };
 
                                 entity.components.add(new SpriteComponent(sprites));
                                 entity.components.add(new PlayerComponent());
+                                entity.components.add(new AttackComponent());
                                 break;
                             case 'banner':
                                 sprites = {
