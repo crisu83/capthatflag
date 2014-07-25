@@ -47,7 +47,8 @@ AttackComponent = utils.inherit(ComponentBase, {
                 , target = this.calculateTarget()
                 , aoe = this.owner.attrs.get('attackAoe')
                 , halfAoe = aoe / 2
-                , amount = 0;
+                , amount = 0
+                , otherTeam;
 
             this._body.x = target.x - halfAoe;
             this._body.y = target.y - halfAoe;
@@ -55,11 +56,15 @@ AttackComponent = utils.inherit(ComponentBase, {
             this._body.height = aoe;
 
             this._physics.overlap('player', function(body, other) {
+                otherTeam = other.owner.attrs.get('team');
+
+                console.log(this._team, otherTeam);
+
                 // make sure that we are not hitting our teammates
-                if (this.owner.attrs.get('team') !== other.owner.attrs.get('team') && other.owner.attrs.get('alive')) {
+                if (!_.isUndefined(otherTeam) && this._team !== otherTeam && other.owner.attrs.get('alive')) {
                     amount = this.calculateDamage();
                     other.owner.damage(amount, this.owner);
-                    console.log('player %s hit opponent %s for %d', body.owner.id, other.owner.id, amount);
+                    console.log('   player %s hit opponent %s for %d', body.owner.id, other.owner.id, amount);
                 }
             }, this, this._body/* use the attack body instead of the entity body */);
 
@@ -69,10 +74,10 @@ AttackComponent = utils.inherit(ComponentBase, {
     /**
      * Calculates the amount of damage done.
      * @method server.components.AttackComponent#calculateDamage
+     * @return {number} Amount of damage.
      */
     , calculateDamage: function() {
         // TODO implement some logic for missing and critical hits
-
         return this.owner.attrs.get('maxDamage');
     }
 });

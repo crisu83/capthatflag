@@ -42,7 +42,7 @@ HealthComponent = utils.inherit(ComponentBase, {
         this._alive = this._currentHealth > 0;
 
         // kill the entity if it should not be alive anymore
-        if (!this._alive && this.owner.attrs.get('alive')) {
+        if (this._alive === false && this.owner.attrs.get('alive')) {
             this.owner.die();
         }
 

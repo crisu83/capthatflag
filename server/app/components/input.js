@@ -13,19 +13,9 @@ var _ = require('lodash')
  */
 InputComponent = utils.inherit(ComponentBase, {
     /**
-     * Create a new component.
-     * @constructor
-     */
-    constructor: function() {
-        ComponentBase.apply(this);
-
-        // internal properties
-        this._lastInputAt = null;
-    }
-    /**
      * @override
      */
-    , init: function() {
+    init: function() {
         var io = this.owner.components.get('io');
         io.spark.on('player.input', this.onInput.bind(this));
     }
@@ -35,22 +25,8 @@ InputComponent = utils.inherit(ComponentBase, {
      * @param {object} command - User command.
      */
     , onInput: function(command) {
-        var now = _.now()
-            , attrs = this.processCommand(command);
-
+        var attrs = this.processCommand(command);
         this.owner.attrs.set(attrs);
-
-        this._lastInputAt = now;
-    }
-    /**
-     * @override
-     */
-    , update: function(elapsed) {
-        var now = _.now();
-
-        if (!_.isUndefined(this._lastInputAt) && (now - this._lastInputAt) > 100) {
-            this.owner.attrs.set('direction', 'none');
-        }
     }
 });
 

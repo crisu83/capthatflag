@@ -26,34 +26,22 @@ Client = utils.inherit(Node, {
     /**
      * Creates a new client.
      * @constructor
-     * @param {string} id - Client identifier.
      * @param {Primus.Spark} spark - Spark instance.
      * @param {server.Room} room - Room instance.
      */
-    constructor: function(id, spark, room) {
+    constructor: function(spark, room) {
         Node.apply(this);
 
         /**
          * @property {string} id - Identifier for the client.
          */
-        this.id = id;
-        /**
-         * @property {Primus.Spark} spark - Spark interface.
-         */
-        this.spark = spark;
-        /**
-         * @property {server.Room} room - Room instance that the client is connected to.
-         */
-        this.room = room;
-        /**
-         * @property {object} config - Client configuration.
-         */
-        this.config = null;
-        /**
-         * @property {server.Entity} entity - Associated player entity instance.
-         */
-        this.player = null;
+        this.id = shortid.generate();
 
+        // internal properties
+        this._spark = spark;
+        this._room = room;
+        this._config = null;
+        this._player = null;
         this._ready = false;
     }
     /**
@@ -62,11 +50,11 @@ Client = utils.inherit(Node, {
      */
     , init: function() {
         // let the client know to which room they have connected
-        this.spark.emit('client.joinRoom', this.room.id);
+        this._spark.emit('client.joinRoom', this._room.id);
 
-        console.log('  client %s connected to room %s', this.id, this.room.id);
+        console.log('  client %s connected to room %s', this.id, this._room.id);
 
-        this.config = {
+        this._config = {
             // client identifier
             id: this.id
             // server configuration
@@ -84,12 +72,12 @@ Client = utils.inherit(Node, {
             , gameWidth: config.gameWidth
             , gameHeight: config.gameHeight
             // map configuration
-            , mapKey: this.room.tilemap.key
-            , mapData: this.room.tilemap.data
-            , mapType: this.room.tilemap.type
-            , mapImage: this.room.tilemap.image
-            , mapLayer: this.room.tilemap.layers
-            , mapMusic: this.room.tilemap.music
+            , mapKey: this._room.tilemap.key
+            , mapData: this._room.tilemap.data
+            , mapType: this._room.tilemap.type
+            , mapImage: this._room.tilemap.image
+            , mapLayer: this._room.tilemap.layers
+            , mapMusic: this._room.tilemap.music
             // assets
             , images: DataManager.getImages()
             , spritesheets: DataManager.getSpritesheets()
@@ -101,19 +89,19 @@ Client = utils.inherit(Node, {
         };
 
         // send the configuration to the client
-        this.spark.emit('client.init', this.config, config.debug);
+        this._spark.emit('client.init', this._config, config.debug);
 
         // bind event handlers
-        this.spark.on('ping', this.onPing.bind(this));
-        this.spark.on('client.ready', this.onReady.bind(this));
-        this.spark.on('end', this.onDisconnect.bind(this));
+        this._spark.on('ping', this.onPing.bind(this));
+        this._spark.on('client.ready', this.onReady.bind(this));
+        this._spark.on('end', this.onDisconnect.bind(this));
     }
     /**
      * Event hanlder for when receiving a ping.
      * @method server.core.Client#onPing
      */
     , onPing: function(ping) {
-        this.spark.emit('pong', ping);
+        this._spark.emit('pong', ping);
     }
     /**
      * Event handler for when this client is ready.
@@ -121,7 +109,7 @@ Client = utils.inherit(Node, {
      */
     , onReady: function() {
         if (!this._ready) {
-            this.player = this.createPlayer();
+            this._player = this.createPlayer();
             this._ready = true;
         }
     }
@@ -132,30 +120,33 @@ Client = utils.inherit(Node, {
      */
     , createPlayer: function() {
         var entity = EntityFactory.create('player')
-            , team = this.room.weakestTeam()
+            , team = this._room.weakestTeam()
+            , position = team.spawnPosition()
             , body = new Body('player', entity);
 
-        entity.components.add(new IoComponent(this.spark));
-        entity.components.add(new PhysicsComponent(body, this.room.world));
+        // set initial entity attributes
+        entity.attrs.set({
+            team: team.name
+            , image: 'player-' + team.name
+            , x: position.x
+            , y: position.y
+        });
+
+        entity.components.add(new IoComponent(this._spark));
+        entity.components.add(new PhysicsComponent(body, this._room.world));
         entity.components.add(new AttackComponent());
         entity.components.add(new InputComponent());
         entity.components.add(new HealthComponent());
         entity.components.add(new PlayerComponent(team));
 
         team.addPlayer(entity);
-        this.room.entities.add(entity.id, entity);
 
-        entity.attrs.set({
-            team: team.name
-            , image: 'player-' + team.name
-            , x: team.x
-            , y: team.y
-        });
+        this._room.entities.add(entity.id, entity);
+        this._room.playerCount++;
 
         console.log('  client %s joined %s team as player %s', this.id, team.name, entity.id);
-        this.spark.emit('player.create', entity.serialize());
 
-        this.room.playerCount++;
+        this._spark.emit('player.create', entity.serialize());
 
         return entity;
     }
@@ -164,11 +155,11 @@ Client = utils.inherit(Node, {
      * @method server.core.Client#resetGame
      */
     , resetGame: function() {
-        if (this.player) {
-            this.player.remove();
+        if (this._player) {
+            this._player.remove();
         }
 
-        this.spark.emit('client.reset', this.config, config.debug);
+        this._spark.emit('client.reset', this._config, config.debug);
     }
     /**
      * Synchronizes this client with the server.
@@ -176,29 +167,29 @@ Client = utils.inherit(Node, {
      * @param {object} worldState - State to synchronize.
      */
     , sync: function(worldState) {
-        this.spark.emit('client.sync', worldState);
+        this._spark.emit('client.sync', worldState);
     }
     /**
      * Event handler for when the client is disconnected.
      * @method server.core.Client#onDisconnect
      */
     , onDisconnect: function() {
-        if (this.player) {
-            var playerId = this.player.id;
+        if (this._player) {
+            var playerId = this._player.id;
 
             // remove the player
-            this.player.remove();
+            this._player.remove();
 
             // let other clients know that the player left
-            this.room.primus.forEach(function(spark) {
+            this._room.primus.forEach(function(spark) {
                 spark.emit('player.leave', playerId);
             });
 
-            this.room.playerCount--;
+            this._room.playerCount--;
         }
 
-        console.log('  client %s disconnected from room %s', this.id, this.room.id);
-        this.trigger('client.disconnect', this.id);
+        console.log('  client %s disconnected from room %s', this.id, this._room.id);
+        this.trigger('client.disconnect', this);
     }
 });
 

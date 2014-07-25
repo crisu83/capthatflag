@@ -55,13 +55,15 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this._lastDeadAt = _.now();
     }
     /**
-     * TODO
+     * Event handler for when resetting player points.
+     * @method server.components.PlayerComponent#onPlayerResetPoints
      */
     , onPlayerResetPoints: function() {
         this._points = 0;
     }
     /**
-     * TODO
+     * Event handler for when awarding player points.
+     * @method server.components.PlayerComponent#onPlayerAwardPoints
      */
     , onPlayerAwardPoints: function(points) {
         this._points += points;
@@ -70,17 +72,19 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , update: function(elapsed) {
+        if (this.canRevive()) {
+            var position = this._team.spawnPosition();
+            this.owner.attrs.set({x: position.x, y: position.y});
+            this.owner.revive();
+            this._lastDeadAt = null;
+        }
+
+        // update entity attributes
         this.owner.attrs.set({
             points: this._points
             , kills: this._kills
             , deaths: this._deaths
         });
-
-        if (this.canRevive()) {
-            this.owner.attrs.set({x: this._team.x, y: this._team.y});
-            this.owner.revive();
-            this._lastDeadAt = null;
-        }
     }
     /**
      * Returns whether the entity can be revived.
@@ -88,7 +92,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @return {boolean} The result.
      */
     , canRevive: function() {
-        return this._lastDeadAt && (_.now() - this._lastDeadAt) > (this._respawnSec * 1000);
+        return this._lastDeadAt !== null && (_.now() - this._lastDeadAt) > (this._respawnSec * 1000);
     }
 });
 

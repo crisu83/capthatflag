@@ -28,8 +28,6 @@ BannerComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , init: function() {
-        this.owner.attrs.set('team', this._team);
-
         this._physics = this.owner.components.get('physics');
     }
     /**
@@ -40,13 +38,16 @@ BannerComponent = utils.inherit(ComponentBase, {
 
         this._physics.overlap('player', function(body, other) {
             playerTeam = other.owner.attrs.get('team');
-            if (playerTeam && playerTeam !== this._team && other.owner.attrs.get('alive')) {
-                this.owner.attrs.set('team', playerTeam);
-                this._room.captureBanner(this.owner.id, this._team, playerTeam);
+            if (!_.isUndefined(playerTeam) && playerTeam !== this._team && other.owner.attrs.get('alive')) {
+                this._room.captureFlag(this.owner.id, this._team, playerTeam);
+
+                console.log('   player %s captured flag %s %s => %s', other.owner.id, body.owner.id, this._team, playerTeam);
                 this._team = playerTeam;
-                console.log('player %s captured banner %s for team %s', other.owner.id, body.owner.id, playerTeam);
             }
         }, this);
+
+        // update entity attributes
+        this.owner.attrs.set({team: this._team});
     }
 });
 
