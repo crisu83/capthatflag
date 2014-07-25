@@ -43,7 +43,7 @@ PhysicsComponent = utils.inherit(ComponentBase, {
      * @param {shared.core.Entity} entity - Entity that was removed.
      */
     , onEntityRemove: function(entity) {
-        this._body.trigger('body.remove', [this._body]);
+        this._body.trigger('body.remove', this._body);
     }
     /**
      * @override

@@ -104,13 +104,17 @@ DataManager = {
         return this._images;
     }
     /**
-     * TODO
+     * Returns all the spritesheets found while parsing data files.
+     * @method server.core.DataManager#getSpritesheets
+     * @return {object} Map of spritesheets (key => config).
      */
     , getSpritesheets: function() {
         return this._spritesheets;
     }
     /**
-     * TODO
+     * Returns all audio found while parsing data files.
+     * @method server.core.DataManager#getAudio
+     * @return {object} Map of audio files (key => files).
      */
     , getAudio: function() {
         return this._audio;

@@ -57,7 +57,7 @@ Entity = utils.inherit(Node, {
      * @param {object} attrs - Attributes to synchronize.
      */
     , sync: function(attrs) {
-        this.trigger('entity.sync', [attrs, this]);
+        this.trigger('entity.sync', attrs, this);
     }
     /**
      * Triggers the damage event for the entity.
@@ -66,7 +66,7 @@ Entity = utils.inherit(Node, {
      * @param {shared.core.Entity} attacker - Entity attacking.
      */
     , damage: function(amount, attacker) {
-        this.trigger('entity.damage', [amount, attacker, this]);
+        this.trigger('entity.damage', amount, attacker, this);
     }
     /**
      * Triggers the kill event for the entity.
@@ -74,21 +74,21 @@ Entity = utils.inherit(Node, {
      * @param {shared.core.Entity} other - Entity killed.
      */
     , kill: function(other) {
-        this.trigger('entity.kill', [other, this]);
+        this.trigger('entity.kill', other, this);
     }
     /**
      * Triggers the die event for the entity.
      * @method shared.core.Entity#die
      */
     , die: function() {
-        this.trigger('entity.die', [this]);
+        this.trigger('entity.die', this);
     }
     /**
      * Triggers the revive event for the entity.
      * @method shared.core.Entity#revive
      */
     , revive: function() {
-        this.trigger('entity.revive', [this]);
+        this.trigger('entity.revive', this);
     }
     /**
      * Triggers the remove event the entity (and kills the entity).
@@ -96,7 +96,7 @@ Entity = utils.inherit(Node, {
      */
     , remove: function() {
         this.die();
-        this.trigger('entity.remove', [this]);
+        this.trigger('entity.remove', this);
     }
     /**
      * Serializes this entity to a JSON object.

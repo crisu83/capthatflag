@@ -43,9 +43,9 @@ Hashmap = utils.inherit(null, {
      * @return {object} Item, items or null if not found.
      */
     , get: function(key) {
-        if (typeof key === 'string' || typeof key === 'number') {
+        if (_.isString(key)) {
             return this._items[key];
-        } else if (key instanceof Array) {
+        } else if (_.isArray(key)) {
             return _.pick(this._items, key);
         } else {
             return _.clone(this._items);
@@ -58,23 +58,26 @@ Hashmap = utils.inherit(null, {
      * @param {string} value - Item value.
      */
     , set: function(key, value) {
-        // TODO handle the case if key is not an object
-        if (typeof value === 'undefined') {
+        if (_.isUndefined(value)) {
             _.extend(this._items, key);
-        } else {
+        } else if (_.isString(key)) {
             this._items[key] = value;
         }
+        // TODO handle the case if key is not an object
     }
     /**
-     * Removes an item from the hashmap and returns it.
+     * Removes an item from the hashmap.
      * @method shared.utils.Hashmap#remove
      * @param {string} key - Item key
-     * @return {object} Removed item.
+     * @return {boolean} Whether the item was removed.
      */
     , remove: function(key) {
-        var item = this._items[key];
-        delete this._items[key];
-        return item;
+        if (this._items[key]) {
+            delete this._items[key];
+            return true;
+        } else {
+            return false;
+        }
     }
     /**
      * Removes all the items from the hashmap.

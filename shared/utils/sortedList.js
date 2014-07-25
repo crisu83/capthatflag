@@ -1,6 +1,7 @@
 'use strict';
 
-var utils = require('../utils')
+var _ = require('lodash')
+    , utils = require('../utils')
     , ListBase = require('./list')
     , SortedList;
 
@@ -11,15 +12,16 @@ var utils = require('../utils')
  * @extends shared.utils.List
  */
 SortedList = utils.inherit(ListBase, {
-    _sort: null
     /**
-     * Creates a new sorted list.
+     * Creates a new list.
      * @constructor
-     * @param {function} sort sorting function
-     * TODO
+     * @param {function} sort - Sorting function.
+     * @param {array} items - Initial items.
      */
-    , constructor: function(sort, items) {
-        ListBase.apply(this, [items]);
+    constructor: function(sort, items) {
+        ListBase.call(this, items);
+
+        // internal properties
         this._sort = sort;
     }
     /**
@@ -29,7 +31,7 @@ SortedList = utils.inherit(ListBase, {
      */
     , add: function(item) {
         ListBase.prototype.add.apply(this, arguments);
-        this._items.sort(this._sort);
+        this._items = _.sortBy(this._items, this._sort);
     }
 });
 

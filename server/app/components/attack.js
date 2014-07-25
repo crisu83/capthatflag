@@ -30,24 +30,22 @@ AttackComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , init: function() {
-        var io = this.owner.components.get('io');
-        io.spark.on('entity.attack', this.onAttack.bind(this));
-
         this._team = this.owner.attrs.get('team');
         this._body = new Body('attack', this.owner);
         this._physics = this.owner.components.get('physics');
     }
     /**
-     * Event handler for when the entity is attacking.
-     * @method server.components.AttackComponent#onAttack
+     * @override
      */
-    , onAttack: function() {
+    , attack: function() {
         if (this.canAttack()) {
             var now = _.now()
                 , target = this.calculateTarget()
                 , aoe = this.owner.attrs.get('attackAoe')
                 , halfAoe = aoe / 2
-                , amount = 0;
+                , amount = 0
+                , playerTeam = this.owner.attrs.get('team')
+                , otherTeam;
 
             this._body.x = target.x - halfAoe;
             this._body.y = target.y - halfAoe;
@@ -55,24 +53,26 @@ AttackComponent = utils.inherit(ComponentBase, {
             this._body.height = aoe;
 
             this._physics.overlap('player', function(body, other) {
+                otherTeam = other.owner.attrs.get('team');
+
                 // make sure that we are not hitting our teammates
-                if (this.owner.attrs.get('team') !== other.owner.attrs.get('team') && other.owner.attrs.get('alive')) {
+                if (!_.isUndefined(otherTeam) && playerTeam !== otherTeam && other.owner.attrs.get('alive')) {
                     amount = this.calculateDamage();
                     other.owner.damage(amount, this.owner);
-                    console.log('player %s hit opponent %s for %d', body.owner.id, other.owner.id, amount);
+                    console.log('   player %s hit opponent %s for %d', body.owner.id, other.owner.id, amount);
                 }
             }, this, this._body/* use the attack body instead of the entity body */);
 
-            this._lastAttackAt = now;
+            this.setLastAttackAt(now);
         }
     }
     /**
      * Calculates the amount of damage done.
      * @method server.components.AttackComponent#calculateDamage
+     * @return {number} Amount of damage.
      */
     , calculateDamage: function() {
         // TODO implement some logic for missing and critical hits
-
         return this.owner.attrs.get('maxDamage');
     }
 });

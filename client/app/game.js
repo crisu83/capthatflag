@@ -61,8 +61,8 @@ function run(primus, config) {
             this._playerText = null;
             this._totalPlayers = 0;
             this._pointsText = null;
-            this.__entityGroup = null;
-            this.__effectGroup = null;
+            this._entityGroup = null;
+            this._effectGroup = null;
             this._music = null;
             this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
             this._lastSyncAt = null;
@@ -221,6 +221,7 @@ function run(primus, config) {
         , onPlayerCreate: function(state) {
             this.log('creating player', state);
 
+            // TODO move this logic to the entity factory
             var entity = this.createEntity(state)
                 , sprites = {
                     player: this._entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
@@ -234,7 +235,7 @@ function run(primus, config) {
             entity.components.add(new SpriteComponent(sprites));
             entity.components.add(new PlayerComponent());
             entity.components.add(new IoComponent(primus));
-            entity.components.add(new AttackComponent(sprites.attack, this.game.input));
+            entity.components.add(new AttackComponent());
             entity.components.add(new InputComponent(this.game.input));
             entity.components.add(new PhysicsComponent(body, this.foo));
 
@@ -253,7 +254,7 @@ function run(primus, config) {
         , onSync: function(worldState) {
             var now = _.now();
 
-            // TODO This should not be done
+            // TODO The timestamp should probably not be set like this
             worldState.timestamp = now;
             this._stateHistory.snapshot(worldState);
 
@@ -282,12 +283,7 @@ function run(primus, config) {
 
             this.updateWorldState();
             this.updateEntities(elapsed);
-            this.updatePing();
-            this.updateTimeLeft();
-            this.updateStats();
-            this.updateBannerCount();
-            this.updatePlayerCount();
-            this.updatePoints();
+            this.updateTexts();
 
             this._entityGroup.sort('y', Phaser.Group.SORT_ASCENDING);
 
@@ -303,13 +299,14 @@ function run(primus, config) {
             }, this);
         }
         /**
-         * Updates the ping text.
-         * @method client.PlayState#updatePing
+         * Updates the game text.
+         * @method client.PlayState#updateTexts
          */
-        , updatePing: function() {
-            var now = _.now();
+        , updateTexts: function() {
+            var now = _.now()
+                , timeLeftSec;
 
-            if (!this._pingSentAt || now - this._pingSentAt > 100) {
+            if (_.isUndefined(this._pingSentAt) || (now - this._pingSentAt) > 100) {
                 var ping = Math.round(this._ping / 10) * 10;
                 if (ping < 10) {
                     ping = 10;
@@ -318,45 +315,15 @@ function run(primus, config) {
                 primus.emit('ping', {timestamp: now});
                 this._pingSentAt = now;
             }
-        }
-        /**
-         * Updates the time left text.
-         * @method client.PlayState#updateTimeLeft
-         */
-        , updateTimeLeft: function() {
-            var timeLeftSec = config.gameLengthSec - Math.round(this._runTimeSec);
+
+            timeLeftSec = config.gameLengthSec - Math.round(this._runTimeSec);
             this._runTimeText.text = 'time left: ' + timeLeftSec + ' sec';
-        }
-        /**
-         * Updates the player statistics text.
-         * @method client.PlayState#updateStats
-         */
-        , updateStats: function() {
+            this._flagText.text = 'flags: ' + this._teamFlagCount + ' / ' + this._totalFlagCount;
+            this._playerText.text = 'players online: ' + this._totalPlayers;
+
             if (this.player) {
                 var stats = this.player.attrs.get(['kills', 'deaths']);
                 this._statsText.text = 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths;
-            }
-        }
-        /**
-         * Updates the banners text.
-         * @method client.PlayState#updateBannerCount
-         */
-        , updateBannerCount: function() {
-            this._flagText.text = 'flags: ' + this._teamFlagCount + ' / ' + this._totalFlagCount;
-        }
-        /**
-         * Updates the players online text.
-         * @method client.PlayState#updatePlayerCount
-         */
-        , updatePlayerCount: function() {
-            this._playerText.text = 'players online: ' + this._totalPlayers;
-        }
-        /**
-         * Updates the points text.
-         * @method client.PlayState#updatePoints
-         */
-        , updatePoints: function() {
-            if (this.player) {
                 this._pointsText.text = 'points: ' + this.player.attrs.get('points');
             }
         }
@@ -390,11 +357,14 @@ function run(primus, config) {
                     if (config.enableInterpolation && this.canInterpolate()) {
                         factor = this.calculateInterpolationFactor(previousState, worldState);
                         worldState = this.interpolateWorldState(previousState, worldState, factor);
-                    } else if (config.enableExtrapolation && this.canExtrapolate()) {
+                    }
+                    /*
+                    else if (config.enableExtrapolation && this.canExtrapolate()) {
                         // TODO add support for world state extrapolation
                         factor = 1;
                         worldState = this.extrapolateWorldState(previousState, worldState, factor);
                     }
+                    */
                 }
 
                 _.forOwn(worldState.entities, function(state, entityId) {
@@ -410,15 +380,18 @@ function run(primus, config) {
                         entity.components.add(new SyncComponent());
                         entity.components.add(new PhysicsComponent(body, this.foo));
 
+                        // TODO move this logic to the entity factory
                         switch (state.key) {
                             case 'player':
                                 sprites = {
                                     player: this._entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
+                                    , attack: this._effectGroup.create(state.attrs.x, state.attrs.y, 'attack-sword')
                                     , grave: this._entityGroup.create(state.attrs.x, state.attrs.y, 'grave')
                                 };
 
                                 entity.components.add(new SpriteComponent(sprites));
                                 entity.components.add(new PlayerComponent());
+                                entity.components.add(new AttackComponent());
                                 break;
                             case 'banner':
                                 sprites = {
@@ -540,7 +513,7 @@ function run(primus, config) {
          * @return {boolean} The result.
          */
         , canInterpolateValue: function(previous, next) {
-            return typeof next === 'number' && typeof previous !== 'undefined';
+            return _.isNumber(next) && !_.isUndefined(previous);
         }
         /**
          * Creates an approximate snapshot of the world state using linear extrapolation.
@@ -551,7 +524,7 @@ function run(primus, config) {
          * @return {object} Interpolated world state.
          */
         , extrapolateWorldState: function(previous, next, factor) {
-            // TODO implement entity extrapolation
+            // TODO implement extrapolation
             return next;
         }
         /**
@@ -561,16 +534,6 @@ function run(primus, config) {
          */
         , createEntity: function(data) {
             return new Entity(data, config);
-        }
-        /**
-         * Renders the state.
-         * @method client.PlayState#render
-         * @param {Phaser.Game} game - Game instance.
-         */
-        , render: function(game) {
-            if (DEBUG) {
-                // TODO implement visual debugging
-            }
         }
         /**
          * Logs the a message to the console.

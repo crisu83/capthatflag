@@ -31,7 +31,7 @@ SyncComponent = utils.inherit(ComponentBase, {
     /**
      * Event handler for when the associated entity is synchronized.
      * @method client.components.SyncComponent#onEntitySync
-     * @param {object} attrs - Synchronized attributes.
+     * @param {object} attrs - New attributes.
      */
     , onEntitySync: function(attrs) {
         this.owner.attrs.set(attrs);

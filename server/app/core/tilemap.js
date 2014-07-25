@@ -84,7 +84,7 @@ Tilemap = utils.inherit(null, {
                     entity.components.add(new PhysicsComponent(body, this.room.world));
                     entity.components.add(new BannerComponent(this.room));
 
-                    this.room.bannerCount++;
+                    this.room.flagCount++;
                     break;
                 default:
                     break;

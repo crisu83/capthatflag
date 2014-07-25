@@ -9,7 +9,7 @@ var path = require('path')
     , TilemapFactory = require('./tilemapFactory')
     , Client = require('./client')
     , Hashmap = require('../../../shared/utils/hashmap')
-    , ClientHashmap = require('../utils/clientHashmap')
+    , ClientList = require('../utils/clientList')
     , EntityHashmap = require('../../../shared/utils/entityHashmap')
     , StateHistory = require('../../../shared/utils/stateHistory')
     , World = require('../../../shared/physics/world')
@@ -49,10 +49,6 @@ Room = utils.inherit(Node, {
          */
         this.tilemap = TilemapFactory.create('forrest');
         /**
-         * @property {server.ClientHashmap} clients - Map of clients connected to the room.
-         */
-        this.clients = new ClientHashmap();
-        /**
          * @property {shared.EntityHashmap} entities - Map of entities in the room.
          */
         this.entities = new EntityHashmap();
@@ -61,27 +57,25 @@ Room = utils.inherit(Node, {
          */
         this.world = new World(config.gameWidth, config.gameHeight);
         /**
-         * @property {number} bannerCount - Number of available banners.
+         * @property {number} flagCount - Number of available banners.
          */
-        this.bannerCount = 0;
+        this.flagCount = 0;
         /**
          * @property {number} playerCount - Number of players online.
          */
         this.playerCount = 0;
 
         // internal variables
+        this._clients = new ClientList();
         this._teams = null;
-        this._banners = {};
+        this._flags = {};
         this._lastSyncAt = null;
         this._lastTickAt = null;
         this._gameStartedAt = null;
-        this._lastDingAt = null;
+        this._lastPointsAt = null;
         this._packageSequence = 0;
         this._running = true;
         this._resetting = false;
-
-        this.tilemap.room = this;
-        this.tilemap.init();
 
         console.log(' game room %s created', this.id);
     }
@@ -93,6 +87,9 @@ Room = utils.inherit(Node, {
         // event handler for when a client connects
         this.primus.on('connection', this.onConnection.bind(this));
 
+        this.tilemap.room = this;
+        this.tilemap.init();
+
         this._teams = new Hashmap({
             red: new Team('red', 32, 32)
             //, green: new Team('green', config.gameWidth - 64, 32)
@@ -100,7 +97,7 @@ Room = utils.inherit(Node, {
             , blue: new Team('blue', config.gameWidth - 64, config.gameHeight - 96)
         });
 
-        this.resetBanners();
+        this.resetFlags();
 
         // mark the time when the game started
         var now = _.now();
@@ -116,16 +113,9 @@ Room = utils.inherit(Node, {
      * @param {Primus.Spark} spark - Spark instance.
      */
     , onConnection: function(spark) {
-        var clientId = shortid.generate()
-            , client = this.clients.get(clientId);
-
-        // make sure that we do not create the game multiple times in
-        // the client, that will cause an infinite loop and jam the browser
-        if (!client) {
-            client = new Client(clientId, spark, this);
-            client.init();
-            this.clients.add(clientId, client);
-        }
+        var client = new Client(spark, this);
+        client.init();
+        this._clients.add(client);
     }
     /**
      * Updates the logic for this room.
@@ -142,14 +132,14 @@ Room = utils.inherit(Node, {
         if (!this._lastSyncAt || now - this._lastSyncAt > 1000 / config.syncRate) {
             var worldState = this.createWorldState();
 
-            this.clients.each(function(client, id) {
+            this._clients.each(function(client) {
                 client.sync(worldState);
             }, this);
 
             this._lastSyncAt = now;
         }
 
-        if (!this._lastDingAt || now - this._lastDingAt > config.gamePointsSec * 1000) {
+        if (!this._lastPointsAt || now - this._lastPointsAt > config.gamePointsSec * 1000) {
             this.awardBannerPoints();
         }
 
@@ -166,33 +156,50 @@ Room = utils.inherit(Node, {
      */
     , createWorldState: function() {
         var now = _.now()
+            , entities = {}
             , worldState;
+
+        this.entities.each(function(entity, entityId) {
+            entities[entityId] = entity.serialize();
+        });
+
+        //console.log(entities);
 
         worldState = {
             sequence: this._packetSequence++
-            , timestamp: now
+            , sentAt: now
             , runTimeSec: (now - this._gameStartedAt) / 1000
-            , entities: {}
-            , banners: this._banners
-            , totalBanners: this.bannerCount
+            , entities: entities
+            , banners: this._flags
+            , totalBanners: this.flagCount
             , totalPlayers: this.playerCount
         };
 
-        this.entities.each(function(entity, id) {
-            worldState.entities[id] = entity.serialize();
-        });
-
-        //console.log(worldState.entities);
+        //console.log(this._flags);
 
         return worldState;
     }
-    , captureBanner: function(bannerId, fromTeam, toTeam) {
-        if (fromTeam !== 'neutral') {
-            this._banners[fromTeam].splice(this._banners[fromTeam].indexOf(bannerId), 1);
-            console.log('banner captured from team %s to team %s', fromTeam, toTeam);
-        }
+    /**
+     * Captures a flag from one team to another.
+     * @method server.core.Room#captureFlag
+     * @param {string} flagId - Flag identifier.
+     * @param {string} fromTeam - Team losing the flag.
+     * @param {string} toTeam - Team capturing the flag.
+     */
+    , captureFlag: function(flagId, fromTeam, toTeam) {
+        if (_.has(this._flags, toTeam)) {
 
-        this._banners[toTeam].push(bannerId);
+            if (_.has(this._flags, fromTeam)) {
+                var index = this._flags[fromTeam].indexOf(flagId);
+
+                if (index !== -1) {
+                    this._flags[fromTeam].splice(index, 1);
+                }
+            }
+
+            this._flags[toTeam].push(flagId);
+            console.log('   player captured flag from team %s to team %s', fromTeam, toTeam);
+        }
     }
     /**
      * Returns the currently weakest team.
@@ -204,7 +211,7 @@ Room = utils.inherit(Node, {
 
         this._teams.each(function(team, name) {
             teamSize = team.size();
-            if (typeof leastPlayers === 'undefined' || teamSize < leastPlayers) {
+            if (_.isUndefined(leastPlayers) || teamSize < leastPlayers) {
                 leastPlayers = teamSize;
                 weakest = team;
             }
@@ -221,22 +228,22 @@ Room = utils.inherit(Node, {
             , points = 0
             , team;
 
-        _.forOwn(this._banners, function(bannerId, key) {
-            points = config.gamePointsPerBanner * this._banners[key].length;
+        _.forOwn(this._flags, function(flagId, key) {
+            points = config.gamePointsPerBanner * this._flags[key].length;
             team = this._teams.get(key);
             team.awardPointsToPlayers(points);
             console.log('   players on team %s received %d points', key, points);
         }, this);
 
-        this._lastDingAt = now;
+        this._lastPointsAt = now;
     }
     /**
      * Resets the banners in the room.
-     * @method server.core.Room#resetBanners
+     * @method server.core.Room#resetFlags
      */
-    , resetBanners: function() {
+    , resetFlags: function() {
         this._teams.each(function(team, key) {
-            this._banners[key] = [];
+            this._flags[key] = [];
         }, this);
     }
     /**
@@ -247,22 +254,19 @@ Room = utils.inherit(Node, {
         console.log(' game in room %s is restarting', this.id);
 
         this.entities.clear();
-
-        this.bannerCount = 0;
-
-        this.resetBanners();
+        this.resetFlags();
+        this.flagCount = 0;
 
         this._teams.each(function(team) {
             team.resetPointsForPlayers();
             team.removePlayers();
         }, this);
 
-        this.clients.each(function(client) {
+        this._clients.each(function(client) {
             client.resetGame();
         }, this);
 
-        this.clients.clear();
-
+        this._clients.clear();
         this.tilemap.init();
 
         this._gameStartedAt = _.now();

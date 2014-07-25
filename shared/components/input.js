@@ -35,11 +35,12 @@ InputComponent = utils.inherit(ComponentBase, {
         attrs = attrs || this.owner.attrs.get();
         attrs.inputSequence = command.sequence;
         attrs.direction = command.direction;
+        attrs.action = command.action;
 
         var step = attrs.runSpeed / 100
-            , down = new List(command.down);
+            , arrows = new List(command.arrows);
 
-        down.each(function(key) {
+        arrows.each(function(key) {
             switch (key) {
                 case 'up':
                     attrs.y -= step;

@@ -28,6 +28,7 @@ BannerComponent = utils.inherit(ComponentBase, {
      */
     , init: function() {
         this._sprite = this.owner.components.get('sprite');
+        
         var sprite = this._sprite.get('banner');
         sprite.animations.add('neutral', [0]);
         sprite.animations.add('red', [1]);

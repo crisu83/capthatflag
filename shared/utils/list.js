@@ -31,9 +31,10 @@ List = utils.inherit(null, {
      * Removes an item from the list.
      * @method shared.utils.List#remove
      * @param {object} item - Item to remove.
+     * @return {boolean} Whether the item was removed.
      */
     , remove: function(item) {
-        this._items.splice(this._items.indexOf(item), 1);
+        return this._items.splice(this._items.indexOf(item), 1) !== null;
     }
     /**
      * Returns the item with the given index from this list.
@@ -70,7 +71,7 @@ List = utils.inherit(null, {
      * @method shared.utils.List#clear
      */
     , clear: function() {
-        this._items = [];
+        this._items.length = 0;
     }
     /**
      * Returns whether the list contains no items.
@@ -105,6 +106,13 @@ List = utils.inherit(null, {
         return items;
     }
     /**
+     * Shuffles the items in the list.
+     * @method shared.utils.List#shuffle
+     */
+    , shuffle: function() {
+        _.shuffle(this._items);
+    }
+    /**
      * Returns the first item in the list.
      * @method shared.utils.List#first
      * @return {object} Item found, or null if not found.
@@ -118,7 +126,7 @@ List = utils.inherit(null, {
      * @return {object} Item found, or null if not found.
      */
     , last: function() {
-        return this._items[this._items.length - 1];
+        return this._items[this.size() - 1];
     }
 });
 

@@ -7,14 +7,14 @@ var utils = require('../utils')
 /**
  * IO component.
  * @class shared.components.IoComponent
- * @classdesc Component that add socket functionality.
+ * @classdesc Component that add input/output functionality.
  * @extends shared.core.Component
  */
 IoComponent = utils.inherit(ComponentBase, {
     /**
      * Creates a new component.
      * @constructor
-     * @param {Primus.Spark} spark - Spark instance-
+     * @param {Primus.Spark} spark - Spark instance.
      */
     constructor: function(spark) {
         ComponentBase.apply(this);

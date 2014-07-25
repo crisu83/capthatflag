@@ -8,7 +8,7 @@ var _ = require('lodash')
 /**
  * World class
  * @class shared.physics.World
- * @class Represents the physical world.
+ * @classdesc Represents the physical world.
  */
 World = utils.inherit(null, {
     /**
@@ -160,13 +160,17 @@ World = utils.inherit(null, {
         return true;
     }
     /**
-     * TODO
+     * Returns the right most point of the world.
+     * @method shared.physics.World#right
+     * @return {number} Value on the x-axis.
      */
     , right: function() {
         return this.x + this.width;
     }
     /**
-     * TODO
+     * Returns the bottom most point of the world.
+     * @method shared.physics.World#right
+     * @return {number} Value on the y-axis.
      */
     , bottom: function() {
         return this.y + this.height;
