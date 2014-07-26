@@ -48,18 +48,21 @@ InputComponent = utils.inherit(ComponentBase, {
      * @param {object} attrs - Synchronized attributes.
      */
     , onEntitySync: function(attrs) {
+        // TODO fix server reconciliation
+        /*
         if (_.has(attrs, 'inputSequence')) {
             this._commands.filter(function(command) {
                 return command.sequence > attrs.inputSequence;
-            }, true/* replace */);
+            }, true);
 
             this._commands.each(function(command) {
                 attrs = this.processCommand(command, attrs);
             }, this);
 
-            attrs = _.omit(attrs, 'inputSequence');
+            attrs = _.omit(attrs, ['inputSequence']);
         }
-
+        */
+        attrs = _.omit(attrs, ['x', 'y']);
         this.owner.attrs.set(attrs);
     }
     /**
