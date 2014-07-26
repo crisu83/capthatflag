@@ -36,8 +36,6 @@ InputComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , init: function() {
-        this._input.reset(true/* hard */);
-
         this._io = this.owner.components.get('io');
         this._cursorKeys = this._input.keyboard.createCursorKeys();
         this._attackKey = this._input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);

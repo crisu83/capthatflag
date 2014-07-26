@@ -21,7 +21,7 @@ IoComponent = utils.inherit(ComponentBase, {
 
         // inherited properties
         this.key = 'io';
-        this.phase = ComponentBase.prototype.phases.NETWORK;
+        this.phase = ComponentBase.prototype.phases.INPUT;
 
         /**
          * @property {Primus.Spark} spark - Spark instance.

@@ -47,11 +47,10 @@ Component = utils.inherit(Node, {
 
     }
     , phases: {
-        NETWORK: 1
+        INPUT: 1
         , LOGIC: 2
         , MOVEMENT: 3
         , PHYSICS: 4
-        , INPUT: 5
     }
 });
 
