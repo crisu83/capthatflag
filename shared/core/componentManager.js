@@ -20,7 +20,7 @@ ComponentManager = utils.inherit(null, {
         // internal properties
         this._owner = owner;
         this._components = new SortedList(function(a, b) {
-            return a.phase < b.phase;
+            return a.phase > b.phase;
         });
     }
     /**
