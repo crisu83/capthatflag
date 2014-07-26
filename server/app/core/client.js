@@ -155,14 +155,23 @@ Client = utils.inherit(Node, {
         return entity;
     }
     /**
-     * Resets the game for the client.
-     * @method server.core.Client#resetGame
+     * Ends the game for the client.
+     * @method server.core.Client#endGame
+     * @param {string} winner - Name of the winning team.
      */
-    , resetGame: function() {
+    , endGame: function(winner) {
+        this._spark.emit('game.end', winner);
+
         if (this._player) {
             this._player.remove();
         }
 
+        setTimeout(this.resetGame.bind(this), config.gameResetSec * 1000);
+    }
+    /**
+     * TODO
+     */
+    , resetGame: function() {
         this._spark.emit('client.reset', this._config, config.debug);
     }
     /**

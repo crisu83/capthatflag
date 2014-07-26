@@ -77,7 +77,6 @@ Room = utils.inherit(Node, {
         this._lastPointsAt = null;
         this._packageSequence = 0;
         this._running = true;
-        this._resetting = false;
 
         console.log(' game room %s created', this.id);
     }
@@ -109,6 +108,8 @@ Room = utils.inherit(Node, {
         this._gameStartedAt = now;
         this._lastTickAt = now;
 
+        this._running = true;
+
         // start the game loop for this room with the configured tick rate
         setInterval(this.gameLoop.bind(this), 1000 / config.tickRate);
     }
@@ -127,32 +128,34 @@ Room = utils.inherit(Node, {
      * @method server.core.Room#gameLoop
      */
     , gameLoop: function() {
-        var now = _.now()
-            , elapsed = now - this._lastTickAt;
+        if (this._running) {
+            var now = _.now()
+                , elapsed = now - this._lastTickAt;
 
-        this.entities.each(function(entity) {
-            entity.update(elapsed);
-        }, this);
-
-        if (!this._lastSyncAt || now - this._lastSyncAt > 1000 / config.syncRate) {
-            var worldState = this.createWorldState();
-
-            this._clients.each(function(client) {
-                client.sync(worldState);
+            this.entities.each(function(entity) {
+                entity.update(elapsed);
             }, this);
 
-            this._lastSyncAt = now;
-        }
+            if (!this._lastSyncAt || now - this._lastSyncAt > 1000 / config.syncRate) {
+                var worldState = this.createWorldState();
 
-        if (!this._lastPointsAt || now - this._lastPointsAt > config.gamePointsSec * 1000) {
-            this.awardBannerPoints();
-        }
+                this._clients.each(function(client) {
+                    client.sync(worldState);
+                }, this);
 
-        if (now - this._gameStartedAt > config.gameLengthSec * 1000) {
-            this.resetGame();
-        }
+                this._lastSyncAt = now;
+            }
 
-        this._lastTickAt = now;
+            if (!this._lastPointsAt || now - this._lastPointsAt > config.gamePointsSec * 1000) {
+                this.awardFlagPoints();
+            }
+
+            if (now - this._gameStartedAt > config.gameLengthSec * 1000) {
+                this.endGame();
+            }
+
+            this._lastTickAt = now;
+        }
     }
     /**
      * Creates the current game state.
@@ -162,7 +165,7 @@ Room = utils.inherit(Node, {
     , createWorldState: function() {
         var now = _.now()
             , entities = {}
-            , teamScore = []
+            , teamScore = this.calculateTeamScore()
             , worldState;
 
         this.entities.each(function(entity, entityId) {
@@ -170,10 +173,6 @@ Room = utils.inherit(Node, {
         });
 
         //console.log(entities);
-
-        this._teams.each(function(team) {
-            teamScore.push({team: team.name, points: team.getTotalPoints()});
-        }, this);
 
         worldState = {
             sequence: this._packetSequence++
@@ -189,6 +188,15 @@ Room = utils.inherit(Node, {
         //console.log(this._flags);
 
         return worldState;
+    }
+    , calculateTeamScore: function() {
+        var teamScore = [];
+
+        this._teams.each(function(team) {
+            teamScore.push({team: team.name, points: team.getTotalPoints()});
+        }, this);
+
+        return teamScore;
     }
     /**
      * Captures a flag from one team to another.
@@ -231,16 +239,16 @@ Room = utils.inherit(Node, {
         return weakest;
     }
     /**
-     * Awards points for banners.
-     * @method server.core.Room#awardBannerPoints
+     * Awards points for flags.
+     * @method server.core.Room#awardFlagPoints
      */
-    , awardBannerPoints: function() {
+    , awardFlagPoints: function() {
         var now = _.now()
             , points = 0
             , team;
 
         _.forOwn(this._flags, function(flagId, key) {
-            points = config.gamePointsPerBanner * this._flags[key].length;
+            points = config.gamePointsPerFlag * this._flags[key].length;
             team = this._teams.get(key);
             team.awardPointsToPlayers(points);
             console.log('   players on team %s received %d points', key, points);
@@ -258,29 +266,47 @@ Room = utils.inherit(Node, {
         }, this);
     }
     /**
-     * Restarts the game.
-     * @method server.core.Room#restartGame
+     * Ends the game in the room.
+     * @method server.core.Room#endGame
      */
-    , resetGame: function() {
-        console.log(' game in room %s is restarting', this.id);
+    , endGame: function() {
+        this._running = false;
+
+        var teamScore = this.calculateTeamScore()
+            , topScore;
+
+        // sort the scores so that the highest is first
+        teamScore.sort(function(a, b) {
+            return a.points > b.points;
+        });
+
+        topScore = teamScore.pop();
+        console.log(' game in room %s won by %s team with %d points', this.id, topScore.team, topScore.points);
 
         this.entities.clear();
-        this.resetFlags();
-        this.flagCount = 0;
 
         this._teams.each(function(team) {
-            team.resetPointsForPlayers();
-            team.removePlayers();
+            team.endGame();
         }, this);
 
         this._clients.each(function(client) {
-            client.resetGame();
+            client.endGame(topScore.team);
         }, this);
 
+        setTimeout(this.resetGame.bind(this), config.gameResetSec * 1000);
+    }
+    /**
+     * TODO
+     */
+    , resetGame: function() {
+        this.resetFlags();
         this._clients.clear();
-        this.tilemap.init();
 
+        this.flagCount = 0;
+        this.tilemap.init();
         this._gameStartedAt = _.now();
+
+        this._running = true;
     }
 });
 

@@ -41,6 +41,14 @@ PlayerComponent = utils.inherit(ComponentBase, {
         graveSprite = this._sprite.get('grave');
         graveSprite.animations.add('default', [0]);
         graveSprite.kill();
+
+        this.owner.on('entity.remove', this.onEntityRemove.bind(this));
+    }
+    /**
+     * TODO
+     */
+    , onEntityRemove: function() {
+        this._nameText.destroy();
     }
     /**
      * @override
@@ -74,12 +82,14 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         if (alive === false && this._lastAlive) {
             this._sprite.kill('player');
+            this._sprite.kill('attack');
             this._sprite.setPosition('grave', position);
             this._sprite.revive('grave');
             this.owner.die();
         } else if (alive === true && !this._lastAlive) {
             this._sprite.kill('grave');
             this._sprite.revive('player');
+            this._sprite.revive('attack');
             this.owner.revive();
         }
 
@@ -114,7 +124,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
                     break;
             }
 
-            this._sprite.playAnimation('player', animation, 15, true);
+            this._sprite.playAnimation('player', animation, 10, true);
 
             this._lastDirection = direction;
         }

@@ -32,14 +32,6 @@ AttackComponent = utils.inherit(ComponentBase, {
         sprite.animations.add('idle', [6]);
         sprite.animations.add('slash', [0, 1, 2, 3, 4, 5, 6]);
         sprite.animations.play('idle');
-
-        this.owner.on('entity.die', this.onEntityDeath.bind(this));
-    }
-    /**
-     * TODO
-     */
-    , onEntityDeath: function(entity) {
-        this._sprite.playAnimation('attack', 'idle', 30, true);
     }
     /**
      * @override
