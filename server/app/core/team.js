@@ -77,10 +77,19 @@ Team = utils.inherit(null, {
      */
     , getTotalPoints: function() {
         var points = 0;
+
         this._players.each(function(player) {
             points += player.attrs.get('points');
         }, this);
+
         return points;
+    }
+    /**
+     * TODO
+     */
+    , endGame: function() {
+        this.resetPointsForPlayers();
+        this.removePlayers();
     }
     /**
      * Removes all the players from the team.

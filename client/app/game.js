@@ -64,6 +64,7 @@ function run(primus, config) {
             this._pointsText = null;
             this._scoreText = null;
             this._score = '';
+            this._endText = null;
             this._entityGroup = null;
             this._effectGroup = null;
             this._music = null;
@@ -204,6 +205,19 @@ function run(primus, config) {
             text.fixedToCamera = true;
             this._scoreText = text;
 
+            style = {
+                font: '24px Courier'
+                , stroke: '#000000'
+                , strokeThickness: 5
+                , fill: '#ffffff'
+                , align: 'center'
+            };
+
+            text = this.add.text(config.canvasWidth / 2, config.canvasHeight / 2, '', style);
+            text.anchor.setTo(0.5, 0.5);
+            text.fixedToCamera = true;
+            this._endText = text;
+
             if (DEBUG) {
                 pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
                 pauseKey.onDown.add(this.onGamePause.bind(this));
@@ -216,6 +230,7 @@ function run(primus, config) {
             primus.on('pong', this.onPong.bind(this));
             primus.on('player.create', this.onPlayerCreate.bind(this));
             primus.on('player.leave', this.onPlayerLeave.bind(this));
+            primus.on('game.end', this.onGameEnd.bind(this));
 
             // let the server know that client is ready
             primus.emit('client.ready');
@@ -227,6 +242,13 @@ function run(primus, config) {
         , onGamePause: function() {
             this.paused = !this.paused;
             this.log(this.paused ? 'game paused' : 'game resumed');
+        }
+        /**
+         * TODO
+         */
+        , onGameEnd: function(winner) {
+            this.player.remove();
+            this._endText.text = winner.toUpperCase() + ' TEAM WON\nGame will restart shortly';
         }
         /**
          * Event handler for when mute is pressed.
@@ -298,6 +320,7 @@ function run(primus, config) {
          */
         , onPlayerLeave: function (entityId) {
             this.log('player left', entityId);
+            
             var entity = this.entities.get(entityId);
             if (entity) {
                 entity.remove();
@@ -356,7 +379,7 @@ function run(primus, config) {
             if (this.player) {
                 var stats = this.player.attrs.get(['kills', 'deaths']);
                 this._statsText.text = 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths;
-                //this._pointsText.text = 'points: ' + Math.round(this.player.attrs.get('points'));
+                this._pointsText.text = 'points: ' + Math.round(this.player.attrs.get('points'));
             }
         }
         /**

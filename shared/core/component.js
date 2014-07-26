@@ -51,8 +51,7 @@ Component = utils.inherit(Node, {
         , LOGIC: 2
         , MOVEMENT: 3
         , PHYSICS: 4
-        , RENDER: 5
-        , INPUT: 6
+        , INPUT: 5
     }
 });
 
