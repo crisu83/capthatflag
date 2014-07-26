@@ -124,6 +124,9 @@ function run(primus, config) {
 
             var map, layer, tile, body, style, text, pauseKey, muteKey;
 
+            // remove all existing key bindings
+            this.game.input.reset(true/* hard */);
+
             // define the world bounds
             this.world.setBounds(0, 0, config.gameWidth, config.gameHeight);
 
@@ -320,7 +323,7 @@ function run(primus, config) {
          */
         , onPlayerLeave: function (entityId) {
             this.log('player left', entityId);
-            
+
             var entity = this.entities.get(entityId);
             if (entity) {
                 entity.remove();
@@ -411,6 +414,7 @@ function run(primus, config) {
 
                 if (previousState) {
                     if (config.enableInterpolation && this.canInterpolate()) {
+                        // TODO fix client interpolation
                         factor = this.calculateInterpolationFactor(previousState, worldState);
                         worldState = this.interpolateWorldState(previousState, worldState, factor);
                     }
@@ -537,7 +541,7 @@ function run(primus, config) {
                             , entity
                             , factor
                         );
-                        // TODO Test with a bigger sprite if this "smoothing" is necessary
+                        // TODO Check this "smoothing" is necessary
                         /*
                         entityState = this.interpolateEntityState(
                             previous.entities[id]
