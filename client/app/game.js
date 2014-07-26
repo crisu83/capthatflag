@@ -620,7 +620,7 @@ function run(primus, config) {
     var game = new Phaser.Game(
         config.canvasWidth
         , config.canvasHeight
-        , Phaser.AUTO
+        , Phaser.CANVAS
         , 'game'
         , null/* state */
         , false/* transparent */
