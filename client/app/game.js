@@ -62,6 +62,8 @@ function run(primus, config) {
             this._playerText = null;
             this._totalPlayers = 0;
             this._pointsText = null;
+            this._scoreText = null;
+            this._score = '';
             this._entityGroup = null;
             this._effectGroup = null;
             this._music = null;
@@ -138,7 +140,7 @@ function run(primus, config) {
             // add the collision layer tiles to the physical world
             _.forOwn(config.mapCollisionTiles, function(json) {
                 tile = new Tile(json.x, json.y, json.width, json.height);
-                
+
                 body = new Body('tile', tile);
                 body.x = tile.x;
                 body.y = tile.y;
@@ -168,11 +170,13 @@ function run(primus, config) {
                 , fill: "#ffffff"
             };
 
-            text = this.add.text(10, 10, '', style);
+            text = this.add.text(config.canvasWidth - 10, config.canvasHeight - 30, '', style);
+            text.anchor.x = 1;
             text.fixedToCamera = true;
             this._playerText = text;
 
-            text = this.add.text(10, 30, '', style);
+            text = this.add.text(config.canvasWidth - 10, config.canvasHeight - 50, '', style);
+            text.anchor.x = 1;
             text.fixedToCamera = true;
             this._pingText = text;
 
@@ -192,8 +196,13 @@ function run(primus, config) {
             text.fixedToCamera = true;
             this._runTimeText = text;
 
-            text = this.add.text(config.canvasWidth - 172, 10, config.gameName + ' ' + config.gameVersion, style);
+            text = this.add.text(config.canvasWidth - 10, 10, config.gameName + ' ' + config.gameVersion, style);
+            text.anchor.x = 1;
             text.fixedToCamera = true;
+
+            text = this.add.text(10, 10, '', style);
+            text.fixedToCamera = true;
+            this._scoreText = text;
 
             if (DEBUG) {
                 pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
@@ -242,12 +251,13 @@ function run(primus, config) {
                     , grave: this._entityGroup.create(state.attrs.x, state.attrs.y, 'grave')
                     , attack: this._effectGroup.create(state.attrs.x, state.attrs.y, 'attack-sword')
                 }
-                , body = new Body('player', entity);
+                , body = new Body('player', entity)
+                , nameText = this.createNameText(state.attrs.name, state.attrs.team);
 
             this.camera.follow(sprites.player);
 
             entity.components.add(new SpriteComponent(sprites));
-            entity.components.add(new PlayerComponent());
+            entity.components.add(new PlayerComponent(nameText));
             entity.components.add(new IoComponent(primus));
             entity.components.add(new AttackComponent());
             entity.components.add(new InputComponent(this.game.input));
@@ -259,6 +269,13 @@ function run(primus, config) {
 
             // now we are ready to synchronization the world with the server
             primus.on('client.sync', this.onSync.bind(this));
+        }
+        /**
+         * TODO
+         */
+        , createNameText: function(name, team) {
+            var color = team === 'red' ? '#ff33cc' : '#0099ff';
+            return this.add.text(0, 0, name, {font: "10px Courier", stroke: "#000000", strokeThickness: 5, fill: color});
         }
         /**
          * Event handler for synchronizing the client with the server.
@@ -334,11 +351,12 @@ function run(primus, config) {
             this._runTimeText.text = 'time left: ' + timeLeftSec + ' sec';
             this._flagText.text = 'flags: ' + this._teamFlagCount + ' / ' + this._totalFlagCount;
             this._playerText.text = 'players online: ' + this._totalPlayers;
+            this._scoreText.text = this._score;
 
             if (this.player) {
                 var stats = this.player.attrs.get(['kills', 'deaths']);
                 this._statsText.text = 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths;
-                this._pointsText.text = 'points: ' + this.player.attrs.get('points');
+                //this._pointsText.text = 'points: ' + Math.round(this.player.attrs.get('points'));
             }
         }
         /**
@@ -360,12 +378,13 @@ function run(primus, config) {
                 var now = _.now()
                     , playerTeam = this.player.attrs.get('team')
                     , previousState = this._stateHistory.previous()
-                    , factor, state, entity, sprites, body;
+                    , factor, state, entity, sprites, body, nameText;
 
                 this._runTimeSec = worldState.runTimeSec;
                 this._teamFlagCount = worldState.banners[playerTeam].length;
                 this._totalFlagCount = worldState.totalBanners;
                 this._totalPlayers = worldState.totalPlayers;
+                this._score = this.createTeamScoreText(worldState.teamScore);
 
                 if (previousState) {
                     if (config.enableInterpolation && this.canInterpolate()) {
@@ -402,9 +421,10 @@ function run(primus, config) {
                                     , attack: this._effectGroup.create(state.attrs.x, state.attrs.y, 'attack-sword')
                                     , grave: this._entityGroup.create(state.attrs.x, state.attrs.y, 'grave')
                                 };
+                                nameText = this.createNameText(state.attrs.name, state.attrs.team);
 
                                 entity.components.add(new SpriteComponent(sprites));
-                                entity.components.add(new PlayerComponent());
+                                entity.components.add(new PlayerComponent(nameText));
                                 entity.components.add(new AttackComponent());
                                 break;
                             case 'banner':
@@ -425,6 +445,16 @@ function run(primus, config) {
                     entity.sync(state.attrs);
                 }, this);
             }
+        }
+        /**
+         * TODO
+         */
+        , createTeamScoreText: function(scores) {
+            var text = '';
+            _.forOwn(scores, function(score) {
+                text += score.team + ' team: ' + score.points + '\n';
+            });
+            return text;
         }
         /**
          * Calculates an interpolation factor based on the two given snapshots.

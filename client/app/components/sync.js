@@ -20,7 +20,7 @@ SyncComponent = utils.inherit(ComponentBase, {
 
         // inherited properties
         this.key = 'sync';
-        this.phase = ComponentBase.prototype.phases.LOGIC;
+        this.phase = ComponentBase.prototype.phases.NETWORK;
     }
     /**
      * @override

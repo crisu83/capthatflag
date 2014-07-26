@@ -16,11 +16,12 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * Creates a new component.
      * @constructor
      */
-    constructor: function() {
+    constructor: function(nameText) {
         ComponentBase.apply(this);
 
         // internal properties
         this._sprite = null;
+        this._nameText = nameText;
         this._lastDirection = 'none';
         this._lastAlive = true;
     }
@@ -48,6 +49,12 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this.updatePosition();
         this.updateAlive();
         this.updateAnimation();
+
+        var position = this.owner.attrs.get(['x', 'y'])
+            , dimensions = this.owner.attrs.get(['width', 'height']);
+
+        this._nameText.x = position.x + (dimensions.width / 2) - (this._nameText.width / 2);
+        this._nameText.y = position.y - 10;
     }
     /**
      * Updates the position of the player.

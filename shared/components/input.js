@@ -22,7 +22,7 @@ InputComponent = utils.inherit(ComponentBase, {
 
         // inherited properties
         this.key = 'input';
-        this.phase = ComponentBase.prototype.phases.LOGIC;
+        this.phase = ComponentBase.prototype.phases.INPUT;
     }
     /**
      * Processes to user command on the given attributes.

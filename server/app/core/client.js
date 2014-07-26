@@ -121,13 +121,15 @@ Client = utils.inherit(Node, {
      */
     , createPlayer: function() {
         var entity = EntityFactory.create('player')
+            , name = this._room.names.pop()
             , team = this._room.weakestTeam()
             , position = team.spawnPosition()
             , body = new Body('player', entity);
 
         // set initial entity attributes
         entity.attrs.set({
-            team: team.name
+            name: name
+            , team: team.name
             , image: 'player-' + team.name
             , x: position.x
             , y: position.y

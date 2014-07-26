@@ -12,7 +12,7 @@
         , "minDamage": 1
         , "maxDamage": 1
         , "maxHealth": 1
-        , "respawnSec": 5
+        , "respawnSec": 10
         , "image": "player-red"
         , "team": "red"
     }

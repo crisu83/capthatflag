@@ -65,6 +65,8 @@ Room = utils.inherit(Node, {
          */
         this.playerCount = 0;
 
+        this.names = [];
+
         // internal variables
         this._clients = new ClientList();
         this._teams = null;
@@ -89,6 +91,9 @@ Room = utils.inherit(Node, {
 
         this.tilemap.room = this;
         this.tilemap.init();
+
+        var json = require('../../../data/names.json');
+        this.names = _.shuffle(json.names);
 
         this._teams = new Hashmap({
             red: new Team('red', 32, 32)
@@ -157,6 +162,7 @@ Room = utils.inherit(Node, {
     , createWorldState: function() {
         var now = _.now()
             , entities = {}
+            , teamScore = []
             , worldState;
 
         this.entities.each(function(entity, entityId) {
@@ -165,12 +171,17 @@ Room = utils.inherit(Node, {
 
         //console.log(entities);
 
+        this._teams.each(function(team) {
+            teamScore.push({team: team.name, points: team.getTotalPoints()});
+        }, this);
+
         worldState = {
             sequence: this._packetSequence++
             , sentAt: now
             , runTimeSec: (now - this._gameStartedAt) / 1000
             , entities: entities
             , banners: this._flags
+            , teamScore: teamScore
             , totalBanners: this.flagCount
             , totalPlayers: this.playerCount
         };
