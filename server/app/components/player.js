@@ -45,6 +45,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
      */
     , onEntityKill: function(other) {
         this._kills++;
+        this._points += 10;
     }
     /**
      * Event handler for when the entity dies.

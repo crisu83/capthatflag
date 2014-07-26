@@ -59,7 +59,7 @@ Team = utils.inherit(null, {
      * @param {number} points - Amount of points.
      */
     , awardPointsToPlayers: function(points) {
-        this._players.each(function(player, playerId) {
+        this._players.each(function(player) {
             player.trigger('player.awardPoints', points);
         }, this);
     }
@@ -68,9 +68,19 @@ Team = utils.inherit(null, {
      * @method server.core.Team#resetPointsForPlayers
      */
     , resetPointsForPlayers: function() {
-        this._players.each(function(player, playerId) {
+        this._players.each(function(player) {
             player.trigger('player.resetPoints');
         }, this);
+    }
+    /**
+     * TODO
+     */
+    , getTotalPoints: function() {
+        var points = 0;
+        this._players.each(function(player) {
+            points += player.attrs.get('points');
+        }, this);
+        return points;
     }
     /**
      * Removes all the players from the team.
