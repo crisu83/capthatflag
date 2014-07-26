@@ -57,12 +57,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this.updatePosition();
         this.updateAlive();
         this.updateAnimation();
-
-        var position = this.owner.attrs.get(['x', 'y'])
-            , dimensions = this.owner.attrs.get(['width', 'height']);
-
-        this._nameText.x = position.x + (dimensions.width / 2) - (this._nameText.width / 2);
-        this._nameText.y = position.y - 10;
+        this.updateNameText();
     }
     /**
      * Updates the position of the player.
@@ -127,6 +122,18 @@ PlayerComponent = utils.inherit(ComponentBase, {
             this._sprite.playAnimation('player', animation, 10, true);
 
             this._lastDirection = direction;
+        }
+    }
+    /**
+     * TODO
+     */
+    , updateNameText: function() {
+        if (this._lastAlive === true) {
+            var position = this.owner.attrs.get(['x', 'y'])
+                , width = this.owner.attrs.get('width');
+
+            this._nameText.x = position.x + (width / 2) - (this._nameText.width / 2);
+            this._nameText.y = position.y - 10;
         }
     }
 });
