@@ -137,41 +137,45 @@ World = utils.inherit(null, {
             return false;
         }
 
-        var depths, absoluteDepth, smallestDepth, collidingSide;
+        var collisionFrom = []
+            , depths;
 
-        depths = {
-            left: body.right() - other.x
-            , right: body.x - other.right()
-            , top: body.bottom() - other.y
-            , bottom: body.y - other.bottom()
-        };
+        depths = [
+            {side: 'left', value: Math.abs(body.right() - other.x)}
+            , {side: 'right', value: Math.abs(body.x - other.right())}
+            , {side: 'top', value: Math.abs(body.bottom() - other.y)}
+            , {side: 'bottom', value: Math.abs(body.y - other.bottom())}
+        ];
 
-        _.forOwn(depths, function(depth, side) {
-            absoluteDepth = Math.abs(depth);
-            if (_.isUndefined(smallestDepth) || absoluteDepth < smallestDepth) {
-                collidingSide = side;
-                smallestDepth = absoluteDepth;
+        depths.sort(function(a, b) {
+            return a.value > b.value;
+        });
+
+        collisionFrom.push(depths[0].side);
+        if (depths[0].value === depths[1].value) {
+            collisionFrom.push(depths[1].side);
+        }
+
+        //console.log('colliding from %s', collisionFrom);
+
+        _.forOwn(collisionFrom, function(side) {
+            switch (side) {
+                case 'left':
+                    body.x = other.x - body.width;
+                    break;
+                case 'right':
+                    body.x = other.right();
+                    break;
+                case 'top':
+                    body.y = other.y - body.height;
+                    break;
+                case 'bottom':
+                    body.y = other.bottom();
+                    break;
+                default:
+                    break;
             }
         }, this);
-
-        console.log('colliding from %s', collidingSide);
-
-        switch (collidingSide) {
-            case 'left':
-                body.x = other.x - body.width;
-                break;
-            case 'right':
-                body.x = other.right();
-                break;
-            case 'top':
-                body.y = other.y - body.height;
-                break;
-            case 'bottom':
-                body.y = other.bottom();
-                break;
-            default:
-                break;
-        }
 
         return true;
     }
