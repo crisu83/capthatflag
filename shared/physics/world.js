@@ -137,7 +137,7 @@ World = utils.inherit(null, {
             return false;
         }
 
-        var collisionFrom = []
+        var side = 'none'
             , depths;
 
         depths = [
@@ -147,35 +147,38 @@ World = utils.inherit(null, {
             , {side: 'bottom', value: Math.abs(body.y - other.bottom())}
         ];
 
+        // sort the depths in ascending order, the smallest depth
+        // determines the side on which the collision occurred
         depths.sort(function(a, b) {
             return a.value > b.value;
         });
 
-        collisionFrom.push(depths[0].side);
-        if (depths[0].value === depths[1].value) {
-            collisionFrom.push(depths[1].side);
+        // make sure that this is not a corner collision
+        // in that case just skip the separation to avoid issues
+        if (depths[0].value !== depths[1].value) {
+            side = depths[0].side;
         }
 
-        //console.log('colliding from %s', collisionFrom);
+        //console.log('colliding from %s', side);
 
-        _.forOwn(collisionFrom, function(side) {
-            switch (side) {
-                case 'left':
-                    body.x = other.x - body.width;
-                    break;
-                case 'right':
-                    body.x = other.right();
-                    break;
-                case 'top':
-                    body.y = other.y - body.height;
-                    break;
-                case 'bottom':
-                    body.y = other.bottom();
-                    break;
-                default:
-                    break;
-            }
-        }, this);
+        // do the actual separation (if necessary)
+        switch (side) {
+            case 'left':
+                body.x = other.x - body.width - 1;
+                break;
+            case 'right':
+                body.x = other.right() + 1;
+                break;
+            case 'top':
+                body.y = other.y - body.height - 1;
+                break;
+            case 'bottom':
+                body.y = other.bottom() + 1;
+                break;
+            default:
+            case 'none':
+                break;
+        }
 
         return true;
     }

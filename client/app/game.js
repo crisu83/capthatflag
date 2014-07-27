@@ -57,7 +57,7 @@ function run(primus, config) {
             this._runTimeSec = 0;
             this._teamFlagCount = 0;
             this._totalFlagCount = 0;
-            this._totalPlayers = 0;
+            this._totalPlayerCount = 0;
             this._score = '';
             this._entityGroup = null;
             this._effectGroup = null;
@@ -174,33 +174,33 @@ function run(primus, config) {
             text.fixedToCamera = true;
             this._texts.add('gameScore', text);
 
-            text = this.add.text(10, config.canvasHeight - 90, '', style);
+            text = this.add.text(10, config.canvasHeight - 90, 'points: -', style);
             text.fixedToCamera = true;
             this._texts.add('playerPoints', text);
 
-            text = this.add.text(10, config.canvasHeight - 50, '', style);
+            text = this.add.text(10, config.canvasHeight - 50, 'kills: - / deaths: -', style);
             text.fixedToCamera = true;
             this._texts.add('playerStats', text);
 
-            text = this.add.text(10, config.canvasHeight - 70, '', style);
+            text = this.add.text(10, config.canvasHeight - 70, 'flags: - / -', style);
             text.fixedToCamera = true;
             this._texts.add('teamFlags', text);
 
-            text = this.add.text(10, config.canvasHeight - 30, '', style);
+            text = this.add.text(10, config.canvasHeight - 30, 'time left: -', style);
             text.fixedToCamera = true;
             this._texts.add('gameTimeLeft', text);
 
-            text = this.add.text(config.canvasWidth - 10, config.canvasHeight - 70, '', style);
+            text = this.add.text(config.canvasWidth - 10, config.canvasHeight - 70, 'ping: -', style);
             text.anchor.x = 1;
             text.fixedToCamera = true;
             this._texts.add('clientPing', text);
 
-            text = this.add.text(config.canvasWidth - 10, config.canvasHeight - 50, '', style);
+            text = this.add.text(config.canvasWidth - 10, config.canvasHeight - 50, 'packet loss: -', style);
             text.anchor.x = 1;
             text.fixedToCamera = true;
             this._texts.add('clientPacketLoss', text);
 
-            text = this.add.text(config.canvasWidth - 10, config.canvasHeight - 30, '', style);
+            text = this.add.text(config.canvasWidth - 10, config.canvasHeight - 30, 'players online: -', style);
             text.anchor.x = 1;
             text.fixedToCamera = true;
             this._texts.add('playersOnline', text);
@@ -368,12 +368,22 @@ function run(primus, config) {
             this._texts.changeText('gameScore', this._score);
 
             if (this.player) {
-                this._texts.changeText('playerPoints', 'points: ' + Math.round(this.player.attrs.get('points')));
-                var stats = this.player.attrs.get(['kills', 'deaths']);
-                this._texts.changeText('playerStats', 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths);
+                var points = this.player.attrs.get('points')
+                    , stats = this.player.attrs.get(['kills', 'deaths']);
+
+                if (_.isNumber(points)) {
+                    this._texts.changeText('playerPoints', 'points: ' + Math.round(points));
+                }
+
+                if (_.isNumber(stats.kills) && _.isNumber(stats.deaths)) {
+                    this._texts.changeText('playerStats', 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths);
+                }
             }
 
-            this._texts.changeText('teamFlags', 'flags: ' + this._teamFlagCount + ' / ' + this._totalFlagCount);
+            if (_.isNumber(this._teamFlagCount) && _.isNumber(this._totalFlagCount)) {
+                this._texts.changeText('teamFlags', 'flags: ' + this._teamFlagCount + ' / ' + this._totalFlagCount);
+            }
+
             timeLeftSec = config.gameLengthSec - Math.round(this._runTimeSec);
             this._texts.changeText('gameTimeLeft', 'time left: ' + timeLeftSec + ' sec');
 
@@ -397,7 +407,7 @@ function run(primus, config) {
                 this._packetsReceived.clear();
             }
 
-            this._texts.changeText('playersOnline', 'players online: ' + this._totalPlayers);
+            this._texts.changeText('playersOnline', 'players online: ' + this._totalPlayerCount);
         }
         /**
          * Event handler for when receiving a ping response.
@@ -421,9 +431,9 @@ function run(primus, config) {
                     , factor, state, entity, sprites, body, nameText;
 
                 this._runTimeSec = worldState.runTimeSec;
-                this._teamFlagCount = worldState.banners[playerTeam].length;
-                this._totalFlagCount = worldState.totalBanners;
-                this._totalPlayers = worldState.totalPlayers;
+                this._teamFlagCount = worldState.flags[playerTeam].length;
+                this._totalFlagCount = worldState.flagCount;
+                this._totalPlayerCount = worldState.playerCount;
                 this._score = this.createTeamScoreText(worldState.teamScore);
 
                 if (previousState) {

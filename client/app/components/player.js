@@ -131,7 +131,9 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * TODO
      */
     , updateNameText: function() {
-        if (this._lastAlive === true) {
+        var alive = this.owner.attrs.get('alive');
+
+        if (_.isUndefined(alive) || alive === true) {
             var position = this.owner.attrs.get(['x', 'y'])
                 , width = this.owner.attrs.get('width');
 

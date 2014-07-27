@@ -179,10 +179,10 @@ Room = utils.inherit(Node, {
             , sentAt: now
             , runTimeSec: (now - this._gameStartedAt) / 1000
             , entities: entities
-            , banners: this._flags
+            , flags: this._flags
             , teamScore: teamScore
-            , totalBanners: this.flagCount
-            , totalPlayers: this.playerCount
+            , flagCount: this.flagCount
+            , playerCount: this.playerCount
         };
 
         //console.log(this._flags);

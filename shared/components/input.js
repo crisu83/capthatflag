@@ -38,8 +38,15 @@ InputComponent = utils.inherit(ComponentBase, {
         attrs.action = command.action;
 
         var step = attrs.runSpeed / 100
-            , arrows = new List(command.arrows);
+            , arrows = new List(command.arrows)
+            , diagonal = arrows.size() > 1;
 
+        // compensate step size for diagonal movement
+        if (diagonal) {
+            step /= Math.sqrt(2);
+        }
+
+        // apply the change to the position
         arrows.each(function(key) {
             switch (key) {
                 case 'up':
@@ -58,6 +65,10 @@ InputComponent = utils.inherit(ComponentBase, {
                     break;
             }
         }, this);
+
+        // round the values for
+        attrs.x = Math.round(attrs.x);
+        attrs.y = Math.round(attrs.y);
 
         return attrs;
     }
