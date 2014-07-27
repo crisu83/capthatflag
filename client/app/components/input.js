@@ -28,6 +28,7 @@ InputComponent = utils.inherit(ComponentBase, {
         this._attackKey = null;
         this._commands = new List();
         this._sequence = 0;
+        this._lastInputSequence = -1;
         this._lastDirection = 'none';
         this._lastAction = 'none';
         this._lastSyncAt = null;
@@ -48,9 +49,8 @@ InputComponent = utils.inherit(ComponentBase, {
      * @param {object} attrs - Synchronized attributes.
      */
     , onEntitySync: function(attrs) {
-        // TODO fix server reconciliation
-        /*
-        if (_.has(attrs, 'inputSequence')) {
+        // check that we do not process the same input multiple times
+        if (_.has(attrs, 'inputSequence') && attrs.inputSequence > this._lastInputSequence) {
             this._commands.filter(function(command) {
                 return command.sequence > attrs.inputSequence;
             }, true);
@@ -59,10 +59,10 @@ InputComponent = utils.inherit(ComponentBase, {
                 attrs = this.processCommand(command, attrs);
             }, this);
 
+            this._lastInputSequence = attrs.inputSequence;
             attrs = _.omit(attrs, ['inputSequence']);
         }
-        */
-        attrs = _.omit(attrs, ['x', 'y']);
+
         this.owner.attrs.set(attrs);
     }
     /**
@@ -113,6 +113,7 @@ InputComponent = utils.inherit(ComponentBase, {
                     command.sequence = this._sequence++;
                     this._commands.add(command);
 
+                    // apply input prediction if necessary
                     if (this.owner.config.enablePrediction) {
                         var attrs = this.processCommand(command);
                         this.owner.attrs.set(attrs);
