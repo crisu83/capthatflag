@@ -54,10 +54,10 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , update: function(elapsed) {
-        this.updatePosition();
         this.updateAlive();
         this.updateAnimation();
         this.updateNameText();
+        this.updatePosition();
     }
     /**
      * Updates the position of the player.
@@ -73,16 +73,19 @@ PlayerComponent = utils.inherit(ComponentBase, {
      */
     , updateAlive: function() {
         var alive = this.owner.attrs.get('alive')
-            , position = this.owner.attrs.get(['x', 'y']);
+            , position;
 
         if (alive === false && this._lastAlive) {
+            position = this.owner.attrs.get(['x', 'y']);
             this._sprite.kill('player');
             this._sprite.kill('attack');
             this._sprite.setPosition('grave', position);
             this._sprite.revive('grave');
             this.owner.die();
         } else if (alive === true && !this._lastAlive) {
+            position = this.owner.attrs.get(['spawnX', 'spawnY']);
             this._sprite.kill('grave');
+            this.owner.attrs.set({x: position.spawnX, y: position.spawnY});
             this._sprite.revive('player');
             this._sprite.revive('attack');
             this.owner.revive();

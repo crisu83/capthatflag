@@ -34,10 +34,12 @@ PlayerComponent = utils.inherit(ComponentBase, {
     , init: function() {
         this._respawnSec = this.owner.attrs.get('respawnSec');
 
+        var position = this._team.spawnPosition();
+        this.owner.attrs.set({spawnX: position.x, spawnY: position.y});
+
         this.owner.on('entity.kill', this.onEntityKill.bind(this));
         this.owner.on('entity.die', this.onEntityDeath.bind(this));
         this.owner.on('player.awardPoints', this.onPlayerAwardPoints.bind(this));
-        this.owner.on('player.resetPoints', this.onPlayerResetPoints.bind(this));
     }
     /**
      * Event handler for when the entity kills another entity.
@@ -56,13 +58,6 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this._lastDeadAt = _.now();
     }
     /**
-     * Event handler for when resetting player points.
-     * @method server.components.PlayerComponent#onPlayerResetPoints
-     */
-    , onPlayerResetPoints: function() {
-        this._points = 0;
-    }
-    /**
      * Event handler for when awarding player points.
      * @method server.components.PlayerComponent#onPlayerAwardPoints
      */
@@ -74,8 +69,8 @@ PlayerComponent = utils.inherit(ComponentBase, {
      */
     , update: function(elapsed) {
         if (this.canRevive()) {
-            var position = this._team.spawnPosition();
-            this.owner.attrs.set({x: position.x, y: position.y});
+            var position = this.owner.attrs.get(['spawnX', 'spawnY']);
+            this.owner.attrs.set({x: position.spawnX, y: position.spawnY});
             this.owner.revive();
             this._lastDeadAt = null;
         }

@@ -75,7 +75,7 @@ Room = utils.inherit(Node, {
         this._lastTickAt = null;
         this._gameStartedAt = null;
         this._lastPointsAt = null;
-        this._packageSequence = 0;
+        this._packetSequence = 0;
         this._running = true;
 
         console.log(' game room %s created', this.id);
