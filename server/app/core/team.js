@@ -88,7 +88,6 @@ Team = utils.inherit(null, {
      * TODO
      */
     , endGame: function() {
-        this.resetPointsForPlayers();
         this.removePlayers();
     }
     /**

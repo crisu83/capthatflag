@@ -51,16 +51,21 @@ InputComponent = utils.inherit(ComponentBase, {
     , onEntitySync: function(attrs) {
         // check that we do not process the same input multiple times
         if (_.has(attrs, 'inputSequence') && attrs.inputSequence > this._lastInputSequence) {
+            // remove all commands that are older than the that was received from the server
             this._commands.filter(function(command) {
                 return command.sequence > attrs.inputSequence;
             }, true);
 
+            // process all the commands that has not yet been processed on the server
             this._commands.each(function(command) {
                 attrs = this.processCommand(command, attrs);
             }, this);
 
             this._lastInputSequence = attrs.inputSequence;
-            attrs = _.omit(attrs, ['inputSequence']);
+        } else {
+            // if we are not processing input we must omit the position
+            // to avoid updating an outdated position to the client
+            attrs = _.omit(attrs, ['x', 'y']);
         }
 
         this.owner.attrs.set(attrs);

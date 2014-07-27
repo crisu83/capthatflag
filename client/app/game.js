@@ -8,6 +8,7 @@ var _ = require('lodash')
     , Body = require('../../shared/physics/body')
     , EntityHashmap = require('../../shared/utils/entityHashmap')
     , StateHistory = require('../../shared/utils/stateHistory')
+    , TextManager = require('./ui/textManager')
     , Entity = require('../../shared/core/entity')
     , IoComponent = require('../../shared/components/io')
     , PhysicsComponent = require('../../shared/components/physics')
@@ -51,26 +52,21 @@ function run(primus, config) {
 
             // internal properties
             this._ping = 0;
-            this._pingText = null;
             this._pingSentAt = null;
+            this._packetsReceived = new List();
             this._runTimeSec = 0;
-            this._runTimeText = null;
-            this._statsText = null;
-            this._flagText = null;
             this._teamFlagCount = 0;
             this._totalFlagCount = 0;
-            this._playerText = null;
             this._totalPlayers = 0;
-            this._pointsText = null;
-            this._scoreText = null;
             this._score = '';
-            this._endText = null;
             this._entityGroup = null;
             this._effectGroup = null;
             this._music = null;
             this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
             this._lastSyncAt = null;
             this._lastTickAt = null;
+
+            this._texts = new TextManager();
         }
         /**
          * Loads the game assets.
@@ -174,39 +170,44 @@ function run(primus, config) {
                 , fill: "#ffffff"
             };
 
-            text = this.add.text(config.canvasWidth - 10, config.canvasHeight - 30, '', style);
+            text = this.add.text(10, 10, '', style);
+            text.fixedToCamera = true;
+            this._texts.add('gameScore', text);
+
+            text = this.add.text(10, config.canvasHeight - 90, '', style);
+            text.fixedToCamera = true;
+            this._texts.add('playerPoints', text);
+
+            text = this.add.text(10, config.canvasHeight - 50, '', style);
+            text.fixedToCamera = true;
+            this._texts.add('playerStats', text);
+
+            text = this.add.text(10, config.canvasHeight - 70, '', style);
+            text.fixedToCamera = true;
+            this._texts.add('teamFlags', text);
+
+            text = this.add.text(10, config.canvasHeight - 30, '', style);
+            text.fixedToCamera = true;
+            this._texts.add('gameTimeLeft', text);
+
+            text = this.add.text(config.canvasWidth - 10, config.canvasHeight - 70, '', style);
             text.anchor.x = 1;
             text.fixedToCamera = true;
-            this._playerText = text;
+            this._texts.add('clientPing', text);
 
             text = this.add.text(config.canvasWidth - 10, config.canvasHeight - 50, '', style);
             text.anchor.x = 1;
             text.fixedToCamera = true;
-            this._pingText = text;
+            this._texts.add('clientPacketLoss', text);
 
-            text = this.add.text(10, config.canvasHeight - 90, '', style);
+            text = this.add.text(config.canvasWidth - 10, config.canvasHeight - 30, '', style);
+            text.anchor.x = 1;
             text.fixedToCamera = true;
-            this._pointsText = text;
-
-            text = this.add.text(10, config.canvasHeight - 70, '', style);
-            text.fixedToCamera = true;
-            this._flagText = text;
-
-            text = this.add.text(10, config.canvasHeight - 50, '', style);
-            text.fixedToCamera = true;
-            this._statsText = text;
-
-            text = this.add.text(10, config.canvasHeight - 30, '', style);
-            text.fixedToCamera = true;
-            this._runTimeText = text;
+            this._texts.add('playersOnline', text);
 
             text = this.add.text(config.canvasWidth - 10, 10, config.gameName + ' ' + config.gameVersion, style);
             text.anchor.x = 1;
             text.fixedToCamera = true;
-
-            text = this.add.text(10, 10, '', style);
-            text.fixedToCamera = true;
-            this._scoreText = text;
 
             style = {
                 font: '24px Courier'
@@ -219,7 +220,7 @@ function run(primus, config) {
             text = this.add.text(config.canvasWidth / 2, config.canvasHeight / 2, '', style);
             text.anchor.setTo(0.5, 0.5);
             text.fixedToCamera = true;
-            this._endText = text;
+            this._texts.add('gameResult', text);
 
             if (DEBUG) {
                 pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
@@ -251,7 +252,7 @@ function run(primus, config) {
          */
         , onGameEnd: function(winner) {
             this.player.remove();
-            this._endText.text = winner.toUpperCase() + ' TEAM WON\nGame will restart shortly';
+            this._texts.changeText('gameResult', winner.toUpperCase() + ' TEAM WON\nGame will restart shortly');
         }
         /**
          * Event handler for when mute is pressed.
@@ -313,6 +314,7 @@ function run(primus, config) {
             // TODO The timestamp should probably not be set like this
             worldState.timestamp = now;
             this._stateHistory.snapshot(worldState);
+            this._packetsReceived.add(worldState.sequence);
 
             this._lastSyncAt = now;
         }
@@ -363,27 +365,39 @@ function run(primus, config) {
             var now = _.now()
                 , timeLeftSec;
 
-            if (_.isUndefined(this._pingSentAt) || (now - this._pingSentAt) > 100) {
+            this._texts.changeText('gameScore', this._score);
+
+            if (this.player) {
+                this._texts.changeText('playerPoints', 'points: ' + Math.round(this.player.attrs.get('points')));
+                var stats = this.player.attrs.get(['kills', 'deaths']);
+                this._texts.changeText('playerStats', 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths);
+            }
+
+            this._texts.changeText('teamFlags', 'flags: ' + this._teamFlagCount + ' / ' + this._totalFlagCount);
+            timeLeftSec = config.gameLengthSec - Math.round(this._runTimeSec);
+            this._texts.changeText('gameTimeLeft', 'time left: ' + timeLeftSec + ' sec');
+
+            this._pingSentAt = this._pingSentAt || now;
+            if ((now - this._pingSentAt) > 250) {
                 var ping = Math.round(this._ping / 10) * 10;
                 if (ping < 10) {
                     ping = 10;
                 }
-                this._pingText.text = 'ping: ' + ping + ' ms';
+                this._texts.changeText('clientPing', 'ping: ' + ping + ' ms');
                 primus.emit('ping', {timestamp: now});
                 this._pingSentAt = now;
             }
 
-            timeLeftSec = config.gameLengthSec - Math.round(this._runTimeSec);
-            this._runTimeText.text = 'time left: ' + timeLeftSec + ' sec';
-            this._flagText.text = 'flags: ' + this._teamFlagCount + ' / ' + this._totalFlagCount;
-            this._playerText.text = 'players online: ' + this._totalPlayers;
-            this._scoreText.text = this._score;
-
-            if (this.player) {
-                var stats = this.player.attrs.get(['kills', 'deaths']);
-                this._statsText.text = 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths;
-                this._pointsText.text = 'points: ' + Math.round(this.player.attrs.get('points'));
+            var packetSequence = this._packetsReceived.last();
+            if (packetSequence % 10 === 0) {
+                var packetsReceived = this._packetsReceived.size()
+                    , packetsLost = 10 - packetsReceived
+                    , packetLoss = packetsLost === 0 ? packetsLost / packetsReceived : 0;
+                this._texts.changeText('clientPacketLoss', 'packet loss: ' + packetLoss.toFixed(1) + '%');
+                this._packetsReceived.clear();
             }
+
+            this._texts.changeText('playersOnline', 'players online: ' + this._totalPlayers);
         }
         /**
          * Event handler for when receiving a ping response.
@@ -403,7 +417,7 @@ function run(primus, config) {
             if (worldState) {
                 var now = _.now()
                     , playerTeam = this.player.attrs.get('team')
-                    , previousState = this._stateHistory.previous()
+                    , previousState = null //this._stateHistory.previous()
                     , factor, state, entity, sprites, body, nameText;
 
                 this._runTimeSec = worldState.runTimeSec;
