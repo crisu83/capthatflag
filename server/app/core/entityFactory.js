@@ -3,7 +3,6 @@
 var _ = require('lodash')
     , shortid = require('shortid')
     , Entity = require('../../../shared/core/entity')
-    , config = require('../config.json')
     , DataManager = require('./dataManager')
     , EntityFactory;
 
@@ -20,10 +19,43 @@ EntityFactory = {
      * @return {shared.core.Entity} Entity instance.
      */
     create: function(key) {
-        var data = this.loadData(key)
-            , entity = new Entity(data, config);
+        var entity = null
+            , data = this.loadData(key);
 
-        // TODO consider including components in the data and attaching them here
+        switch (key) {
+            case 'player':
+                entity = this.createPlayer(data);
+                break;
+            case 'flag':
+                entity = this.createFlag(data);
+                break;
+            default:
+                break;
+        }
+
+        return entity;
+    }
+    /**
+     * Create a new player entity.
+     * @method server.core.EntityFactory#createPlayer
+     * @return {shared.core.Entity} Entity instance.
+     */
+    , createPlayer: function(data) {
+        var entity = new Entity(data);
+
+        // TODO add components
+
+        return entity;
+    }
+    /**
+     * Create a new flag entity.
+     * @method client.core.EntityFactory#createFlag
+     * @return {shared.core.Entity} Entity instance.
+     */
+    , createFlag: function(data) {
+        var entity = new Entity(data);
+
+        // TODO add components
 
         return entity;
     }

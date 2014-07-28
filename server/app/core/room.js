@@ -150,13 +150,14 @@ Room = utils.inherit(Node, {
             }, this);
 
             if (!this._lastSyncAt || now - this._lastSyncAt > 1000 / config.syncRate) {
-                var snapshot = this.createSnapshot()
-                    , json = snapshot.serialize();
+                var snapshot = this.createSnapshot();
 
                 // TODO filter the snapshot based on where the player is
 
                 this._clients.each(function(client) {
-                    client.sync(json);
+                    if (client) {
+                        client.syncGame(snapshot);
+                    }
                 }, this);
 
                 this._lastSyncAt = now;
@@ -187,7 +188,7 @@ Room = utils.inherit(Node, {
         snapshot.createdAt = now;
         snapshot.entities = this.entities.serialize();
         snapshot.flags = this.flags.serialize();
-        snapshot.scores = this.teams.calculateScores();
+        snapshot.teams = this.teams.serialize();
         snapshot.flagCount = this.flagCount;
         snapshot.playerCount = this.playerCount;
         snapshot.gameTimeElapsed = (now - this._gameStartedAt) / 1000;

@@ -45,13 +45,29 @@ TextComponent = utils.inherit(ComponentBase, {
         }, this);
     }
     /**
-     * Changes the text for a specific text.
-     * @method client.components.TextComponent#changeText
+     * Sets the text for a specific text.
+     * @method client.components.TextComponent#setText
      * @param {string} key - Text key.
      * @param {string} text - New text.
      */
-    , changeText: function(key, text) {
+    , setText: function(key, text) {
         this._texts.get(key).text = text;
+    }
+    /**
+     * Kills a specific text.
+     * @method client.components.TextComponent#kill
+     * @param {string} key - Text key.
+     */
+    , kill: function(key) {
+        this._texts.get(key).visible = false;
+    }
+    /**
+     * Revives a specific text.
+     * @method client.components.TextComponent#revive
+     * @param {string} key - Text key.
+     */
+    , revive: function(key) {
+        this._texts.get(key).visible = true;
     }
     /**
      * Sets the position of a specific text.

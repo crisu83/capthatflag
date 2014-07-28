@@ -34,10 +34,22 @@ TeamHashmap = utils.inherit(BaseHashmap, {
         var scores = [];
 
         this.each(function(team) {
-            scores.push({team: team.name, points: team.getTotalPoints()});
+            scores.push({team: team.name, points: team.calculateScore()});
         }, this);
 
         return scores;
+    }
+    /**
+     * TODO
+     */
+    , serialize: function() {
+        var result = {};
+
+        this.each(function(team, key) {
+            result[key] = team.serialize();
+        }, this);
+
+        return result;
     }
 });
 

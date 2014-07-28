@@ -24,9 +24,10 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this._text = null;
         this._lastDirection = 'none';
         this._lastAlive = true;
+        this._respawnTime = null;
     }
     , init: function() {
-        var playerSprite, graveSprite, nameText;
+        var playerSprite, graveSprite, nameText, respawnText;
 
         this._sprite = this.owner.components.get('sprite');
 
@@ -46,6 +47,10 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         nameText = this._text.get('name');
         nameText.anchor.set(0.5, 0.5);
+        nameText.text = this.owner.attrs.get('name');
+
+        respawnText = this._text.get('respawn');
+        respawnText.anchor.set(0.5, 0);
     }
     /**
      * @override
@@ -53,41 +58,67 @@ PlayerComponent = utils.inherit(ComponentBase, {
     , update: function(elapsed) {
         this.updateAlive();
         this.updateAnimation();
-        this.updatePosition();
+        this.updateSprites();
+        this.updateTexts();
     }
     /**
-     * Updates the position of the player.
-     * @method client.components.PlayerComponent#updatePosition
+     * Updates the associated sprites.
+     * @method client.components.PlayerComponent#updateSprites
      */
-    , updatePosition: function() {
+    , updateSprites: function() {
         var position = this.owner.attrs.get(['x', 'y'])
-            , width = this.owner.attrs.get('width');
+            , alive = this.owner.attrs.get('alive');
 
-        this._sprite.setPosition('player', position);
-        this._text.setPosition('name', {x: position.x + (width / 2), y: position.y});
+        if (_.isUndefined(alive) || alive === true) {
+            this._sprite.setPosition('player', position);
+        } else {
+            this._sprite.setPosition('grave', position);
+        }
+    }
+    /**
+     * Updates the associated texts.
+     * @method client.components.PlayerComponent#updateTexts
+     */
+    , updateTexts: function() {
+        var position = this.owner.attrs.get(['x', 'y'])
+            , width = this.owner.attrs.get('width')
+            , alive = this.owner.attrs.get('alive');
+
+        if (_.isUndefined(alive) || alive === true) {
+            this._text.setPosition('name', {x: position.x + (width * 0.5), y: position.y});
+        } else {
+            var respawnSec = this.owner.attrs.get('respawnSec')
+                , lastDeadAt = this.owner.attrs.get('lastDeadAt');
+
+            if (_.isNumber(respawnSec) && _.isNumber(lastDeadAt)) {
+                this._text.setPosition('respawn', {x: position.x + (width * 0.5), y: position.y + 10});
+                this._text.setText('respawn', respawnSec - Math.round((_.now() - lastDeadAt) / 1000));
+            }
+        }
     }
     /**
      * Updates the aliveness of the player.
      * @method client.components.PlayerComponent#updateAlive
      */
     , updateAlive: function() {
-        var alive = this.owner.attrs.get('alive')
-            , position;
+        var alive = this.owner.attrs.get('alive');
 
         if (alive === false && this._lastAlive) {
-            position = this.owner.attrs.get(['x', 'y']);
+            this._lastDeadAt = _.now();
             this._sprite.kill('player');
             this._sprite.kill('attack');
-            this._sprite.setPosition('grave', position);
             this._sprite.revive('grave');
+            this._text.revive('respawn');
             this.owner.die();
         } else if (alive === true && !this._lastAlive) {
-            position = this.owner.attrs.get(['spawnX', 'spawnY']);
+            var position = this.owner.attrs.get(['spawnX', 'spawnY']);
             this._sprite.kill('grave');
+            this._text.kill('respawn');
             this.owner.attrs.set({x: position.spawnX, y: position.spawnY});
             this._sprite.revive('player');
             this._sprite.revive('attack');
             this.owner.revive();
+            this._lastDeadAt = null;
         }
 
         this._lastAlive = alive;
@@ -122,7 +153,6 @@ PlayerComponent = utils.inherit(ComponentBase, {
             }
 
             this._sprite.playAnimation('player', animation, 10, true);
-
             this._lastDirection = direction;
         }
     }

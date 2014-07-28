@@ -42,13 +42,12 @@ Client = utils.inherit(Node, {
         this._room = room;
         this._config = null;
         this._player = null;
-        this._ready = false;
     }
     /**
      * Initializes this client.
      * @method server.core.Client#init
      */
-    , init: function() {
+    , init: function(snapshot) {
         // let the client know to which room they have connected
         this._spark.emit('client.joinRoom', this._room.id);
 
@@ -87,6 +86,7 @@ Client = utils.inherit(Node, {
             , gameName: config.gameName
             , gameVersion: config.gameVersion
             , gameLengthSec: config.gameLengthSec
+            , gameSnapshot: this._room.createSnapshot().serialize()
         };
 
         // send the configuration to the client
@@ -109,10 +109,14 @@ Client = utils.inherit(Node, {
      * @method server.core.Client#onReady
      */
     , onReady: function() {
-        if (!this._ready) {
-            this._player = this.createPlayer();
-            this._ready = true;
-        }
+        this._player = this.createPlayer();
+    }
+    /**
+     * Event handler for when the client is disconnected.
+     * @method server.core.Client#onDisconnect
+     */
+    , onDisconnect: function() {
+        this.disconnect();
     }
     /**
      * Creates the player for the client.
@@ -147,6 +151,7 @@ Client = utils.inherit(Node, {
         team.addPlayer(entity);
         this._room.entities.add(entity.id, entity);
         this._room.playerCount++;
+        
         console.log('  client %s joined %s team as player %s', this.id, team.name, entity.id);
 
         // let the client know that it can now create the player
@@ -166,6 +171,7 @@ Client = utils.inherit(Node, {
             this._player.remove();
         }
 
+        // reset the game after a while so that we have time to display the result
         setTimeout(this.resetGame.bind(this), config.gameResetSec * 1000);
     }
     /**
@@ -175,18 +181,18 @@ Client = utils.inherit(Node, {
         this._spark.emit('client.reset', this._config, config.debug);
     }
     /**
-     * Synchronizes this client with the server.
-     * @method server.core.Client#sync
-     * @param {object} worldState - State to synchronize.
+     * Synchronizes the given world state to the client.
+     * @method server.core.Client#syncGame
+     * @param {shared.core.Snapshot} snapshot - Snapshot instance.
      */
-    , sync: function(worldState) {
-        this._spark.emit('client.sync', worldState);
+    , syncGame: function(snapshot) {
+        this._spark.emit('game.sync', snapshot.serialize());
     }
     /**
-     * Event handler for when the client is disconnected.
-     * @method server.core.Client#onDisconnect
+     * Disconnects the client from the server.
+     * @method server.core.Client#disconnect
      */
-    , onDisconnect: function() {
+    , disconnect: function() {
         if (this._player) {
             var playerId = this._player.id;
 

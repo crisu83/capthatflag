@@ -66,18 +66,9 @@ Team = utils.inherit(null, {
         }, this);
     }
     /**
-     * Resets points for players on the team.
-     * @method server.core.Team#resetPointsForPlayers
-     */
-    , resetPointsForPlayers: function() {
-        this._players.each(function(player) {
-            player.trigger('player.resetPoints');
-        }, this);
-    }
-    /**
      * TODO
      */
-    , getTotalPoints: function() {
+    , calculateScore: function() {
         var points = 0;
 
         this._players.each(function(player) {
@@ -100,6 +91,19 @@ Team = utils.inherit(null, {
      */
     , size: function() {
         return this._players.size();
+    }
+    /**
+     * TODO
+     */
+    , serialize: function() {
+        return {
+            name: this.name
+            , color: this.color
+            , x: this._x
+            , y: this._y
+            , score: this.calculateScore()
+            , playerCount: this._players.size()
+        };
     }
 });
 

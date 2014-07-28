@@ -15,7 +15,7 @@ Snapshot = utils.inherit(null, {
         this.sequence = null;
         this.entities = [];
         this.flags = [];
-        this.scores = {};
+        this.teams = {};
         this.playerCount = null;
         this.flagCount = null;
         this.createdAt = _.now();
@@ -30,7 +30,7 @@ Snapshot = utils.inherit(null, {
             sequence: this.sequence
             , entities: this.entities
             , flags: this.flags
-            , scores: this.scores
+            , teams: this.teams
             , playerCount: this.playerCount
             , flagCount: this.flagCount
             , createdAt: this.createdAt
