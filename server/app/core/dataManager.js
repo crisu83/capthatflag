@@ -21,12 +21,14 @@ DataManager = {
         this._basePath = basePath;
         this._entities = {};
         this._tilemaps = {};
+        this._teams = {};
         this._images = {};
         this._spritesheets = {};
         this._audio = {};
 
         this.parseEntityData();
         this.parseTilemapData();
+        this.parseTeamData();
 
         console.log(' game data loaded');
     }
@@ -94,6 +96,26 @@ DataManager = {
         }.bind(this));
 
         return data;
+    }
+    /**
+     * Parses team data.
+     * @method server.core.DataManager#parseTeamData
+     */
+    , parseTeamData: function() {
+        var json = require(path.join(this._basePath, 'teams.json'))
+            , team;
+
+        _.forOwn(json.teams, function(data) {
+            this._teams[data.name] = data;
+        }, this);
+    }
+    /**
+     * Returns all teams found while parsing data files.
+     * @method server.core.DataManager#getTeams
+     * @return {object} Map of teams (key => data).
+     */
+    , getTeams: function() {
+        return this._teams;
     }
     /**
      * Returns all images found while parsing data files.

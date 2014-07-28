@@ -3,11 +3,13 @@
 var path = require('path')
     , _ = require('lodash')
     , shortid = require('shortid')
+    , Chance = require('chance')
     , utils = require('../../../shared/utils')
     , Node = require('../../../shared/core/node')
     , DataManager = require('./dataManager')
     , TilemapFactory = require('./tilemapFactory')
     , Client = require('./client')
+    , List = require('../../../shared/utils/list')
     , Hashmap = require('../../../shared/utils/hashmap')
     , ClientList = require('../utils/clientList')
     , FlagHashmap = require('../utils/flagHashmap')
@@ -75,12 +77,13 @@ Room = utils.inherit(Node, {
          */
         this.flags = new FlagHashmap();
         /**
-         * @property {array} names - List of player names available.
+         * @property {Chance} chance - Random generator.
          */
-        this.names = [];
+        this.chance = new Chance();
 
         // internal variables
         this._clients = new ClientList();
+        this._names = new List();
         this._lastSyncAt = null;
         this._lastTickAt = null;
         this._gameStartedAt = null;
@@ -98,22 +101,9 @@ Room = utils.inherit(Node, {
         // event handler for when a client connects
         this.primus.on('connection', this.onConnection.bind(this));
 
-        this.tilemap.room = this;
-        this.tilemap.init();
-
-        // TODO move all data parsing to the data manager
-
-        var namesJson = require('../../../data/names.json');
-        this.names = _.shuffle(namesJson.names);
-
-        var teamJson = require('../../../data/teams.json');
-        _.forOwn(teamJson.teams, function(data) {
-            data.name = data.key;
-            data.x = data.x >= 0 ? data.x : config.gameWidth - data.x;
-            data.y = data.y >= 0 ? data.y : config.gameHeight - data.y;
-            this.teams.add(data.key, new Team(data));
-        }, this);
-
+        // create teams and reset the map and the flags
+        this.resetTilemap();
+        this.createTeams();
         this.resetFlags();
 
         // mark the time when the game started
@@ -125,6 +115,19 @@ Room = utils.inherit(Node, {
 
         // start the game loop for this room with the configured tick rate
         setInterval(this.gameLoop.bind(this), 1000 / config.tickRate);
+    }
+    /**
+     * Creates the teams for the room.
+     * @method server.core.Room#createTeams
+     */
+    , createTeams: function() {
+        var team, base;
+
+        _.forOwn(DataManager.getTeams(), function(data) {
+            base = this.tilemap.getBase(data.base);
+            team = new Team(data, base, this);
+            this.teams.add(data.name, team);
+        }, this);
     }
     /**
      * Event handler for when a client connects to this room.
@@ -145,33 +148,64 @@ Room = utils.inherit(Node, {
             var now = _.now()
                 , elapsed = now - this._lastTickAt;
 
-            this.entities.each(function(entity) {
-                entity.update(elapsed);
-            }, this);
-
-            if (!this._lastSyncAt || now - this._lastSyncAt > 1000 / config.syncRate) {
-                var snapshot = this.createSnapshot();
-
-                // TODO filter the snapshot based on where the player is
-
-                this._clients.each(function(client) {
-                    if (client) {
-                        client.syncGame(snapshot);
-                    }
-                }, this);
-
-                this._lastSyncAt = now;
-            }
-
-            if (!this._lastPointsAt || now - this._lastPointsAt > config.gamePointsSec * 1000) {
-                this.awardFlagPoints();
-            }
-
-            if (now - this._gameStartedAt > config.gameLengthSec * 1000) {
-                this.endGame();
-            }
+            this.updateEntities(elapsed);
+            this.updatePoints();
+            this.syncClients();
+            this.checkGameEnded();
 
             this._lastTickAt = now;
+        }
+    }
+    /**
+     * Updates the entities in the room.
+     * @method server.core.Room#updateEntities
+     */
+    , updateEntities: function(elapsed) {
+        this.entities.each(function(entity) {
+            entity.update(elapsed);
+        }, this);
+    }
+    /**
+     * Updates the points in the room.
+     * @method server.core.Room#updatePoints
+     */
+    , updatePoints: function() {
+        var now = _.now();
+
+        if (!this._lastPointsAt || now - this._lastPointsAt > config.gamePointsSec * 1000) {
+            this.awardFlagPoints();
+        }
+    }
+    /**
+     * Synchronizes the current game state to the clients in the room.
+     * @method server.core.Room#syncClients
+     */
+    , syncClients: function() {
+        var now = _.now();
+
+        if (!this._lastSyncAt || now - this._lastSyncAt > 1000 / config.syncRate) {
+            var snapshot = this.createSnapshot();
+
+            // TODO filter the snapshot based on where the player is
+
+            this._clients.each(function(client) {
+                if (client) {
+                    client.syncGame(snapshot);
+                }
+            }, this);
+
+            this._lastSyncAt = now;
+        }
+    }
+    /**
+     * Checks if the game in the room has ended and ends it if necessary.
+     * @method server.core.Room#checkGameEnded
+     */
+    , checkGameEnded: function() {
+        var now = _.now();
+
+        if ((now - this._gameStartedAt) > (config.gameLengthSec * 1000)) {
+            this.endGame();
         }
     }
     /**
@@ -214,13 +248,21 @@ Room = utils.inherit(Node, {
         this._lastPointsAt = now;
     }
     /**
-     * Resets the banners in the room.
+     * Resets the flags in the room.
      * @method server.core.Room#resetFlags
      */
     , resetFlags: function() {
         this.teams.each(function(team, key) {
             this.flags.set(key, []);
         }, this);
+    }
+    /**
+     * Resets the tilemap in the room.
+     * @method server.core.Room#resetTilemap
+     */
+    , resetTilemap: function() {
+        this.tilemap.room = this;
+        this.tilemap.init();
     }
     /**
      * Ends the game in the room.
@@ -253,7 +295,8 @@ Room = utils.inherit(Node, {
         setTimeout(this.resetGame.bind(this), config.gameResetSec * 1000);
     }
     /**
-     * TODO
+     * Resets the game in the room.
+     * @method server.core.Room#resetGame
      */
     , resetGame: function() {
         this.resetFlags();
@@ -264,6 +307,24 @@ Room = utils.inherit(Node, {
         this._gameStartedAt = _.now();
 
         this._running = true;
+    }
+    /**
+     * Generates a unique random player name.
+     * @method server.core.Room#generatePlayerName
+     * @return {string} Name generated.
+     */
+    , generatePlayerName: function() {
+        var name, exists;
+
+        do {
+            name = this.chance.first();
+            exists = this._names.exists(name);
+            if (!exists) {
+                this._names.add(name);
+            }
+        } while (exists);
+
+        return name;
     }
 });
 

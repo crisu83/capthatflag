@@ -133,12 +133,7 @@ function run(primus, config) {
             this.createMap();
 
             // create the music
-            this._music = this.add.audio(
-                config.mapMusic
-                , 0.1/* volume */
-                , true/* loop */
-            );
-            this._music.play();
+            //this.createMusic();
 
             // set dependencies for the entity manager
             EntityFactory.world = this.foo;
@@ -197,6 +192,18 @@ function run(primus, config) {
 
                 this.foo.add(body);
             }, this);
+        }
+        /**
+         * Creates the music for the game.
+         * @method client.PlayState#createMusic
+         */
+        , createMusic: function() {
+            this._music = this.add.audio(
+                config.mapMusic
+                , 0.1/* volume */
+                , true/* loop */
+            );
+            this._music.play();
         }
         /**
          * Creates the texts for the client.

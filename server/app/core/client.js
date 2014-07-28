@@ -109,6 +109,10 @@ Client = utils.inherit(Node, {
      * @method server.core.Client#onReady
      */
     , onReady: function() {
+        if (this._player) {
+            this.removePlayer();
+        }
+
         this._player = this.createPlayer();
     }
     /**
@@ -125,14 +129,13 @@ Client = utils.inherit(Node, {
      */
     , createPlayer: function() {
         var entity = EntityFactory.create('player')
-            , name = this._room.names.pop()
             , team = this._room.teams.findWeakest()
             , position = team.spawnPosition()
             , body = new Body('player', entity);
 
         // set initial entity attributes
         entity.attrs.set({
-            name: name
+            name: this._room.generatePlayerName()
             , team: team.name
             , image: 'player-' + team.name
             , x: position.x
@@ -151,13 +154,32 @@ Client = utils.inherit(Node, {
         team.addPlayer(entity);
         this._room.entities.add(entity.id, entity);
         this._room.playerCount++;
-        
+
         console.log('  client %s joined %s team as player %s', this.id, team.name, entity.id);
 
         // let the client know that it can now create the player
         this._spark.emit('player.create', entity.serialize());
 
         return entity;
+    }
+    /**
+     * Removes the player for the client.
+     * @method server.core.Client#removePlayer
+     */
+    , removePlayer: function() {
+        if (this._player) {
+            var playerId = this._player.id;
+
+            // remove the player
+            this._player.remove();
+
+            // let other clients know that the player left
+            this._room.primus.forEach(function(spark) {
+                spark.emit('player.leave', playerId);
+            });
+
+            this._room.playerCount--;
+        }
     }
     /**
      * Ends the game for the client.
@@ -193,19 +215,7 @@ Client = utils.inherit(Node, {
      * @method server.core.Client#disconnect
      */
     , disconnect: function() {
-        if (this._player) {
-            var playerId = this._player.id;
-
-            // remove the player
-            this._player.remove();
-
-            // let other clients know that the player left
-            this._room.primus.forEach(function(spark) {
-                spark.emit('player.leave', playerId);
-            });
-
-            this._room.playerCount--;
-        }
+        this.removePlayer();
 
         console.log('  client %s disconnected from room %s', this.id, this._room.id);
         this.trigger('client.disconnect', this);

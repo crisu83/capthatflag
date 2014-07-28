@@ -9,6 +9,7 @@ var _ = require('lodash')
     , AttackComponent = require('../components/attack')
     , FlagComponent = require('../components/flag')
     , PlayerComponent = require('../components/player')
+    , SoundComponent = require('../components/sound')
     , SpriteComponent = require('../components/sprite')
     , TextComponent = require('../components/text')
     , SyncComponent = require('../components/sync')
@@ -58,12 +59,17 @@ EntityFactory = {
      */
     , createPlayer: function(data) {
         var entity = new Entity(data)
-            , sprites, texts, body, color, nameText;
+            , sprites, sounds, texts, body, color, nameText;
 
         sprites = {
             player: this.entityGroup.create(data.attrs.x, data.attrs.y, data.attrs.image)
             , grave: this.entityGroup.create(data.attrs.x, data.attrs.y, 'grave')
             , attack: this.effectGroup.create(data.attrs.x, data.attrs.y, 'attack-sword')
+        };
+
+        sounds = {
+            hit: this.state.add.audio('hit', 0.1, false)
+            , die: this.state.add.audio('die', 0.1, false)
         };
 
         texts = {
@@ -73,12 +79,13 @@ EntityFactory = {
 
         body = new Body(data.key, entity);
 
+        entity.components.add(new PhysicsComponent(body, this.world));
         entity.components.add(new SpriteComponent(sprites));
+        entity.components.add(new SoundComponent(sounds));
         entity.components.add(new TextComponent(texts));
         entity.components.add(new PlayerComponent());
         entity.components.add(new IoComponent(this.primus));
         entity.components.add(new AttackComponent());
-        entity.components.add(new PhysicsComponent(body, this.world));
         entity.components.add(new SyncComponent());
 
         return entity;

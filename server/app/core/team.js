@@ -2,6 +2,7 @@
 
 var utils = require('../../../shared/utils')
     , List = require('../../../shared/utils/list')
+    , config = require('../config.json')
     , Team;
 
 /**
@@ -14,8 +15,10 @@ Team = utils.inherit(null, {
      * Creates a new team.
      * @constructor
      * @param {object} data - Team data.
+     * @param {server.core.Base} base - Base instance.
+     * @param {server.core.Room} room - Room instance.
      */
-    constructor: function(data) {
+    constructor: function(data, base, room) {
         /**
          * @property {string} name - Team name.
          */
@@ -26,17 +29,20 @@ Team = utils.inherit(null, {
         this.color = data.color;
 
         // internal properties
+        this._base = base;
         this._players = new List();
-        this._x = data.x;
-        this._y = data.y;
+        this._room = room;
     }
     /**
-     * Returns the spawn position for players on the team.
+     * Returns a position within the team base.
      * @method server.core.Team#spawnPosition
-     * @return {object} Spawn position object.
+     * @return {object} Position object.
      */
     , spawnPosition: function() {
-        return {x: this._x, y: this._y};
+        return {
+            x: this._room.chance.integer({min: this._base.x, max: this._base.right() - 32})
+            , y: this._room.chance.integer({min: this._base.y, max: this._base.bottom() - 64})
+        };
     }
     /**
      * Adds a new player to the team.
@@ -99,8 +105,6 @@ Team = utils.inherit(null, {
         return {
             name: this.name
             , color: this.color
-            , x: this._x
-            , y: this._y
             , score: this.calculateScore()
             , playerCount: this._players.size()
         };

@@ -42,7 +42,7 @@ FlagComponent = utils.inherit(ComponentBase, {
         var team = this.owner.attrs.get('team');
 
         if (team !== this._team) {
-            this._sprite.playAnimation('flag', team, 20, true);
+            this._sprite.play('flag', team, 20, true);
             this._team = team;
         }
     }

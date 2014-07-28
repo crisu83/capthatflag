@@ -21,12 +21,14 @@ AttackComponent = utils.inherit(ComponentBase, {
 
         // internal properties
         this._sprite = null;
+        this._sound = null;
     }
     /**
      * @override
      */
     , init: function() {
         this._sprite = this.owner.components.get('sprite');
+        this._sound = this.owner.components.get('sound');
 
         var sprite = this._sprite.get('attack');
         sprite.animations.add('idle', [6]);
@@ -42,7 +44,8 @@ AttackComponent = utils.inherit(ComponentBase, {
             , position = {x: target.x - 16, y: target.y - 10};
 
         this._sprite.setPosition('attack', position);
-        this._sprite.playAnimation('attack', 'slash', 30, false);
+        this._sprite.play('attack', 'slash', 30, false);
+        this._sound.play('hit');
 
         this.setLastAttackAt(now);
     }

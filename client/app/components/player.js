@@ -21,6 +21,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         // internal properties
         this._sprite = null;
+        this._sound = null;
         this._text = null;
         this._lastDirection = 'none';
         this._lastAlive = true;
@@ -30,6 +31,8 @@ PlayerComponent = utils.inherit(ComponentBase, {
         var playerSprite, graveSprite, nameText, respawnText;
 
         this._sprite = this.owner.components.get('sprite');
+        this._text = this.owner.components.get('text');
+        this._sound = this.owner.components.get('sound');
 
         playerSprite = this._sprite.get('player');
         playerSprite.animations.add('standStill', [0]);
@@ -42,8 +45,6 @@ PlayerComponent = utils.inherit(ComponentBase, {
         graveSprite = this._sprite.get('grave');
         graveSprite.animations.add('default', [0]);
         graveSprite.kill();
-
-        this._text = this.owner.components.get('text');
 
         nameText = this._text.get('name');
         nameText.anchor.set(0.5, 0.5);
@@ -66,14 +67,10 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @method client.components.PlayerComponent#updateSprites
      */
     , updateSprites: function() {
-        var position = this.owner.attrs.get(['x', 'y'])
-            , alive = this.owner.attrs.get('alive');
+        var position = this.owner.attrs.get(['x', 'y']);
 
-        if (_.isUndefined(alive) || alive === true) {
-            this._sprite.setPosition('player', position);
-        } else {
-            this._sprite.setPosition('grave', position);
-        }
+        this._sprite.setPosition('player', position);
+        this._sprite.setPosition('grave', position);
     }
     /**
      * Updates the associated texts.
@@ -105,6 +102,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         if (alive === false && this._lastAlive) {
             this._lastDeadAt = _.now();
+            this._sound.play('die');
             this._sprite.kill('player');
             this._sprite.kill('attack');
             this._sprite.revive('grave');
@@ -152,7 +150,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
                     break;
             }
 
-            this._sprite.playAnimation('player', animation, 10, true);
+            this._sprite.play('player', animation, 10, true);
             this._lastDirection = direction;
         }
     }

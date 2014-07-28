@@ -1,6 +1,6 @@
 {
   "name": "dungeon",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "A fast-paced multiplayer capture the flag game.",
   "main": "server/app/server.js",
   "scripts": {
@@ -31,7 +31,8 @@
     "grunt-contrib-copy": "~0.5.0",
     "grunt-contrib-imagemin": "~0.7.1",
     "grunt-contrib-uglify": "~0.5.0",
-    "grunt-contrib-htmlmin": "~0.3.0"
+    "grunt-contrib-htmlmin": "~0.3.0",
+    "chance": "~0.5.9"
   },
   "devDependencies": {
     "grunt-contrib-jshint": "~0.10.0",
