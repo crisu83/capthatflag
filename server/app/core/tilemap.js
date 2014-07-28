@@ -2,12 +2,12 @@
 
 var _ = require('lodash')
     , utils = require('../../../shared/utils')
-    , Tile = require('../../../shared/core/tile')
+    , Wall = require('../../../shared/core/wall')
     , Body = require('../../../shared/physics/body')
     , List = require('../../../shared/utils/list')
     , EntityFactory = require('./entityFactory')
     , PhysicsComponent = require('../../../shared/components/physics')
-    , BannerComponent = require('../components/banner')
+    , FlagComponent = require('../components/flag')
     , Tilemap;
 
 /**
@@ -64,6 +64,10 @@ Tilemap = utils.inherit(null, {
          */
         this.collision = data.collision;
         /**
+         * @property {string} flags - Name of the flag layer.
+         */
+        this.flags = data.flags;
+        /**
          * @property {string} image - Tilemap image key.
          */
         this.image = data.image;
@@ -79,59 +83,33 @@ Tilemap = utils.inherit(null, {
          * @property {object} config - Game configuration.
          */
         this.config = config;
-        /**
-         * @property {server.core.Room} room - Room instance.
-         */
-        this.room = null;
 
         // internal properties
-        this._collisionTiles = new List();
+        this.room = null;
+        this._walls = new List();
     }
     /**
      * Initializes the tilemap.
      * @method server.core.Tilemap#init
      */
     , init: function() {
-        var x, y, tileX, tileY, tile, body, entity, attrs;
-
         // loop through the layers to find the collision layer
         _.forOwn(this.data.layers, function(layer) {
-            // check if the layer is the collision lyaer
-            if (layer.name === this.collision) {
-                x = 0;
-                y = -1;
-
-                // loop through the layer data and create the necessary tiles
-                _.forOwn(layer.data, function(data, index) {
-                    // make sure that the current position is occupied by a tile
-                    // (zero stands for empty)
-                    if (data > 0) {
-                        tileX = x * this.tileWidth;
-                        tileY = y * this.tileHeight;
-                        tile = new Tile(tileX, tileY, this.tileWidth, this.tileHeight);
-
-                        body = new Body('tile', tile);
-                        body.x = tileX;
-                        body.y = tileY;
-                        body.width = this.tileWidth;
-                        body.height = this.tileHeight;
-
-                        this.room.world.add(body);
-
-                        this._collisionTiles.add(tile);
-                    }
-
-                    if (index % this.width === 0) {
-                        x = 0;
-                        y++;
-                    }
-                    x++;
-                }, this);
+            switch (layer.name) {
+                case this.collision:
+                    this.parseCollisionLayer(layer);
+                    break;
+                case this.flags:
+                    this.parseFlagLayer(layer);
+                    break;
+                default:
+                    break;
             }
         }, this);
 
         // TODO move entities from the tilemap data to the tilemap itself if possilbe
         // loop through the entities on this map and create them.
+        /*
         _.forOwn(this.entities, function(json) {
             entity = EntityFactory.create(json.key);
             attrs = json.attrs || {};
@@ -154,20 +132,99 @@ Tilemap = utils.inherit(null, {
 
             this.room.entities.add(entity.id, entity);
         }, this);
+        */
     }
     /**
-     * Returns the collision layer tiles in the tilemap.
-     * @method server.core.Tilemap#getCollisionTiles
-     * @return {array} List of tiles.
+     * TODO
      */
-    , getCollisionTiles: function() {
-        var tiles = [];
+    , parseCollisionLayer: function(layer) {
+        var wall, body;
 
-        this._collisionTiles.each(function(tile) {
-            tiles.push(tile.serialize());
+        _.forOwn(layer.objects, function(object) {
+            wall = new Wall(object.x, object.y, object.width, object.height);
+            body = new Body('wall', wall);
+            body.x = wall.x;
+            body.y = wall.y;
+            body.width = wall.width;
+            body.height = wall.height;
+
+            this.room.world.add(body);
+            this._walls.add(wall);
+        }, this);
+        /*
+        var x, y, tileX, tileY, tile, body, entity, attrs;
+
+        x = 0;
+        y = -1;
+
+        // loop through the layer data and create the necessary tiles
+        _.forOwn(layer.data, function(data, index) {
+            // make sure that the current position is occupied by a tile
+            // (zero stands for empty)
+            if (data > 0) {
+                tileX = x * this.tileWidth;
+                tileY = y * this.tileHeight;
+                tile = new Tile(tileX, tileY, this.tileWidth, this.tileHeight);
+
+                body = new Body('tile', tile);
+                body.x = tileX;
+                body.y = tileY;
+                body.width = this.tileWidth;
+                body.height = this.tileHeight;
+
+                this.room.world.add(body);
+
+                this._collisionTiles.add(tile);
+            }
+
+            if (index % this.width === 0) {
+                x = 0;
+                y++;
+            }
+            x++;
+        }, this);
+        */
+    }
+    /**
+     * TODO
+     */
+    , parseFlagLayer: function(layer) {
+        var entity, body;
+
+        _.forOwn(layer.objects, function(object) {
+            entity = EntityFactory.create(object.type);
+            entity.attrs.set({x: object.x, y: object.y - 32});
+
+            // TODO use the entity factory to create the entities
+            switch (object.type) {
+                case 'flag':
+                    body = new Body('flag', entity);
+
+                    entity.components.add(new PhysicsComponent(body, this.room.world));
+                    entity.components.add(new FlagComponent(this.room));
+
+                    this.room.flagCount++;
+                    break;
+                default:
+                    break;
+            }
+
+            this.room.entities.add(entity.id, entity);
+        }, this);
+    }
+    /**
+     * Returns the walls on the tilemap.
+     * @method server.core.Tilemap#getWalls
+     * @return {array} List of walls.
+     */
+    , getWalls: function() {
+        var walls = [];
+
+        this._walls.each(function(wall) {
+            walls.push(wall.serialize());
         }, this);
 
-        return tiles;
+        return walls;
     }
 });
 

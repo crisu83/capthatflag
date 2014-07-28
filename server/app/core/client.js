@@ -78,7 +78,7 @@ Client = utils.inherit(Node, {
             , mapImage: this._room.tilemap.image
             , mapLayer: this._room.tilemap.layers
             , mapMusic: this._room.tilemap.music
-            , mapCollisionTiles: this._room.tilemap.getCollisionTiles()
+            , mapWalls: this._room.tilemap.getWalls()
             // assets
             , images: DataManager.getImages()
             , spritesheets: DataManager.getSpritesheets()

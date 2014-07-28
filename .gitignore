@@ -1,5 +1,6 @@
 client/bower_components
 client/web
+server/app/config.json
 node_modules
 npm-debug.log
 
