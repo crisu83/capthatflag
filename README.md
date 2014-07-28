@@ -1,5 +1,5 @@
-dungeon-game
-============
+CAP THAT FLAG
+=============
 
 A fast-paced multiplayer capture that flag game written in JavaScript.
 

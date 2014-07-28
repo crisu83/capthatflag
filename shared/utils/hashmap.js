@@ -29,6 +29,12 @@ Hashmap = utils.inherit(null, {
         this.set(key, value);
     }
     /**
+     * TODO
+     */
+    , exists: function(key) {
+        return _.has(this._items, key);
+    }
+    /**
      * Returns all the keys in the hashmap.
      * @method shared.utils.Hashmap#keys
      * @return {array} List of keys.

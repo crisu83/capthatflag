@@ -122,7 +122,7 @@ Client = utils.inherit(Node, {
     , createPlayer: function() {
         var entity = EntityFactory.create('player')
             , name = this._room.names.pop()
-            , team = this._room.weakestTeam()
+            , team = this._room.teams.findWeakest()
             , position = team.spawnPosition()
             , body = new Body('player', entity);
 

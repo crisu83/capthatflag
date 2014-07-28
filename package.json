@@ -1,7 +1,7 @@
 {
   "name": "dungeon",
-  "version": "0.1.0",
-  "description": "A fast-paced multiplayer action role playing game.",
+  "version": "0.10.0",
+  "description": "A fast-paced multiplayer capture the flag game.",
   "main": "server/app/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

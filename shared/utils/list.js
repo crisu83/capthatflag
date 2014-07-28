@@ -28,6 +28,12 @@ List = utils.inherit(null, {
         this._items.push(item);
     }
     /**
+     * TODO
+     */
+    , exists: function(item) {
+        return this._items.indexOf(item) !== -1;
+    }
+    /**
      * Removes an item from the list.
      * @method shared.utils.List#remove
      * @param {object} item - Item to remove.

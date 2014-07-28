@@ -16,17 +16,17 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * Creates a new component.
      * @constructor
      */
-    constructor: function(nameText) {
+    constructor: function() {
         ComponentBase.apply(this);
 
         // internal properties
         this._sprite = null;
-        this._nameText = nameText;
+        this._text = null;
         this._lastDirection = 'none';
         this._lastAlive = true;
     }
     , init: function() {
-        var playerSprite, graveSprite;
+        var playerSprite, graveSprite, nameText;
 
         this._sprite = this.owner.components.get('sprite');
 
@@ -42,13 +42,10 @@ PlayerComponent = utils.inherit(ComponentBase, {
         graveSprite.animations.add('default', [0]);
         graveSprite.kill();
 
-        this.owner.on('entity.remove', this.onEntityRemove.bind(this));
-    }
-    /**
-     * TODO
-     */
-    , onEntityRemove: function() {
-        this._nameText.destroy();
+        this._text = this.owner.components.get('text');
+
+        nameText = this._text.get('name');
+        nameText.anchor.set(0.5, 0.5);
     }
     /**
      * @override
@@ -56,7 +53,6 @@ PlayerComponent = utils.inherit(ComponentBase, {
     , update: function(elapsed) {
         this.updateAlive();
         this.updateAnimation();
-        this.updateNameText();
         this.updatePosition();
     }
     /**
@@ -64,8 +60,11 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @method client.components.PlayerComponent#updatePosition
      */
     , updatePosition: function() {
-        var position = this.owner.attrs.get(['x', 'y']);
+        var position = this.owner.attrs.get(['x', 'y'])
+            , width = this.owner.attrs.get('width');
+
         this._sprite.setPosition('player', position);
+        this._text.setPosition('name', {x: position.x + (width / 2), y: position.y});
     }
     /**
      * Updates the aliveness of the player.
@@ -125,20 +124,6 @@ PlayerComponent = utils.inherit(ComponentBase, {
             this._sprite.playAnimation('player', animation, 10, true);
 
             this._lastDirection = direction;
-        }
-    }
-    /**
-     * TODO
-     */
-    , updateNameText: function() {
-        var alive = this.owner.attrs.get('alive');
-
-        if (_.isUndefined(alive) || alive === true) {
-            var position = this.owner.attrs.get(['x', 'y'])
-                , width = this.owner.attrs.get('width');
-
-            this._nameText.x = position.x + (width / 2) - (this._nameText.width / 2);
-            this._nameText.y = position.y - 10;
         }
     }
 });

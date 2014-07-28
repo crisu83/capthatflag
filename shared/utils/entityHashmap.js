@@ -27,6 +27,16 @@ EntityHashmap = utils.inherit(HashmapBase, {
     , onEntityRemove: function(entity) {
         this.remove(entity.id);
     }
+    /**
+     * TODO
+     */
+    , serialize: function() {
+        var entities = {};
+        this.each(function(entity, entityId) {
+            entities[entityId] = entity.serialize();
+        }, this);
+        return entities;
+    }
 });
 
 module.exports = EntityHashmap;
