@@ -4,6 +4,7 @@ var _ = require('lodash')
     , utils = require('../../shared/utils')
     , List = require('../../shared/utils/list')
     , Wall = require('../../shared/core/wall')
+    , Snapshot = require('../../shared/core/snapshot')
     , World = require('../../shared/physics/world')
     , Body = require('../../shared/physics/body')
     , EntityHashmap = require('../../shared/utils/entityHashmap')
@@ -17,6 +18,7 @@ var _ = require('lodash')
     , InputComponent = require('./components/input')
     , PlayerComponent = require('./components/player')
     , SpriteComponent = require('./components/sprite')
+    , TextComponent = require('./components/text')
     , SyncComponent = require('./components/sync');
 
 /**
@@ -53,7 +55,7 @@ function run(primus, config) {
             // internal properties
             this._ping = 0;
             this._pingSentAt = null;
-            this._packetsReceived = new List();
+            this._snapshotsReceived = new List();
             this._runTimeSec = 0;
             this._teamFlagCount = 0;
             this._totalFlagCount = 0;
@@ -65,6 +67,7 @@ function run(primus, config) {
             this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
             this._lastSyncAt = null;
             this._lastTickAt = null;
+            this._snapshot = new Snapshot();
 
             this._texts = new TextManager();
         }
@@ -141,7 +144,6 @@ function run(primus, config) {
 
             // add the collision layer tiles to the physical world
             _.forOwn(config.mapWalls, function(json) {
-                console.log(json);
                 wall = new Wall(json.x, json.y, json.width, json.height);
 
                 body = new Body('wall', wall);
@@ -280,13 +282,16 @@ function run(primus, config) {
                     , grave: this._entityGroup.create(state.attrs.x, state.attrs.y, 'grave')
                     , attack: this._effectGroup.create(state.attrs.x, state.attrs.y, 'attack-sword')
                 }
-                , body = new Body('player', entity)
-                , nameText = this.createNameText(state.attrs.name, state.attrs.team);
+                , texts = {
+                    name: this.createNameText(state.attrs.name, state.attrs.team)
+                }
+                , body = new Body('player', entity);
 
             this.camera.follow(sprites.player);
 
             entity.components.add(new SpriteComponent(sprites));
-            entity.components.add(new PlayerComponent(nameText));
+            entity.components.add(new TextComponent(texts));
+            entity.components.add(new PlayerComponent());
             entity.components.add(new IoComponent(primus));
             entity.components.add(new AttackComponent());
             entity.components.add(new InputComponent(this.game.input));
@@ -309,15 +314,14 @@ function run(primus, config) {
         /**
          * Event handler for synchronizing the client with the server.
          * @method client.PlayState#onSync
-         * @param {object} worldState - World state.
+         * @param {object} snapshot - Snapshot JSON.
          */
-        , onSync: function(worldState) {
+        , onSync: function(snapshot) {
             var now = _.now();
 
-            // TODO The timestamp should probably not be set like this
-            worldState.timestamp = now;
-            this._stateHistory.snapshot(worldState);
-            this._packetsReceived.add(worldState.sequence);
+            snapshot.receivedAt = now;
+            this._snapshot.set(snapshot);
+            this._snapshotsReceived.add(snapshot.sequence);
 
             this._lastSyncAt = now;
         }
@@ -365,52 +369,57 @@ function run(primus, config) {
          * @method client.PlayState#updateTexts
          */
         , updateTexts: function() {
-            var now = _.now()
-                , timeLeftSec;
+            // check that a snapshot was received before updating the texts
+            if (!_.isUndefined(this._lastSyncAt)) {
+                var now = _.now()
+                    , timeLeftSec;
 
-            this._texts.changeText('gameScore', this._score);
+                this._texts.changeText('gameScore', this.createTeamScoreText(this._snapshot.scores));
 
-            if (this.player) {
-                var points = this.player.attrs.get('points')
-                    , stats = this.player.attrs.get(['kills', 'deaths']);
+                if (this.player) {
+                    var team = this.player.attrs.get('team')
+                        , points = this.player.attrs.get('points')
+                        , stats = this.player.attrs.get(['kills', 'deaths']);
 
-                if (_.isNumber(points)) {
-                    this._texts.changeText('playerPoints', 'points: ' + Math.round(points));
+                    if (_.isNumber(points)) {
+                        this._texts.changeText('playerPoints', 'points: ' + Math.round(points));
+                    }
+
+                    if (_.isNumber(stats.kills) && _.isNumber(stats.deaths)) {
+                        this._texts.changeText('playerStats', 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths);
+                    }
+
+                    if (!_.isUndefined(this._snapshot.flags[team].length) && _.isNumber(this._snapshot.flagCount)) {
+                        var teamFlagCount = this._snapshot.flags[team].length;
+                        this._texts.changeText('teamFlags', 'flags: ' + teamFlagCount + ' / ' + this._snapshot.flagCount);
+                    }
                 }
 
-                if (_.isNumber(stats.kills) && _.isNumber(stats.deaths)) {
-                    this._texts.changeText('playerStats', 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths);
+                timeLeftSec = config.gameLengthSec - Math.round(this._snapshot.gameTimeElapsed);
+                this._texts.changeText('gameTimeLeft', 'time left: ' + timeLeftSec + ' sec');
+
+                this._pingSentAt = this._pingSentAt || now;
+                if ((now - this._pingSentAt) > 250) {
+                    var ping = Math.round(this._ping / 10) * 10;
+                    if (ping < 10) {
+                        ping = 10;
+                    }
+                    this._texts.changeText('clientPing', 'ping: ' + ping + ' ms');
+                    primus.emit('ping', {timestamp: now});
+                    this._pingSentAt = now;
                 }
-            }
 
-            if (_.isNumber(this._teamFlagCount) && _.isNumber(this._totalFlagCount)) {
-                this._texts.changeText('teamFlags', 'flags: ' + this._teamFlagCount + ' / ' + this._totalFlagCount);
-            }
-
-            timeLeftSec = config.gameLengthSec - Math.round(this._runTimeSec);
-            this._texts.changeText('gameTimeLeft', 'time left: ' + timeLeftSec + ' sec');
-
-            this._pingSentAt = this._pingSentAt || now;
-            if ((now - this._pingSentAt) > 250) {
-                var ping = Math.round(this._ping / 10) * 10;
-                if (ping < 10) {
-                    ping = 10;
+                var packetSequence = this._snapshotsReceived.last();
+                if (packetSequence % 10 === 0) {
+                    var packetsReceived = this._snapshotsReceived.size()
+                        , packetsLost = 10 - packetsReceived
+                        , packetLoss = packetsLost === 0 ? packetsLost / packetsReceived : 0;
+                    this._texts.changeText('clientPacketLoss', 'packet loss: ' + packetLoss.toFixed(1) + '%');
+                    this._snapshotsReceived.clear();
                 }
-                this._texts.changeText('clientPing', 'ping: ' + ping + ' ms');
-                primus.emit('ping', {timestamp: now});
-                this._pingSentAt = now;
-            }
 
-            var packetSequence = this._packetsReceived.last();
-            if (packetSequence % 10 === 0) {
-                var packetsReceived = this._packetsReceived.size()
-                    , packetsLost = 10 - packetsReceived
-                    , packetLoss = packetsLost === 0 ? packetsLost / packetsReceived : 0;
-                this._texts.changeText('clientPacketLoss', 'packet loss: ' + packetLoss.toFixed(1) + '%');
-                this._packetsReceived.clear();
+                this._texts.changeText('playersOnline', 'players online: ' + this._snapshot.playerCount);
             }
-
-            this._texts.changeText('playersOnline', 'players online: ' + this._totalPlayerCount);
         }
         /**
          * Event handler for when receiving a ping response.
@@ -427,34 +436,27 @@ function run(primus, config) {
         , updateWorldState: function() {
             var worldState = this._stateHistory.last();
 
-            if (worldState) {
-                var now = _.now()
-                    , playerTeam = this.player.attrs.get('team')
-                    , previousState = null //this._stateHistory.previous()
-                    , factor, state, entity, sprites, body, nameText;
+            if (_.isNumber(this._snapshot.receivedAt)) {
+                var state, entity, sprites, texts, body;
 
-                this._runTimeSec = worldState.runTimeSec;
-                this._teamFlagCount = worldState.flags[playerTeam].length;
-                this._totalFlagCount = worldState.flagCount;
-                this._totalPlayerCount = worldState.playerCount;
-                this._score = this.createTeamScoreText(worldState.teamScore);
-
+                /*
                 if (previousState) {
+                    var factor;
+
                     if (config.enableInterpolation && this.canInterpolate()) {
                         // TODO fix client interpolation
                         factor = this.calculateInterpolationFactor(previousState, worldState);
                         worldState = this.interpolateWorldState(previousState, worldState, factor);
                     }
-                    /*
                     else if (config.enableExtrapolation && this.canExtrapolate()) {
                         // TODO add support for world state extrapolation
                         factor = 1;
                         worldState = this.extrapolateWorldState(previousState, worldState, factor);
                     }
-                    */
                 }
+                */
 
-                _.forOwn(worldState.entities, function(state, entityId) {
+                _.forOwn(this._snapshot.entities, function(state, entityId) {
                     entity = this.entities.get(entityId);
 
                     // if the entity does not exist, we need to create it
@@ -474,11 +476,14 @@ function run(primus, config) {
                                     player: this._entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
                                     , attack: this._effectGroup.create(state.attrs.x, state.attrs.y, 'attack-sword')
                                     , grave: this._entityGroup.create(state.attrs.x, state.attrs.y, 'grave')
+                                }
+                                , texts = {
+                                    name: this.createNameText(state.attrs.name, state.attrs.team)
                                 };
-                                nameText = this.createNameText(state.attrs.name, state.attrs.team);
 
                                 entity.components.add(new SpriteComponent(sprites));
-                                entity.components.add(new PlayerComponent(nameText));
+                                entity.components.add(new TextComponent(texts));
+                                entity.components.add(new PlayerComponent());
                                 entity.components.add(new AttackComponent());
                                 break;
                             case 'flag':

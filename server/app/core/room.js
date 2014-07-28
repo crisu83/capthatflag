@@ -11,7 +11,7 @@ var path = require('path')
     , Hashmap = require('../../../shared/utils/hashmap')
     , ClientList = require('../utils/clientList')
     , EntityHashmap = require('../../../shared/utils/entityHashmap')
-    , StateHistory = require('../../../shared/utils/stateHistory')
+    , Snapshot = require('../../../shared/core/snapshot')
     , World = require('../../../shared/physics/world')
     , Team = require('./team')
     , config = require('../config.json')
@@ -69,13 +69,15 @@ Room = utils.inherit(Node, {
 
         // internal variables
         this._clients = new ClientList();
+        //this._teams = new TeamHashmap();
         this._teams = null;
         this._flags = {};
+        //this._flags = new FlagHashmap();
         this._lastSyncAt = null;
         this._lastTickAt = null;
         this._gameStartedAt = null;
         this._lastPointsAt = null;
-        this._packetSequence = 0;
+        this._snapshotSequence = 0;
         this._running = true;
 
         console.log(' game room %s created', this.id);
@@ -91,8 +93,10 @@ Room = utils.inherit(Node, {
         this.tilemap.room = this;
         this.tilemap.init();
 
-        var json = require('../../../data/names.json');
-        this.names = _.shuffle(json.names);
+        var namesJson = require('../../../data/names.json');
+        this.names = _.shuffle(namesJson.names);
+
+        // TODO parse teams from json
 
         this._teams = new Hashmap({
             red: new Team('red', 32, 32)
@@ -137,10 +141,13 @@ Room = utils.inherit(Node, {
             }, this);
 
             if (!this._lastSyncAt || now - this._lastSyncAt > 1000 / config.syncRate) {
-                var worldState = this.createWorldState();
+                var snapshot = this.createSnapshot()
+                    , json = snapshot.serialize();
+
+                // TODO filter the snapshot based on where the player is
 
                 this._clients.each(function(client) {
-                    client.sync(worldState);
+                    client.sync(json);
                 }, this);
 
                 this._lastSyncAt = now;
@@ -158,38 +165,30 @@ Room = utils.inherit(Node, {
         }
     }
     /**
-     * Creates the current game state.
-     * @method server.core.Room#createWorldState
-     * @return {object} Current world state.
+     * Creates a snapshot of the current game state.
+     * @method server.core.Room#createSnapshot
+     * @return {server.core.Snapshot} Snapshot instance.
      */
-    , createWorldState: function() {
+    , createSnapshot: function() {
         var now = _.now()
-            , entities = {}
-            , teamScore = this.calculateTeamScore()
-            , worldState;
+            , snapshot;
 
-        this.entities.each(function(entity, entityId) {
-            entities[entityId] = entity.serialize();
-        });
+        snapshot = new Snapshot();
+        snapshot.sequence = this._snapshotSequence++;
+        snapshot.createdAt = now;
+        snapshot.entities = this.entities.serialize();
+        snapshot.flags = _.clone(this._flags);
+        snapshot.scores = this.calculateTeamScores();
+        snapshot.flagCount = this.flagCount;
+        snapshot.playerCount = this.playerCount;
+        snapshot.gameTimeElapsed = (now - this._gameStartedAt) / 1000;
 
-        //console.log(entities);
-
-        worldState = {
-            sequence: this._packetSequence++
-            , sentAt: now
-            , runTimeSec: (now - this._gameStartedAt) / 1000
-            , entities: entities
-            , flags: this._flags
-            , teamScore: teamScore
-            , flagCount: this.flagCount
-            , playerCount: this.playerCount
-        };
-
-        //console.log(this._flags);
-
-        return worldState;
+        return snapshot;
     }
-    , calculateTeamScore: function() {
+    /**
+     * TODO
+     */
+    , calculateTeamScores: function() {
         var teamScore = [];
 
         this._teams.each(function(team) {
@@ -272,7 +271,7 @@ Room = utils.inherit(Node, {
     , endGame: function() {
         this._running = false;
 
-        var teamScore = this.calculateTeamScore()
+        var teamScore = this.calculateTeamScores()
             , topScore;
 
         // sort the scores so that the highest is first
