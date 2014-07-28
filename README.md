@@ -1,5 +1,5 @@
-dungeon-game
-============
+CAP THAT FLAG
+=============
 
 A fast-paced multiplayer action role playing game written in JavaScript.
 
