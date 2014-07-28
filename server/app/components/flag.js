@@ -2,16 +2,16 @@
 
 var _ = require('lodash')
     , utils = require('../../../shared/utils')
-    , ComponentBase = require('../../../shared/components/banner')
-    , BannerComponent;
+    , ComponentBase = require('../../../shared/components/flag')
+    , FlagComponent;
 
 /**
- * Banner component class.
- * @class server.components.BannerComponent
- * @classdesc Component that adds banner functionality.
- * @extends shared.components.BannerComponent
+ * Flag component class.
+ * @class server.components.FlagComponent
+ * @classdesc Component that adds flag functionality.
+ * @extends shared.components.FlagComponent
  */
-BannerComponent = utils.inherit(ComponentBase, {
+FlagComponent = utils.inherit(ComponentBase, {
     /**
      * Creates a new component.
      * @constructor
@@ -51,4 +51,4 @@ BannerComponent = utils.inherit(ComponentBase, {
     }
 });
 
-module.exports = BannerComponent;
+module.exports = FlagComponent;

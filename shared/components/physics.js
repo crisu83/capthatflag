@@ -75,16 +75,16 @@ PhysicsComponent = utils.inherit(ComponentBase, {
         // update entity attribute
         this.owner.attrs.set({x: position.x, y: position.y});
 
-        // check for collision with tiles
-        this.collide('tile', this.onCollideTile.bind(this));
+        // check for collision with walls
+        this.collide('wall', this.onCollideWall.bind(this));
     }
     /**
-     * Callback for when the body collides with a tile.
-     * @method shared.components.PhysicsComponent#onCollideTile
+     * Callback for when the body collides with a wall.
+     * @method shared.components.PhysicsComponent#onCollideWall
      * @param {shared.physics.Body} body - Body instance.
      * @param {shared.physics.Body} other - Other body instance.
      */
-    , onCollideTile: function(body, other) {
+    , onCollideWall: function(body, other) {
         this.owner.attrs.set({x: body.x, y: body.y});
     }
     /**

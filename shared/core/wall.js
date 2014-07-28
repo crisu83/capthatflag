@@ -2,14 +2,14 @@
 
 var _ = require('lodash')
     , utils = require('../utils')
-    , Tile;
+    , Wall;
 
 /**
- * Tile class.
- * @class shared.core.Tile
- * @classdesc Represents a single tile.
+ * Wall class.
+ * @class shared.core.Wall
+ * @classdesc Represents a impassable wall on the map.
  */
-Tile = utils.inherit(null, {
+Wall = utils.inherit(null, {
     /**
      * Creates a new tile.
      * @constructor
@@ -36,4 +36,4 @@ Tile = utils.inherit(null, {
     }
 });
 
-module.exports = Tile;
+module.exports = Wall;

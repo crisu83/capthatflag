@@ -5,25 +5,8 @@
     , "image": "forrest"
     , "music": "forrest"
     , "layers": ["Ground", "Walls"]
-    , "collision": "Walls"
-    , "entities": [
-        {"key": "banner", "attrs": {"x": 256, "y": 224}}
-        , {"key": "banner", "attrs": {"x": 640, "y": 224}}
-        , {"key": "banner", "attrs": {"x": 928, "y": 224}}
-        , {"key": "banner", "attrs": {"x": 1312, "y": 224}}
-        , {"key": "banner", "attrs": {"x": 256, "y": 640}}
-        , {"key": "banner", "attrs": {"x": 256, "y": 896}}
-        , {"key": "banner", "attrs": {"x": 256, "y": 1312}}
-        , {"key": "banner", "attrs": {"x": 640, "y": 1312}}
-        , {"key": "banner", "attrs": {"x": 928, "y": 1312}}
-        , {"key": "banner", "attrs": {"x": 1312, "y": 1312}}
-        , {"key": "banner", "attrs": {"x": 1312, "y": 640}}
-        , {"key": "banner", "attrs": {"x": 1312, "y": 896}}
-        , {"key": "banner", "attrs": {"x": 640, "y": 640}}
-        , {"key": "banner", "attrs": {"x": 640, "y": 896}}
-        , {"key": "banner", "attrs": {"x": 928, "y": 640}}
-        , {"key": "banner", "attrs": {"x": 928, "y": 896}}
-    ]
+    , "collision": "Collision"
+    , "flags": "Flags"
     , "assets": {
         "images": {
             "forrest": "images/tilesets/forrest.png"

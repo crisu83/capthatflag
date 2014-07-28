@@ -1,0 +1,16 @@
+{
+    "key": "flag"
+    , "attrs": {
+        "width": 32
+        , "height": 64
+        , "image": "flag"
+    }
+    , "assets": {
+        "spritesheets": {
+            "flag": {
+                "src": "images/sprites/flag.png"
+                , "frames": 3
+            }
+        }
+    }
+}

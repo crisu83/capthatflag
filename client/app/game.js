@@ -3,7 +3,7 @@
 var _ = require('lodash')
     , utils = require('../../shared/utils')
     , List = require('../../shared/utils/list')
-    , Tile = require('../../shared/core/tile')
+    , Wall = require('../../shared/core/wall')
     , World = require('../../shared/physics/world')
     , Body = require('../../shared/physics/body')
     , EntityHashmap = require('../../shared/utils/entityHashmap')
@@ -13,7 +13,7 @@ var _ = require('lodash')
     , IoComponent = require('../../shared/components/io')
     , PhysicsComponent = require('../../shared/components/physics')
     , AttackComponent = require('./components/attack')
-    , BannerComponent = require('./components/banner')
+    , FlagComponent = require('./components/flag')
     , InputComponent = require('./components/input')
     , PlayerComponent = require('./components/player')
     , SpriteComponent = require('./components/sprite')
@@ -118,7 +118,7 @@ function run(primus, config) {
         , create: function(game) {
             this.log('creating game ...');
 
-            var map, layer, tile, body, style, text, pauseKey, muteKey;
+            var map, layer, wall, body, style, text, pauseKey, muteKey;
 
             // remove all existing key bindings
             this.game.input.reset(true/* hard */);
@@ -134,18 +134,21 @@ function run(primus, config) {
             map.addTilesetImage(config.mapKey, config.mapImage);
             _.forOwn(config.mapLayer, function(layerData) {
                 layer = map.createLayer(layerData);
-                layer.resizeWorld();
+                if (layer) {
+                    layer.resizeWorld();
+                }
             }, this);
 
             // add the collision layer tiles to the physical world
-            _.forOwn(config.mapCollisionTiles, function(json) {
-                tile = new Tile(json.x, json.y, json.width, json.height);
+            _.forOwn(config.mapWalls, function(json) {
+                console.log(json);
+                wall = new Wall(json.x, json.y, json.width, json.height);
 
-                body = new Body('tile', tile);
-                body.x = tile.x;
-                body.y = tile.y;
-                body.width = tile.width;
-                body.height = tile.height;
+                body = new Body('wall', wall);
+                body.x = wall.x;
+                body.y = wall.y;
+                body.width = wall.width;
+                body.height = wall.height;
 
                 this.foo.add(body);
             }, this);
@@ -478,13 +481,13 @@ function run(primus, config) {
                                 entity.components.add(new PlayerComponent(nameText));
                                 entity.components.add(new AttackComponent());
                                 break;
-                            case 'banner':
+                            case 'flag':
                                 sprites = {
-                                    banner: this._entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
+                                    flag: this._entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
                                 };
 
                                 entity.components.add(new SpriteComponent(sprites));
-                                entity.components.add(new BannerComponent());
+                                entity.components.add(new FlagComponent());
                                 break;
                             default:
                                 break;

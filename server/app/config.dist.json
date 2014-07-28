@@ -1,6 +1,6 @@
 {
-    "debug": true
-    , "port": 3000
+    "debug": false
+    , "port": 80
     , "socketNamespace": "/game"
     , "canvasWidth": 1024
     , "canvasHeight": 640
@@ -13,7 +13,7 @@
     , "enableExtrapolation": false
     , "extrapolationMsec": 200
     , "gameName": "CAP THAT FLAG"
-    , "gameVersion": "v0.8.0"
+    , "gameVersion": "v0.9.0"
     , "gameLengthSec": 320
     , "gamePointsSec": 30
     , "gamePointsPerFlag": 100

@@ -13,4 +13,64 @@
    eJztmDkShDAMBJ3x/x+TEoCxZGl8dVeRWTPbAQK2FABo5Wq4Wmeiz9Vm3jKseGay+/DwgceYXHXf15ne/VHrs+b2eqjBw56ZSUYnHnN1rubh2a3R74k9v+U5a2Wl52D0THYfHj7wAAAvu9znePjAY0yuum+X9/Zaphq+B7WZIzpX89jlf7gTPLL2oDX3tOdgRq66Dw8fePyfse4Q1bmI/QhwIjcYTQcd
   </data>
  </layer>
+ <objectgroup name="Flags" width="50" height="50">
+  <object name="Flag1" type="flag" x="256" y="256" width="32" height="32"/>
+  <object name="Flag2" type="flag" x="672" y="256" width="32" height="32"/>
+  <object name="Flag3" type="flag" x="896" y="256" width="32" height="32"/>
+  <object name="Flag4" type="flag" x="1312" y="256" width="32" height="32"/>
+  <object name="Flag5" type="flag" x="256" y="672" width="32" height="32"/>
+  <object name="Flag6" type="flag" x="672" y="672" width="32" height="32"/>
+  <object name="Flag7" type="flag" x="896" y="672" width="32" height="32"/>
+  <object name="Flag8" type="flag" x="1312" y="672" width="32" height="32"/>
+  <object name="Flag9" type="flag" x="256" y="896" width="32" height="32"/>
+  <object name="Flag10" type="flag" x="672" y="896" width="32" height="32"/>
+  <object name="Flag11" type="flag" x="896" y="896" width="32" height="32"/>
+  <object name="Flag12" type="flag" x="1312" y="896" width="32" height="32"/>
+  <object name="Flag13" type="flag" x="256" y="1312" width="32" height="32"/>
+  <object name="Flag14" type="flag" x="672" y="1312" width="32" height="32"/>
+  <object name="Flag15" type="flag" x="896" y="1312" width="32" height="32"/>
+  <object name="Flag16" type="flag" x="1312" y="1312" width="32" height="32"/>
+ </objectgroup>
+ <objectgroup name="Collision" width="50" height="50">
+  <object name="Wall1" type="wall" x="128" y="128" width="32" height="288"/>
+  <object name="Wall2" type="wall" x="160" y="128" width="256" height="32"/>
+  <object name="Wall3" type="wall" x="576" y="128" width="160" height="32"/>
+  <object name="Wall4" type="wall" x="544" y="128" width="32" height="224"/>
+  <object name="Wall5" type="wall" x="352" y="320" width="192" height="32"/>
+  <object name="Wall6" type="wall" x="320" y="320" width="32" height="256"/>
+  <object name="Wall7" type="wall" x="128" y="544" width="32" height="192"/>
+  <object name="Wall8" type="wall" x="160" y="544" width="160" height="32"/>
+  <object name="Wall9" type="wall" x="864" y="128" width="160" height="32"/>
+  <object name="Wall10" type="wall" x="1024" y="128" width="32" height="224"/>
+  <object name="Wall11" type="wall" x="1056" y="320" width="192" height="32"/>
+  <object name="Wall12" type="wall" x="1248" y="320" width="32" height="256"/>
+  <object name="Wall13" type="wall" x="1280" y="544" width="160" height="32"/>
+  <object name="Wall14" type="wall" x="1440" y="544" width="32" height="192"/>
+  <object name="Wall15" type="wall" x="1184" y="128" width="256" height="32"/>
+  <object name="Wall16" type="wall" x="1440" y="128" width="32" height="288"/>
+  <object name="Wall17" type="wall" x="544" y="544" width="32" height="192"/>
+  <object name="Wall18" type="wall" x="576" y="544" width="160" height="32"/>
+  <object name="Wall19" type="wall" x="864" y="544" width="160" height="32"/>
+  <object name="Wall20" type="wall" x="1024" y="544" width="32" height="192"/>
+  <object name="Wall21" type="wall" x="544" y="864" width="32" height="192"/>
+  <object name="Wall22" type="wall" x="576" y="1024" width="160" height="32"/>
+  <object name="Wall23" type="wall" x="864" y="1024" width="160" height="32"/>
+  <object name="Wall24" type="wall" x="1024" y="864" width="32" height="192"/>
+  <object name="Wall25" type="wall" x="128" y="864" width="32" height="192"/>
+  <object name="Wall26" type="wall" x="160" y="1024" width="160" height="32"/>
+  <object name="Wall27" type="wall" x="320" y="1024" width="32" height="256"/>
+  <object name="Wall28" type="wall" x="352" y="1248" width="192" height="32"/>
+  <object name="Wall29" type="wall" x="544" y="1248" width="32" height="224"/>
+  <object name="Wall30" type="wall" x="576" y="1440" width="160" height="32"/>
+  <object name="Wall31" type="wall" x="128" y="1184" width="32" height="288"/>
+  <object name="Wall32" type="wall" x="160" y="1440" width="256" height="32"/>
+  <object name="Wall33" type="wall" x="864" y="1440" width="160" height="32"/>
+  <object name="Wall34" type="wall" x="1024" y="1248" width="32" height="224"/>
+  <object name="Wall35" type="wall" x="1056" y="1248" width="192" height="32"/>
+  <object name="Wall36" type="wall" x="1248" y="1024" width="32" height="256"/>
+  <object name="Wall37" type="wall" x="1280" y="1024" width="160" height="32"/>
+  <object name="Wall38" type="wall" x="1440" y="864" width="32" height="192"/>
+  <object name="Wall39" type="wall" x="1184" y="1440" width="256" height="32"/>
+  <object name="Wall40" type="wall" x="1440" y="1184" width="32" height="288"/>
+ </objectgroup>
 </map>
