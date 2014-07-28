@@ -243,6 +243,69 @@
         }, 
         {
          "height":50,
+         "name":"Bases",
+         "objects":[
+                {
+                 "height":128,
+                 "name":"Base1",
+                 "properties":
+                    {
+
+                    },
+                 "type":"base",
+                 "visible":true,
+                 "width":128,
+                 "x":0,
+                 "y":0
+                }, 
+                {
+                 "height":128,
+                 "name":"Base2",
+                 "properties":
+                    {
+
+                    },
+                 "type":"base",
+                 "visible":true,
+                 "width":128,
+                 "x":1472,
+                 "y":1472
+                }, 
+                {
+                 "height":128,
+                 "name":"Base3",
+                 "properties":
+                    {
+
+                    },
+                 "type":"base",
+                 "visible":true,
+                 "width":128,
+                 "x":1472,
+                 "y":0
+                }, 
+                {
+                 "height":128,
+                 "name":"Base4",
+                 "properties":
+                    {
+
+                    },
+                 "type":"base",
+                 "visible":true,
+                 "width":128,
+                 "x":0,
+                 "y":1472
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "width":50,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "height":50,
          "name":"Collision",
          "objects":[
                 {

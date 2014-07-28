@@ -39,5 +39,9 @@
                 , "frames": 1
             }
         }
+        , "audio": {
+            "hit": ["audio/sounds/hit.mp3", "audio/sounds/hit.ogg"]
+            , "die": ["audio/sounds/die.mp3", "audio/sounds/die.ogg"]
+        }
     }
 }

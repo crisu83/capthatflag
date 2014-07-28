@@ -115,15 +115,14 @@ InputComponent = utils.inherit(ComponentBase, {
             if (_.isUndefined(this._lastSyncAt) || (now - this._lastSyncAt) > 10) {
                 // check if any input was actually received.
                 if (command.arrows.length || command.direction !== this._lastDirection || command.action !== this._lastAction) {
+                    // add the command to the command history
                     command.sequence = this._sequence++;
                     this._commands.add(command);
 
-                    // apply input prediction if necessary
-                    if (this.owner.config.enablePrediction) {
-                        var attrs = this.processCommand(command);
-                        this.owner.attrs.set(attrs);
-                    }
+                    // apply input prediction
+                    this.owner.attrs.set(this.processCommand(command));
 
+                    // send the input to the server
                     this._io.spark.emit('player.input', command);
 
                     this._lastDirection = command.direction;

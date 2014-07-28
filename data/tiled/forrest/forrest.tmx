@@ -31,6 +31,12 @@
   <object name="Flag15" type="flag" x="896" y="1312" width="32" height="32"/>
   <object name="Flag16" type="flag" x="1312" y="1312" width="32" height="32"/>
  </objectgroup>
+ <objectgroup name="Bases" width="50" height="50">
+  <object name="Base1" type="base" x="0" y="0" width="128" height="128"/>
+  <object name="Base2" type="base" x="1472" y="1472" width="128" height="128"/>
+  <object name="Base3" type="base" x="1472" y="0" width="128" height="128"/>
+  <object name="Base4" type="base" x="0" y="1472" width="128" height="128"/>
+ </objectgroup>
  <objectgroup name="Collision" width="50" height="50">
   <object name="Wall1" type="wall" x="128" y="128" width="32" height="288"/>
   <object name="Wall2" type="wall" x="160" y="128" width="256" height="32"/>

@@ -1,16 +1,14 @@
 {
     "teams": [
         {
-            "key": "red"
+            "name": "red"
             , "color": "#ff33cc"
-            , "x": 32
-            , "y": 32
+            , "base": "Base1"
         }
         , {
-            "key": "blue"
+            "name": "blue"
             , "color": "#0099ff"
-            , "x": -64
-            , "y": -96
+            , "base": "Base2"
         }
     ]
 }

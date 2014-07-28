@@ -35,7 +35,13 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this._respawnSec = this.owner.attrs.get('respawnSec');
 
         var position = this._team.spawnPosition();
-        this.owner.attrs.set({spawnX: position.x, spawnY: position.y});
+
+        // set initial entity attributes
+        this.owner.attrs.set({
+            teamColor: this._team.color
+            , spawnX: position.x
+            , spawnY: position.y
+        });
 
         this.owner.on('entity.kill', this.onEntityKill.bind(this));
         this.owner.on('entity.die', this.onEntityDeath.bind(this));
@@ -80,6 +86,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
             points: this._points
             , kills: this._kills
             , deaths: this._deaths
+            , lastDeadAt: this._lastDeadAt
         });
     }
     /**

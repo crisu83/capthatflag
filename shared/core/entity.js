@@ -20,7 +20,7 @@ Entity = utils.inherit(Node, {
      * @constructor
      * @param {object} data - Entity data.
      */
-    constructor: function(data, config) {
+    constructor: function(data) {
         Node.apply(this);
 
         // inherited properties
@@ -38,10 +38,6 @@ Entity = utils.inherit(Node, {
          * @property {shared.core.ComponentManager} components - Component manager instance.
          */
         this.components = new ComponentManager(this);
-        /**
-         * @property {object} config - Game configuration.
-         */
-        this.config = config;
     }
     /**
      * Updates the entity logic.

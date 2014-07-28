@@ -46,14 +46,14 @@ SpriteComponent = utils.inherit(ComponentBase, {
     }
     /**
      * Plays an aniamtion for a specific sprite.
-     * @method client.components.SpriteComponent#playAnimation
+     * @method client.components.SpriteComponent#play
      * @param {string} key - Sprite key.
      * @param {string} animation - Animation key.
      * @param {number} framesPerSec - Number of frames per second.
      * @param {boolean} loop - Whether to loop the animation.
      *
      */
-    , playAnimation: function(key, animation, framesPerSec, loop) {
+    , play: function(key, animation, framesPerSec, loop) {
         this._sprites.get(key).animations.play(animation, framesPerSec, loop);
     }
     /**

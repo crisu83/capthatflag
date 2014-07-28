@@ -3,8 +3,10 @@
 var _ = require('lodash')
     , utils = require('../../../shared/utils')
     , Wall = require('../../../shared/core/wall')
+    , Base = require('./base')
     , Body = require('../../../shared/physics/body')
     , List = require('../../../shared/utils/list')
+    , Hashmap = require('../../../shared/utils/hashmap')
     , EntityFactory = require('./entityFactory')
     , PhysicsComponent = require('../../../shared/components/physics')
     , FlagComponent = require('../components/flag')
@@ -68,6 +70,10 @@ Tilemap = utils.inherit(null, {
          */
         this.flags = data.flags;
         /**
+         * @property {string} bases - Name of the base layer.
+         */
+        this.bases = data.bases;
+        /**
          * @property {string} image - Tilemap image key.
          */
         this.image = data.image;
@@ -87,6 +93,7 @@ Tilemap = utils.inherit(null, {
         // internal properties
         this.room = null;
         this._walls = new List();
+        this._bases = new Hashmap();
     }
     /**
      * Initializes the tilemap.
@@ -102,37 +109,13 @@ Tilemap = utils.inherit(null, {
                 case this.flags:
                     this.parseFlagLayer(layer);
                     break;
-                default:
-                    break;
-            }
-        }, this);
-
-        // TODO move entities from the tilemap data to the tilemap itself if possilbe
-        // loop through the entities on this map and create them.
-        /*
-        _.forOwn(this.entities, function(json) {
-            entity = EntityFactory.create(json.key);
-            attrs = json.attrs || {};
-
-            entity.attrs.set(attrs);
-
-            // TODO use the entity factory to create the entities
-            switch (json.key) {
-                case 'banner':
-                    body = new Body('banner', entity);
-
-                    entity.components.add(new PhysicsComponent(body, this.room.world));
-                    entity.components.add(new BannerComponent(this.room));
-
-                    this.room.flagCount++;
+                case this.bases:
+                    this.parseBaseLayer(layer);
                     break;
                 default:
                     break;
             }
-
-            this.room.entities.add(entity.id, entity);
         }, this);
-        */
     }
     /**
      * TODO
@@ -213,6 +196,24 @@ Tilemap = utils.inherit(null, {
         }, this);
     }
     /**
+     * TODO
+     */
+    , parseBaseLayer: function(layer) {
+        var base, body;
+
+        _.forOwn(layer.objects, function(object) {
+            base = new Base(object.name, object.x, object.y, object.width, object.height);
+
+            body = new Body('base', base);
+            body.x = base.x;
+            body.y = base.y;
+            body.width = base.width;
+            body.height = base.height;
+
+            this._bases.set(object.name, base);
+        }, this);
+    }
+    /**
      * Returns the walls on the tilemap.
      * @method server.core.Tilemap#getWalls
      * @return {array} List of walls.
@@ -225,6 +226,14 @@ Tilemap = utils.inherit(null, {
         }, this);
 
         return walls;
+    }
+    /**
+     * Returns a specific base from this tilemap.
+     * @method server.core.Tilemap#getBase
+     * @return {server.core.Base} Base instance.
+     */
+    , getBase: function(key) {
+        return this._bases.get(key);
     }
 });
 

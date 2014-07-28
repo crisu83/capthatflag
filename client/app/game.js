@@ -8,18 +8,9 @@ var _ = require('lodash')
     , World = require('../../shared/physics/world')
     , Body = require('../../shared/physics/body')
     , EntityHashmap = require('../../shared/utils/entityHashmap')
-    , StateHistory = require('../../shared/utils/stateHistory')
+    , EntityFactory = require('./core/entityFactory')
     , TextManager = require('./ui/textManager')
-    , Entity = require('../../shared/core/entity')
-    , IoComponent = require('../../shared/components/io')
-    , PhysicsComponent = require('../../shared/components/physics')
-    , AttackComponent = require('./components/attack')
-    , FlagComponent = require('./components/flag')
-    , InputComponent = require('./components/input')
-    , PlayerComponent = require('./components/player')
-    , SpriteComponent = require('./components/sprite')
-    , TextComponent = require('./components/text')
-    , SyncComponent = require('./components/sync');
+    , InputComponent = require('./components/input');
 
 /**
  * Runs the game.
@@ -63,6 +54,19 @@ function run(primus, config) {
             this._lastTickAt = null;
             this._snapshot = new Snapshot();
             this._texts = new TextManager();
+
+            // add the first snapshot manually
+            this.addSnapshot(config.gameSnapshot);
+        }
+        /**
+         * Adds a new snapshot to the client.
+         * @method client.PlayState#addSnapshot
+         * @param {object} - Snapshot object.
+         */
+        , addSnapshot: function(snapshot) {
+            snapshot.receivedAt = _.now();
+            this._snapshot.set(snapshot);
+            this._snapshotsReceived.add(snapshot.sequence);
         }
         /**
          * Loads the game assets.
@@ -114,9 +118,9 @@ function run(primus, config) {
         , create: function(game) {
             this.log('creating game ...');
 
-            var map, layer, wall, body, style, text, pauseKey, muteKey;
+            var pauseKey, muteKey;
 
-            // remove all existing key bindings
+            // remove all existing key bindings (just to be sure)
             this.game.input.reset(true/* hard */);
 
             // define the world bounds
@@ -124,6 +128,47 @@ function run(primus, config) {
 
             // set the background color for the stage
             this.stage.backgroundColor = '#000';
+
+            // create the map
+            this.createMap();
+
+            // create the music
+            //this.createMusic();
+
+            // set dependencies for the entity manager
+            EntityFactory.world = this.foo;
+            EntityFactory.primus = primus;
+            EntityFactory.entityGroup = this._entityGroup = this.add.group();
+            EntityFactory.effectGroup = this._effectGroup = this.add.group();
+            EntityFactory.state = this;
+
+            // create the texts for the ui
+            this.createTexts();
+
+            if (DEBUG) {
+                pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
+                pauseKey.onDown.add(this.onGamePause.bind(this));
+            }
+
+            muteKey = game.input.keyboard.addKey(Phaser.Keyboard.M);
+            muteKey.onDown.add(this.onMusicMuted.bind(this));
+
+            // bind event handlers
+            primus.on('pong', this.onPong.bind(this));
+            primus.on('player.create', this.onPlayerCreate.bind(this));
+            primus.on('game.sync', this.onGameSync.bind(this));
+            primus.on('player.leave', this.onPlayerLeave.bind(this));
+            primus.on('game.end', this.onGameEnd.bind(this));
+
+            // let the server know that client is ready
+            primus.emit('client.ready');
+        }
+        /**
+         * Creates the map.
+         * @method client.PlayState#createMap
+         */
+        , createMap: function() {
+            var map, layer, wall, body;
 
             // create the map
             map = this.add.tilemap(config.mapKey);
@@ -147,26 +192,29 @@ function run(primus, config) {
 
                 this.foo.add(body);
             }, this);
-
-            // create the music
+        }
+        /**
+         * Creates the music for the game.
+         * @method client.PlayState#createMusic
+         */
+        , createMusic: function() {
             this._music = this.add.audio(
                 config.mapMusic
                 , 0.1/* volume */
                 , true/* loop */
             );
             this._music.play();
+        }
+        /**
+         * Creates the texts for the client.
+         * @method client.PlayState#createTexts
+         */
+        , createTexts: function() {
+            var style, text;
 
-            this._entityGroup = this.add.group();
-            this._effectGroup = this.add.group();
+            // TODO read the texts from json that is passed from the server
 
-            // TODO clean up the text creation
-
-            style = {
-                font: "14px Courier"
-                , stroke: "#000000"
-                , strokeThickness: 5
-                , fill: "#ffffff"
-            };
+            style = {font: "14px Courier", stroke: "#000", strokeThickness: 5, fill: "#fff"};
 
             text = this.add.text(10, 10, '', style);
             text.fixedToCamera = true;
@@ -207,35 +255,21 @@ function run(primus, config) {
             text.anchor.x = 1;
             text.fixedToCamera = true;
 
-            style = {
-                font: '24px Courier'
-                , stroke: '#000000'
-                , strokeThickness: 5
-                , fill: '#ffffff'
-                , align: 'center'
-            };
+            style = {font: '24px Courier', stroke: '#000', strokeThickness: 5, fill: '#fff', align: 'center'};
 
             text = this.add.text(config.canvasWidth / 2, config.canvasHeight / 2, '', style);
             text.anchor.setTo(0.5, 0.5);
             text.fixedToCamera = true;
             this._texts.add('gameResult', text);
-
-            if (DEBUG) {
-                pauseKey = game.input.keyboard.addKey(Phaser.Keyboard.P);
-                pauseKey.onDown.add(this.onGamePause.bind(this));
-            }
-
-            muteKey = game.input.keyboard.addKey(Phaser.Keyboard.M);
-            muteKey.onDown.add(this.onMusicMuted.bind(this));
-
-            // bind event handlers
-            primus.on('pong', this.onPong.bind(this));
-            primus.on('player.create', this.onPlayerCreate.bind(this));
-            primus.on('player.leave', this.onPlayerLeave.bind(this));
-            primus.on('game.end', this.onGameEnd.bind(this));
-
-            // let the server know that client is ready
-            primus.emit('client.ready');
+        }
+        /**
+         * Event handler for synchronizing the game state from the server.
+         * @method client.PlayState#onGameSync
+         * @param {object} snapshot - Snapshot object.
+         */
+        , onGameSync: function(snapshot) {
+            this.addSnapshot(snapshot);
+            this._lastSyncAt = snapshot.receivedAt;
         }
         /**
          * Event handler for when the game is paused.
@@ -263,60 +297,25 @@ function run(primus, config) {
         /**
          * Event handler for creating the player.
          * @method client.PlayState#onPlayerCreate
-         * @param {object} state - Player state.
+         * @param {object} data - Player data.
          */
-        , onPlayerCreate: function(state) {
-            this.log('creating player', state);
+        , onPlayerCreate: function(data) {
+            this.log('creating player', data);
 
-            // TODO move this logic to the entity factory
-            var entity = this.createEntity(state)
-                , sprites = {
-                    player: this._entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
-                    , grave: this._entityGroup.create(state.attrs.x, state.attrs.y, 'grave')
-                    , attack: this._effectGroup.create(state.attrs.x, state.attrs.y, 'attack-sword')
-                }
-                , texts = {
-                    name: this.createNameText(state.attrs.name, state.attrs.team)
-                }
-                , body = new Body('player', entity);
+            var entity = EntityFactory.createPlayer(data)
+                , sprite, playerSprite;
 
-            this.camera.follow(sprites.player);
-
-            entity.components.add(new SpriteComponent(sprites));
-            entity.components.add(new TextComponent(texts));
-            entity.components.add(new PlayerComponent());
-            entity.components.add(new IoComponent(primus));
-            entity.components.add(new AttackComponent());
+            // add the input component only to the actual player
             entity.components.add(new InputComponent(this.game.input));
-            entity.components.add(new PhysicsComponent(body, this.foo));
 
-            this.entities.add(state.id, entity);
+            // set the camera to follow the player sprite
+            sprite = entity.components.get('sprite');
+            playerSprite = sprite.get('player');
+            this.camera.follow(playerSprite);
+
+            this.entities.add(data.id, entity);
 
             this.player = entity;
-
-            // now we are ready to synchronization the world with the server
-            primus.on('client.sync', this.onSync.bind(this));
-        }
-        /**
-         * TODO
-         */
-        , createNameText: function(name, team) {
-            var color = team === 'red' ? '#ff33cc' : '#0099ff';
-            return this.add.text(0, 0, name, {font: "10px Courier", stroke: "#000000", strokeThickness: 5, fill: color});
-        }
-        /**
-         * Event handler for synchronizing the client with the server.
-         * @method client.PlayState#onSync
-         * @param {object} snapshot - Snapshot JSON.
-         */
-        , onSync: function(snapshot) {
-            var now = _.now();
-
-            snapshot.receivedAt = now;
-            this._snapshot.set(snapshot);
-            this._snapshotsReceived.add(snapshot.sequence);
-
-            this._lastSyncAt = now;
         }
         /**
          * Event handler for when a player leaves.
@@ -362,59 +361,68 @@ function run(primus, config) {
          * @method client.PlayState#updateTexts
          */
         , updateTexts: function() {
-            // check that a snapshot was received before updating the texts
-            if (!_.isUndefined(this._lastSyncAt)) {
-                var now = _.now()
-                    , timeLeftSec;
+            var now = _.now()
+                , timeLeftSec;
 
-                this._texts.changeText('gameScore', this.createTeamScoreText(this._snapshot.scores));
+            this._texts.changeText('gameScore', this.createTeamScoreText());
 
-                if (this.player) {
-                    var team = this.player.attrs.get('team')
-                        , points = this.player.attrs.get('points')
-                        , stats = this.player.attrs.get(['kills', 'deaths']);
+            if (this.player) {
+                var team = this.player.attrs.get('team')
+                    , points = this.player.attrs.get('points')
+                    , stats = this.player.attrs.get(['kills', 'deaths']);
 
-                    if (_.isNumber(points)) {
-                        this._texts.changeText('playerPoints', 'points: ' + Math.round(points));
-                    }
-
-                    if (_.isNumber(stats.kills) && _.isNumber(stats.deaths)) {
-                        this._texts.changeText('playerStats', 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths);
-                    }
-
-                    if (!_.isUndefined(this._snapshot.flags[team]) && _.isNumber(this._snapshot.flagCount)) {
-                        var teamFlagCount = this._snapshot.flags[team].length;
-                        this._texts.changeText('teamFlags', 'flags: ' + teamFlagCount + ' / ' + this._snapshot.flagCount);
-                    }
+                if (_.isNumber(points)) {
+                    this._texts.changeText('playerPoints', 'points: ' + Math.round(points));
                 }
 
-                timeLeftSec = config.gameLengthSec - Math.round(this._snapshot.gameTimeElapsed);
-                this._texts.changeText('gameTimeLeft', 'time left: ' + timeLeftSec + ' sec');
-
-                this._pingSentAt = this._pingSentAt || now;
-                if ((now - this._pingSentAt) > 250) {
-                    var ping = Math.round(this._ping / 10) * 10;
-                    if (ping < 10) {
-                        ping = 10;
-                    }
-                    this._texts.changeText('clientPing', 'ping: ' + ping + ' ms');
-                    primus.emit('ping', {timestamp: now});
-                    this._pingSentAt = now;
+                if (_.isNumber(stats.kills) && _.isNumber(stats.deaths)) {
+                    this._texts.changeText('playerStats', 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths);
                 }
 
-                var packetSequence = this._snapshotsReceived.last();
-                if (packetSequence % 10 === 0) {
-                    var packetsReceived = this._snapshotsReceived.size()
-                        , packetsLost = 10 - packetsReceived
-                        , packetLoss = packetsLost === 0 ? packetsLost / packetsReceived : 0;
-                    this._texts.changeText('clientPacketLoss', 'packet loss: ' + packetLoss.toFixed(1) + '%');
-                    this._snapshotsReceived.clear();
-                }
-
-                if (!_.isUndefined(this._snapshot.playerCount)) {
-                    this._texts.changeText('playersOnline', 'players online: ' + this._snapshot.playerCount);
+                if (!_.isUndefined(this._snapshot.flags[team]) && _.isNumber(this._snapshot.flagCount)) {
+                    var teamFlagCount = this._snapshot.flags[team].length;
+                    this._texts.changeText('teamFlags', 'flags: ' + teamFlagCount + ' / ' + this._snapshot.flagCount);
                 }
             }
+
+            timeLeftSec = config.gameLengthSec - Math.round(this._snapshot.gameTimeElapsed);
+            this._texts.changeText('gameTimeLeft', 'time left: ' + timeLeftSec + ' sec');
+
+            this._pingSentAt = this._pingSentAt || now;
+            if ((now - this._pingSentAt) > 250) {
+                var ping = Math.round(this._ping / 10) * 10;
+                if (ping < 10) {
+                    ping = 10;
+                }
+                this._texts.changeText('clientPing', 'ping: ' + ping + ' ms');
+                primus.emit('ping', {timestamp: now});
+                this._pingSentAt = now;
+            }
+
+            var packetSequence = this._snapshotsReceived.last();
+            if (packetSequence % 10 === 0) {
+                var packetsReceived = this._snapshotsReceived.size()
+                    , packetsLost = 10 - packetsReceived
+                    , packetLoss = packetsLost === 0 ? packetsLost / packetsReceived : 0;
+                this._texts.changeText('clientPacketLoss', 'packet loss: ' + packetLoss.toFixed(1) + '%');
+                this._snapshotsReceived.clear();
+            }
+
+            if (_.isNumber(this._snapshot.playerCount)) {
+                this._texts.changeText('playersOnline', 'players online: ' + this._snapshot.playerCount);
+            }
+        }
+        /**
+         * TODO
+         */
+        , createTeamScoreText: function() {
+            var text = '';
+
+            _.forOwn(this._snapshot.teams, function(team) {
+                text += team.name + ' team: ' + team.score + '\n';
+            });
+
+            return text;
         }
         /**
          * Event handler for when receiving a ping response.
@@ -449,64 +457,22 @@ function run(primus, config) {
                 }
                 */
 
-                _.forOwn(this._snapshot.entities, function(state, entityId) {
+                _.forOwn(this._snapshot.entities, function(data, entityId) {
                     entity = this.entities.get(entityId);
 
                     // if the entity does not exist, we need to create it
                     if (!entity) {
-                        this.log('creating new entity', state);
-                        entity = this.createEntity(state);
-                        body = new Body(state.key, entity);
+                        this.log('creating new entity', data);
 
-                        // all entities should be synchronized
-                        entity.components.add(new SyncComponent());
-                        entity.components.add(new PhysicsComponent(body, this.foo));
-
-                        // TODO move this logic to the entity factory
-                        switch (state.key) {
-                            case 'player':
-                                sprites = {
-                                    player: this._entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
-                                    , attack: this._effectGroup.create(state.attrs.x, state.attrs.y, 'attack-sword')
-                                    , grave: this._entityGroup.create(state.attrs.x, state.attrs.y, 'grave')
-                                }
-                                , texts = {
-                                    name: this.createNameText(state.attrs.name, state.attrs.team)
-                                };
-
-                                entity.components.add(new SpriteComponent(sprites));
-                                entity.components.add(new TextComponent(texts));
-                                entity.components.add(new PlayerComponent());
-                                entity.components.add(new AttackComponent());
-                                break;
-                            case 'flag':
-                                sprites = {
-                                    flag: this._entityGroup.create(state.attrs.x, state.attrs.y, state.attrs.image)
-                                };
-
-                                entity.components.add(new SpriteComponent(sprites));
-                                entity.components.add(new FlagComponent());
-                                break;
-                            default:
-                                break;
-                        }
-
+                        // create the entity through the entity factory
+                        // and add it to the client entities
+                        entity = EntityFactory.create(data);
                         this.entities.add(entityId, entity);
                     }
 
-                    entity.sync(state.attrs);
+                    entity.sync(data.attrs);
                 }, this);
             }
-        }
-        /**
-         * TODO
-         */
-        , createTeamScoreText: function(scores) {
-            var text = '';
-            _.forOwn(scores, function(score) {
-                text += score.team + ' team: ' + score.points + '\n';
-            });
-            return text;
         }
         /**
          * Calculates an interpolation factor based on the two given snapshots.
@@ -622,14 +588,6 @@ function run(primus, config) {
         , extrapolateWorldState: function(previous, next, factor) {
             // TODO implement extrapolation
             return next;
-        }
-        /**
-         * Creates a new entity.
-         * @method client.PlayState#createEntity
-         * @param {object} data - Entity data.
-         */
-        , createEntity: function(data) {
-            return new Entity(data, config);
         }
         /**
          * Logs the a message to the console.
