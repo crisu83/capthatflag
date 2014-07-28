@@ -39,7 +39,7 @@ FlagComponent = utils.inherit(ComponentBase, {
         this._physics.overlap('player', function(body, other) {
             playerTeam = other.owner.attrs.get('team');
             if (!_.isUndefined(playerTeam) && playerTeam !== this._team && other.owner.attrs.get('alive')) {
-                this._room.captureFlag(this.owner.id, this._team, playerTeam);
+                this._room.flags.captureFlag(this.owner.id, this._team, playerTeam);
 
                 console.log('   player %s captured flag %s %s => %s', other.owner.id, body.owner.id, this._team, playerTeam);
                 this._team = playerTeam;

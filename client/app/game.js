@@ -56,19 +56,12 @@ function run(primus, config) {
             this._ping = 0;
             this._pingSentAt = null;
             this._snapshotsReceived = new List();
-            this._runTimeSec = 0;
-            this._teamFlagCount = 0;
-            this._totalFlagCount = 0;
-            this._totalPlayerCount = 0;
-            this._score = '';
             this._entityGroup = null;
             this._effectGroup = null;
             this._music = null;
-            this._stateHistory = new StateHistory((1000 / config.syncRate) * 3);
             this._lastSyncAt = null;
             this._lastTickAt = null;
             this._snapshot = new Snapshot();
-
             this._texts = new TextManager();
         }
         /**
@@ -389,7 +382,7 @@ function run(primus, config) {
                         this._texts.changeText('playerStats', 'kills: ' + stats.kills + ' / deaths: ' + stats.deaths);
                     }
 
-                    if (!_.isUndefined(this._snapshot.flags[team].length) && _.isNumber(this._snapshot.flagCount)) {
+                    if (!_.isUndefined(this._snapshot.flags[team]) && _.isNumber(this._snapshot.flagCount)) {
                         var teamFlagCount = this._snapshot.flags[team].length;
                         this._texts.changeText('teamFlags', 'flags: ' + teamFlagCount + ' / ' + this._snapshot.flagCount);
                     }
@@ -418,7 +411,9 @@ function run(primus, config) {
                     this._snapshotsReceived.clear();
                 }
 
-                this._texts.changeText('playersOnline', 'players online: ' + this._snapshot.playerCount);
+                if (!_.isUndefined(this._snapshot.playerCount)) {
+                    this._texts.changeText('playersOnline', 'players online: ' + this._snapshot.playerCount);
+                }
             }
         }
         /**
@@ -434,8 +429,6 @@ function run(primus, config) {
          * @method client.PlayState#updateWorldState
          */
         , updateWorldState: function() {
-            var worldState = this._stateHistory.last();
-
             if (_.isNumber(this._snapshot.receivedAt)) {
                 var state, entity, sprites, texts, body;
 

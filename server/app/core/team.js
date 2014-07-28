@@ -13,20 +13,22 @@ Team = utils.inherit(null, {
     /**
      * Creates a new team.
      * @constructor
-     * @param {string} name - Team name.
-     * @param {number} x - Spawn position on the x-axis.
-     * @param {number} y - Spawn position on the y-axis.
+     * @param {object} data - Team data.
      */
-    constructor: function(name, x, y) {
+    constructor: function(data) {
         /**
          * @property {string} name - Team name.
          */
-        this.name = name;
+        this.name = data.name;
+        /**
+         * @property {string} color - Team color.
+         */
+        this.color = data.color;
 
         // internal properties
         this._players = new List();
-        this._x = x;
-        this._y = y;
+        this._x = data.x;
+        this._y = data.y;
     }
     /**
      * Returns the spawn position for players on the team.
@@ -83,12 +85,6 @@ Team = utils.inherit(null, {
         }, this);
 
         return points;
-    }
-    /**
-     * TODO
-     */
-    , endGame: function() {
-        this.removePlayers();
     }
     /**
      * Removes all the players from the team.

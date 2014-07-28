@@ -10,6 +10,8 @@ var path = require('path')
     , Client = require('./client')
     , Hashmap = require('../../../shared/utils/hashmap')
     , ClientList = require('../utils/clientList')
+    , FlagHashmap = require('../utils/flagHashmap')
+    , TeamHashmap = require('../utils/teamHashmap')
     , EntityHashmap = require('../../../shared/utils/entityHashmap')
     , Snapshot = require('../../../shared/core/snapshot')
     , World = require('../../../shared/physics/world')
@@ -64,15 +66,21 @@ Room = utils.inherit(Node, {
          * @property {number} playerCount - Number of players online.
          */
         this.playerCount = 0;
-
+        /**
+         * @property {server.utils.TeamHashmap} teams - Map over teams in this room.
+         */
+        this.teams = new TeamHashmap();
+        /**
+         * @property {server.utils.FlagHashmap} flags - Map over flags in this room.
+         */
+        this.flags = new FlagHashmap();
+        /**
+         * @property {array} names - List of player names available.
+         */
         this.names = [];
 
         // internal variables
         this._clients = new ClientList();
-        //this._teams = new TeamHashmap();
-        this._teams = null;
-        this._flags = {};
-        //this._flags = new FlagHashmap();
         this._lastSyncAt = null;
         this._lastTickAt = null;
         this._gameStartedAt = null;
@@ -93,17 +101,18 @@ Room = utils.inherit(Node, {
         this.tilemap.room = this;
         this.tilemap.init();
 
+        // TODO move all data parsing to the data manager
+
         var namesJson = require('../../../data/names.json');
         this.names = _.shuffle(namesJson.names);
 
-        // TODO parse teams from json
-
-        this._teams = new Hashmap({
-            red: new Team('red', 32, 32)
-            //, green: new Team('green', config.gameWidth - 64, 32)
-            //, magenta: new Team('magenta', 32, config.gameHeight - 96)
-            , blue: new Team('blue', config.gameWidth - 64, config.gameHeight - 96)
-        });
+        var teamJson = require('../../../data/teams.json');
+        _.forOwn(teamJson.teams, function(data) {
+            data.name = data.key;
+            data.x = data.x >= 0 ? data.x : config.gameWidth - data.x;
+            data.y = data.y >= 0 ? data.y : config.gameHeight - data.y;
+            this.teams.add(data.key, new Team(data));
+        }, this);
 
         this.resetFlags();
 
@@ -177,65 +186,13 @@ Room = utils.inherit(Node, {
         snapshot.sequence = this._snapshotSequence++;
         snapshot.createdAt = now;
         snapshot.entities = this.entities.serialize();
-        snapshot.flags = _.clone(this._flags);
-        snapshot.scores = this.calculateTeamScores();
+        snapshot.flags = this.flags.serialize();
+        snapshot.scores = this.teams.calculateScores();
         snapshot.flagCount = this.flagCount;
         snapshot.playerCount = this.playerCount;
         snapshot.gameTimeElapsed = (now - this._gameStartedAt) / 1000;
 
         return snapshot;
-    }
-    /**
-     * TODO
-     */
-    , calculateTeamScores: function() {
-        var teamScore = [];
-
-        this._teams.each(function(team) {
-            teamScore.push({team: team.name, points: team.getTotalPoints()});
-        }, this);
-
-        return teamScore;
-    }
-    /**
-     * Captures a flag from one team to another.
-     * @method server.core.Room#captureFlag
-     * @param {string} flagId - Flag identifier.
-     * @param {string} fromTeam - Team losing the flag.
-     * @param {string} toTeam - Team capturing the flag.
-     */
-    , captureFlag: function(flagId, fromTeam, toTeam) {
-        if (_.has(this._flags, toTeam)) {
-
-            if (_.has(this._flags, fromTeam)) {
-                var index = this._flags[fromTeam].indexOf(flagId);
-
-                if (index !== -1) {
-                    this._flags[fromTeam].splice(index, 1);
-                }
-            }
-
-            this._flags[toTeam].push(flagId);
-            console.log('   player captured flag from team %s to team %s', fromTeam, toTeam);
-        }
-    }
-    /**
-     * Returns the currently weakest team.
-     * @method server.core.Room#weakestTeam
-     * @return {server.core.Team} Team instance.
-     */
-    , weakestTeam: function() {
-        var weakest, teamSize, leastPlayers;
-
-        this._teams.each(function(team, name) {
-            teamSize = team.size();
-            if (_.isUndefined(leastPlayers) || teamSize < leastPlayers) {
-                leastPlayers = teamSize;
-                weakest = team;
-            }
-        }, this);
-
-        return weakest;
     }
     /**
      * Awards points for flags.
@@ -246,9 +203,9 @@ Room = utils.inherit(Node, {
             , points = 0
             , team;
 
-        _.forOwn(this._flags, function(flagId, key) {
-            points = config.gamePointsPerFlag * this._flags[key].length;
-            team = this._teams.get(key);
+        this.flags.each(function(flags, key) {
+            points = config.gamePointsPerFlag * flags.length;
+            team = this.teams.get(key);
             team.awardPointsToPlayers(points);
             console.log('   players on team %s received %d points', key, points);
         }, this);
@@ -260,8 +217,8 @@ Room = utils.inherit(Node, {
      * @method server.core.Room#resetFlags
      */
     , resetFlags: function() {
-        this._teams.each(function(team, key) {
-            this._flags[key] = [];
+        this.teams.each(function(team, key) {
+            this.flags.set(key, []);
         }, this);
     }
     /**
@@ -271,21 +228,21 @@ Room = utils.inherit(Node, {
     , endGame: function() {
         this._running = false;
 
-        var teamScore = this.calculateTeamScores()
+        var teamScores = this.teams.calculateScores()
             , topScore;
 
         // sort the scores so that the highest is first
-        teamScore.sort(function(a, b) {
+        teamScores.sort(function(a, b) {
             return a.points > b.points;
         });
 
-        topScore = teamScore.pop();
+        topScore = teamScores.pop();
         console.log(' game in room %s won by %s team with %d points', this.id, topScore.team, topScore.points);
 
         this.entities.clear();
 
-        this._teams.each(function(team) {
-            team.endGame();
+        this.teams.each(function(team) {
+            team.removePlayers();
         }, this);
 
         this._clients.each(function(client) {
