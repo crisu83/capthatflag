@@ -1,6 +1,6 @@
 CAP THAT FLAG
 =============
 
-Cap that flag is a fast-paced online game written in JavaScript.
-The idea is to capture as many flags as you can together with your team
-and keep control of them to score points.
+Capture flags for your team to score points and lead your team to victory.
+Play online with and against other players from all over the world.
+Go to http://capthatflag.com to play the game.
