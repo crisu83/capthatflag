@@ -32,6 +32,10 @@ function run(primus, config) {
          */
         constructor: function() {
             /**
+             * @property {Primus.Client} primus - Primus client instance.
+             */
+            this.primus = primus;
+            /**
              * @property {shared.EntityHashmap} entities - Map over entities in the state.
              */
             this.entities = new EntityHashmap();
@@ -44,12 +48,13 @@ function run(primus, config) {
              */
             this.foo = new World(config.gameWidth, config.gameHeight);
 
+            this.entityGroup = null;
+            this.effectGroup = null;
+
             // internal properties
             this._ping = 0;
             this._pingSentAt = null;
             this._snapshotsReceived = new List();
-            this._entityGroup = null;
-            this._effectGroup = null;
             this._music = null;
             this._lastSyncAt = null;
             this._lastTickAt = null;
@@ -140,8 +145,8 @@ function run(primus, config) {
             // set dependencies for the entity manager
             EntityFactory.world = this.foo;
             EntityFactory.primus = primus;
-            EntityFactory.entityGroup = this._entityGroup = this.add.group();
-            EntityFactory.effectGroup = this._effectGroup = this.add.group();
+            this.entityGroup = this.add.group();
+            this.effectGroup = this.add.group();
             EntityFactory.state = this;
 
             // create the texts for the ui
@@ -304,20 +309,8 @@ function run(primus, config) {
         , onPlayerCreate: function(data) {
             this.log('creating player', data);
 
-            var entity = EntityFactory.createPlayer(data)
-                , sprite, playerSprite;
-
-            // add the input component only to the actual player
-            entity.components.add(new InputComponent(this.game.input));
-
-            // set the camera to follow the player sprite
-            sprite = entity.components.get('sprite');
-            playerSprite = sprite.get('player');
-            this.camera.follow(playerSprite);
-
-            this.entities.add(data.id, entity);
-
-            this.player = entity;
+            this.player = EntityFactory.createLocalPlayer(data);
+            this.entities.add(data.id, this.player);
         }
         /**
          * Event handler for when a player leaves.
@@ -345,7 +338,7 @@ function run(primus, config) {
             this.updateEntities(elapsed);
             this.updateTexts();
 
-            this._entityGroup.sort('y', Phaser.Group.SORT_ASCENDING);
+            this.entityGroup.sort('y', Phaser.Group.SORT_ASCENDING);
 
             this._lastTickAt = now;
         }
@@ -439,7 +432,8 @@ function run(primus, config) {
          * @method client.PlayState#updateWorldState
          */
         , updateWorldState: function() {
-            // get the latest snapshot from the history and set it as the active snapshot
+            // get the latest snapshot from the history
+            // and set it as the active snapshot
             this._snapshot.set(this._snapshots.last());
 
             /*

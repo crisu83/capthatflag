@@ -8,6 +8,7 @@ var _ = require('lodash')
     , PhysicsComponent = require('../../../shared/components/physics')
     , AttackComponent = require('../components/attack')
     , FlagComponent = require('../components/flag')
+    , InputComponent = require('../components/input')
     , PlayerComponent = require('../components/player')
     , SoundComponent = require('../components/sound')
     , SpriteComponent = require('../components/sprite')
@@ -19,18 +20,10 @@ var _ = require('lodash')
  * Entity factory static class.
  * @class client.core.EntityFactory
  * @classdesc Factory class for creating entities.
- * @property {Primus.Client} primus - Primus client instance.
- * @property {shared.physics.World} world - World instance.
  * @property {Phaser.State} state - State instance.
- * @property {Phaser.Group} entityGroup - Entity group.
- * @property {Phaser.Group} effectGroup - Effect group.
  */
 EntityFactory = {
-    primus: null
-    , world: null
-    , state: null
-    , entityGroup: null
-    , effectGroup: null
+    state: null
     /**
      * Creates a new entity.
      * @method client.core.EntityFactory#create
@@ -41,7 +34,7 @@ EntityFactory = {
 
         switch (data.key) {
             case 'player':
-                entity = this.createPlayer(data);
+                entity = this.createRemotePlayer(data);
                 break;
             case 'flag':
                 entity = this.createFlag(data);
@@ -53,18 +46,18 @@ EntityFactory = {
         return entity;
     }
     /**
-     * Create a new player entity.
-     * @method client.core.EntityFactory#createPlayer
+     * Create a new local player entity.
+     * @method client.core.EntityFactory#createLocalPlayer
      * @return {shared.core.Entity} Entity instance.
      */
-    , createPlayer: function(data) {
+    , createLocalPlayer: function(data) {
         var entity = new Entity(data)
-            , sprites, sounds, texts, body, color, nameText;
+            , sprites, sounds, texts, body;
 
         sprites = {
-            player: this.entityGroup.create(data.attrs.x, data.attrs.y, data.attrs.image)
-            , grave: this.entityGroup.create(data.attrs.x, data.attrs.y, 'grave')
-            , attack: this.effectGroup.create(data.attrs.x, data.attrs.y, 'attack-sword')
+            player: this.state.entityGroup.create(data.attrs.x, data.attrs.y, data.attrs.image)
+            , grave: this.state.entityGroup.create(data.attrs.x, data.attrs.y, 'grave')
+            , attack: this.state.effectGroup.create(data.attrs.x, data.attrs.y, 'attack-sword')
         };
 
         sounds = {
@@ -79,12 +72,52 @@ EntityFactory = {
 
         body = new Body(data.key, entity);
 
-        entity.components.add(new PhysicsComponent(body, this.world));
+        entity.components.add(new PhysicsComponent(body, this.state.foo));
         entity.components.add(new SpriteComponent(sprites));
         entity.components.add(new SoundComponent(sounds));
         entity.components.add(new TextComponent(texts));
         entity.components.add(new PlayerComponent());
-        entity.components.add(new IoComponent(this.primus));
+        entity.components.add(new IoComponent(this.state.primus));
+        entity.components.add(new AttackComponent());
+        entity.components.add(new InputComponent(this.state.input));
+
+        this.state.camera.follow(sprites.player);
+
+        return entity;
+    }
+    /**
+     * Create a new remote player entity.
+     * @method client.core.EntityFactory#createRemotePlayer
+     * @return {shared.core.Entity} Entity instance.
+     */
+    , createRemotePlayer: function(data) {
+        var entity = new Entity(data)
+            , sprites, sounds, texts, body;
+
+        sprites = {
+            player: this.state.entityGroup.create(data.attrs.x, data.attrs.y, data.attrs.image)
+            , grave: this.state.entityGroup.create(data.attrs.x, data.attrs.y, 'grave')
+            , attack: this.state.effectGroup.create(data.attrs.x, data.attrs.y, 'attack-sword')
+        };
+
+        sounds = {
+            hit: this.state.add.audio('hit', 0.1, false)
+            , die: this.state.add.audio('die', 0.1, false)
+        };
+
+        texts = {
+            name: this.state.add.text(0, 0, '', {font: "10px Courier", stroke: "#000", strokeThickness: 5, fill: data.attrs.teamColor || '#aaa'})
+            , respawn: this.state.add.text(0, 0, '', {font: "12px Courier", stroke: "#000", strokeThickness: 5, fill: '#aaa'})
+        };
+
+        body = new Body(data.key, entity);
+
+        entity.components.add(new PhysicsComponent(body, this.state.foo));
+        entity.components.add(new SpriteComponent(sprites));
+        entity.components.add(new SoundComponent(sounds));
+        entity.components.add(new TextComponent(texts));
+        entity.components.add(new PlayerComponent());
+        entity.components.add(new IoComponent(this.state.primus));
         entity.components.add(new AttackComponent());
         entity.components.add(new SyncComponent());
 
@@ -100,14 +133,14 @@ EntityFactory = {
             , sprites, body;
 
         sprites = {
-            flag: this.entityGroup.create(data.attrs.x, data.attrs.y, data.attrs.image)
+            flag: this.state.entityGroup.create(data.attrs.x, data.attrs.y, data.attrs.image)
         };
 
         body = new Body(data.key, entity);
 
+        entity.components.add(new PhysicsComponent(body, this.state.foo));
         entity.components.add(new SpriteComponent(sprites));
         entity.components.add(new FlagComponent());
-        entity.components.add(new PhysicsComponent(body, this.world));
         entity.components.add(new SyncComponent());
 
         return entity;
