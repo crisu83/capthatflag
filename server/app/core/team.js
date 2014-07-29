@@ -40,8 +40,8 @@ Team = utils.inherit(null, {
      */
     , spawnPosition: function() {
         return {
-            x: this._room.chance.integer({min: this._base.x, max: this._base.right() - 32})
-            , y: this._room.chance.integer({min: this._base.y, max: this._base.bottom() - 64})
+            x: this._room.chance.integer({min: this._base.x, max: this._base.right() - config.gameTileSize})
+            , y: this._room.chance.integer({min: this._base.y, max: this._base.bottom() - config.gameTileSize})
         };
     }
     /**
