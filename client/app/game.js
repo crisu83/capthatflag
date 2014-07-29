@@ -5,6 +5,7 @@ var _ = require('lodash')
     , List = require('../../shared/utils/list')
     , Wall = require('../../shared/core/wall')
     , Snapshot = require('../../shared/core/snapshot')
+    , SnapshotHistory = require('./core/snapshotHistory')
     , World = require('../../shared/physics/world')
     , Body = require('../../shared/physics/body')
     , EntityHashmap = require('../../shared/utils/entityHashmap')
@@ -52,11 +53,13 @@ function run(primus, config) {
             this._music = null;
             this._lastSyncAt = null;
             this._lastTickAt = null;
+            this._snapshots = new SnapshotHistory(1000);
             this._snapshot = new Snapshot();
             this._texts = new TextManager();
 
-            // add the first snapshot manually
+            // add the first snapshot manually and set it as the active snapshot
             this.addSnapshot(config.gameSnapshot);
+            this._snapshot.set(config.gameSnapshot);
         }
         /**
          * Adds a new snapshot to the client.
@@ -64,8 +67,7 @@ function run(primus, config) {
          * @param {object} - Snapshot object.
          */
         , addSnapshot: function(snapshot) {
-            snapshot.receivedAt = _.now();
-            this._snapshot.set(snapshot);
+            this._snapshots.add(snapshot);
             this._snapshotsReceived.add(snapshot.sequence);
         }
         /**
@@ -156,8 +158,8 @@ function run(primus, config) {
             // bind event handlers
             primus.on('pong', this.onPong.bind(this));
             primus.on('player.create', this.onPlayerCreate.bind(this));
-            primus.on('game.sync', this.onGameSync.bind(this));
             primus.on('player.leave', this.onPlayerLeave.bind(this));
+            primus.on('game.sync', this.onGameSync.bind(this));
             primus.on('game.end', this.onGameEnd.bind(this));
 
             // let the server know that client is ready
@@ -437,42 +439,43 @@ function run(primus, config) {
          * @method client.PlayState#updateWorldState
          */
         , updateWorldState: function() {
-            if (_.isNumber(this._snapshot.receivedAt)) {
-                var state, entity, sprites, texts, body;
+            // get the latest snapshot from the history and set it as the active snapshot
+            this._snapshot.set(this._snapshots.last());
 
-                /*
-                if (previousState) {
-                    var factor;
+            /*
+            if (previousState) {
+                var factor;
 
-                    if (config.enableInterpolation && this.canInterpolate()) {
-                        // TODO fix client interpolation
-                        factor = this.calculateInterpolationFactor(previousState, worldState);
-                        worldState = this.interpolateWorldState(previousState, worldState, factor);
-                    }
-                    else if (config.enableExtrapolation && this.canExtrapolate()) {
-                        // TODO add support for world state extrapolation
-                        factor = 1;
-                        worldState = this.extrapolateWorldState(previousState, worldState, factor);
-                    }
+                if (config.enableInterpolation && this.canInterpolate()) {
+                    // TODO fix client interpolation
+                    factor = this.calculateInterpolationFactor(previousState, worldState);
+                    worldState = this.interpolateWorldState(previousState, worldState, factor);
                 }
-                */
-
-                _.forOwn(this._snapshot.entities, function(data, entityId) {
-                    entity = this.entities.get(entityId);
-
-                    // if the entity does not exist, we need to create it
-                    if (!entity) {
-                        this.log('creating new entity', data);
-
-                        // create the entity through the entity factory
-                        // and add it to the client entities
-                        entity = EntityFactory.create(data);
-                        this.entities.add(entityId, entity);
-                    }
-
-                    entity.sync(data.attrs);
-                }, this);
+                else if (config.enableExtrapolation && this.canExtrapolate()) {
+                    // TODO add support for world state extrapolation
+                    factor = 1;
+                    worldState = this.extrapolateWorldState(previousState, worldState, factor);
+                }
             }
+            */
+
+            var state, entity, sprites, texts, body;
+
+            _.forOwn(this._snapshot.entities, function(data, entityId) {
+                entity = this.entities.get(entityId);
+
+                // if the entity does not exist, we need to create it
+                if (!entity) {
+                    this.log('creating new entity', data);
+
+                    // create the entity through the entity factory
+                    // and add it to the client entities
+                    entity = EntityFactory.create(data);
+                    this.entities.add(entityId, entity);
+                }
+
+                entity.sync(data.attrs);
+            }, this);
         }
         /**
          * Calculates an interpolation factor based on the two given snapshots.
