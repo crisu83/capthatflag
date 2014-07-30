@@ -8,16 +8,13 @@
     , "gameHeight": 1600
     , "tickRate": 60
     , "syncRate": 60
-    , "enablePrediction": true
     , "enableInterpolation": false
     , "enableExtrapolation": false
-    , "extrapolationMsec": 200
     , "gameName": "CAP THAT FLAG"
     , "gameVersion": "v0.11.0"
     , "gameLengthSec": 320
     , "gamePointsSec": 30
     , "gamePointsPerFlag": 100
     , "gameResetSec": 10
-    , "tileWidth": 32
-    , "tileHeight": 32
+    , "gameTileSize": 96
 }

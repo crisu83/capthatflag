@@ -31,9 +31,11 @@ FlagComponent = utils.inherit(ComponentBase, {
 
         var sprite = this._sprite.get('flag');
         sprite.animations.add('neutral', [0]);
-        sprite.animations.add('red', [1]);
+        sprite.animations.add('green', [1]);
         sprite.animations.add('blue', [2]);
-        sprite.animations.play('neutral', 20, true);
+        sprite.animations.add('orange', [3]);
+        sprite.animations.add('purple', [4]);
+        sprite.animations.play('neutral', 15, true);
     }
     /**
      * @override
@@ -42,7 +44,7 @@ FlagComponent = utils.inherit(ComponentBase, {
         var team = this.owner.attrs.get('team');
 
         if (team !== this._team) {
-            this._sprite.play('flag', team, 20, true);
+            this._sprite.play('flag', team, 15, true);
             this._team = team;
         }
     }

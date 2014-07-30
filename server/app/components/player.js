@@ -35,7 +35,13 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this._respawnSec = this.owner.attrs.get('respawnSec');
 
         // set initial entity attributes
-        this.owner.attrs.set({teamColor: this._team.color});
+        this.owner.attrs.set({
+            team: this._team.name
+            , teamColor: this._team.color
+            , image: 'knight-' + this._team.name
+        });
+
+        this.spawn();
 
         this.owner.on('entity.kill', this.onEntityKill.bind(this));
         this.owner.on('entity.die', this.onEntityDeath.bind(this));
@@ -65,12 +71,19 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this._points += points;
     }
     /**
+     * Spawns the player in the team base.
+     * @method server.components.Player#spawn
+     */
+    , spawn: function() {
+        var position = this._team.spawnPosition();
+        this.owner.attrs.set({x: position.x, y: position.y});
+    }
+    /**
      * @override
      */
     , update: function(elapsed) {
         if (this.canRevive()) {
-            var position = this._team.spawnPosition();
-            this.owner.attrs.set({x: position.x, y: position.y});
+            this.spawn();
             this.owner.revive();
             this._lastDeadAt = null;
         }

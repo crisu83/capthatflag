@@ -15,6 +15,7 @@ var path = require('path')
     , FlagHashmap = require('../utils/flagHashmap')
     , TeamHashmap = require('../utils/teamHashmap')
     , EntityHashmap = require('../../../shared/utils/entityHashmap')
+    , EntityFactory = require('./entityFactory')
     , Snapshot = require('../../../shared/core/snapshot')
     , World = require('../../../shared/physics/world')
     , Team = require('./team')
@@ -51,7 +52,7 @@ Room = utils.inherit(Node, {
         /**
          * @property {server.core.Tilemap} tilemap - Tilemap instance.
          */
-        this.tilemap = TilemapFactory.create('forrest');
+        this.tilemap = TilemapFactory.create('castle');
         /**
          * @property {shared.EntityHashmap} entities - Map of entities in the room.
          */
@@ -59,7 +60,7 @@ Room = utils.inherit(Node, {
         /**
          * @property {shared.physics.World} world - Physical world.
          */
-        this.world = new World(config.gameWidth, config.gameHeight);
+        this.world = new World(this.tilemap.calculateWidth(), this.tilemap.calculateHeight());
         /**
          * @property {number} flagCount - Number of available banners.
          */
@@ -100,6 +101,8 @@ Room = utils.inherit(Node, {
     , init: function() {
         // event handler for when a client connects
         this.primus.on('connection', this.onConnection.bind(this));
+
+        EntityFactory.room = this;
 
         // create teams and reset the map and the flags
         this.resetTilemap();

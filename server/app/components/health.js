@@ -19,6 +19,10 @@ HealthComponent = utils.inherit(ComponentBase, {
     constructor: function() {
         ComponentBase.apply(this);
 
+        // inherited properties
+        this.key = 'health';
+        this.phase = ComponentBase.prototype.phases.LOGIC;
+
         // internal properties
         this._maxHealth = 0;
         this._currentHealth = 0;

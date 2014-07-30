@@ -1,14 +1,24 @@
 {
     "teams": [
         {
-            "name": "red"
-            , "color": "#ff33cc"
+            "name": "green"
+            , "color": "#86d93d"
             , "base": "Base1"
         }
         , {
             "name": "blue"
-            , "color": "#0099ff"
+            , "color": "#46bce3"
             , "base": "Base2"
+        }
+        , {
+            "name": "orange"
+            , "color": "#fda551"
+            , "base": "Base3"
+        }
+        , {
+            "name": "purple"
+            , "color": "#9c44b5"
+            , "base": "Base4"
         }
     ]
 }

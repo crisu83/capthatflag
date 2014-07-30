@@ -1,41 +1,41 @@
 {
     "key": "player"
     , "attrs": {
-        "x": 0
-        , "y": 0
-        , "width": 32
-        , "height": 64
-        , "runSpeed": 400
+        "width": 96
+        , "height": 96
+        , "runSpeed": 800
         , "attackCooldownMsec": 500
-        , "attackRange": 32
-        , "attackAoe": 5
+        , "attackRange": 24
+        , "attackAoe": 20
         , "minDamage": 1
         , "maxDamage": 1
         , "maxHealth": 1
         , "respawnSec": 10
-        , "image": "player-red"
-        , "team": "red"
     }
     , "assets": {
         "spritesheets": {
-            "player-red": {
-                "src": "images/sprites/player-red.png"
-                , "frames": 24
+            "knight-green": {
+                "src": "images/sprites/knight-green.png"
+                , "frames": 16
             }
-            , "player-blue": {
-                "src": "images/sprites/player-blue.png"
-                , "frames": 24
+            , "knight-blue": {
+                "src": "images/sprites/knight-blue.png"
+                , "frames": 16
             }
-            , "attack-sword": {
-                "src": "images/sprites/attack-sword.png"
-                , "width": 32
-                , "height": 32
+            , "knight-orange": {
+                "src": "images/sprites/knight-orange.png"
+                , "frames": 16
+            }
+            , "knight-purple": {
+                "src": "images/sprites/knight-purple.png"
+                , "frames": 16
+            }
+            , "attack": {
+                "src": "images/sprites/attack.png"
                 , "frames": 7
             }
             , "grave": {
                 "src": "images/sprites/grave.png"
-                , "width": 32
-                , "height": 64
                 , "frames": 1
             }
         }

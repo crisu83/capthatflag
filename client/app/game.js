@@ -140,7 +140,7 @@ function run(primus, config) {
             this.createMap();
 
             // create the music
-            //this.createMusic();
+            this.createMusic();
 
             // set dependencies for the entity manager
             EntityFactory.world = this.foo;
