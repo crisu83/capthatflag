@@ -1,11 +1,11 @@
 {
-    "key": "knight"
+    "key": "player"
     , "attrs": {
         "width": 96
         , "height": 96
         , "runSpeed": 400
         , "attackCooldownMsec": 500
-        , "attackRange": 96
+        , "attackRange": 24
         , "attackAoe": 20
         , "minDamage": 1
         , "maxDamage": 1
@@ -27,8 +27,12 @@
                 , "frames": 16
             }
             , "knight-purple": {
-                "src": "images/sprites/knight-purle.png"
+                "src": "images/sprites/knight-purple.png"
                 , "frames": 16
+            }
+            , "attack": {
+                "src": "images/sprites/attack.png"
+                , "frames": 7
             }
             , "grave": {
                 "src": "images/sprites/grave.png"

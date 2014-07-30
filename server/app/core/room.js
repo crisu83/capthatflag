@@ -15,6 +15,7 @@ var path = require('path')
     , FlagHashmap = require('../utils/flagHashmap')
     , TeamHashmap = require('../utils/teamHashmap')
     , EntityHashmap = require('../../../shared/utils/entityHashmap')
+    , EntityFactory = require('./entityFactory')
     , Snapshot = require('../../../shared/core/snapshot')
     , World = require('../../../shared/physics/world')
     , Team = require('./team')
@@ -100,6 +101,8 @@ Room = utils.inherit(Node, {
     , init: function() {
         // event handler for when a client connects
         this.primus.on('connection', this.onConnection.bind(this));
+
+        EntityFactory.room = this;
 
         // create teams and reset the map and the flags
         this.resetTilemap();

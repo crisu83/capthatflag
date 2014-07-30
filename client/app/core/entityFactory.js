@@ -57,7 +57,7 @@ EntityFactory = {
         sprites = {
             player: this.state.entityGroup.create(data.attrs.x, data.attrs.y, data.attrs.image)
             , grave: this.state.entityGroup.create(data.attrs.x, data.attrs.y, 'grave')
-            , attack: this.state.effectGroup.create(data.attrs.x, data.attrs.y, 'attack-sword')
+            , attack: this.state.effectGroup.create(data.attrs.x, data.attrs.y, 'attack')
         };
 
         sounds = {
@@ -97,7 +97,7 @@ EntityFactory = {
         sprites = {
             player: this.state.entityGroup.create(data.attrs.x, data.attrs.y, data.attrs.image)
             , grave: this.state.entityGroup.create(data.attrs.x, data.attrs.y, 'grave')
-            , attack: this.state.effectGroup.create(data.attrs.x, data.attrs.y, 'attack-sword')
+            , attack: this.state.effectGroup.create(data.attrs.x, data.attrs.y, 'attack')
         };
 
         sounds = {

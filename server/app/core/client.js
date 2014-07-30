@@ -6,14 +6,7 @@ var _ = require('lodash')
     , Node = require('../../../shared/core/node')
     , DataManager = require('./dataManager')
     , EntityFactory = require('./entityFactory')
-    , IoComponent = require('../../../shared/components/io')
-    , PhysicsComponent = require('../../../shared/components/physics')
-    , AttackComponent = require('../components/attack')
-    , HealthComponent = require('../components/health')
-    , InputComponent = require('../components/input')
-    , PlayerComponent = require('../components/player')
     , config = require('../config.json')
-    , Body = require('../../../shared/physics/body')
     , Client;
 
 /**
@@ -128,34 +121,13 @@ Client = utils.inherit(Node, {
      * @return {shared.core.Entity} Player entity.
      */
     , createPlayer: function() {
-        var entity = EntityFactory.create('player')
-            , team = this._room.teams.findWeakest()
-            , position = team.spawnPosition()
-            , body = new Body('player', entity);
-
-        // set initial entity attributes
-        entity.attrs.set({
-            name: this._room.generatePlayerName()
-            , team: team.name
-            , image: 'player-' + team.name
-            , x: position.x
-            , y: position.y
-        });
-
-        // TODO use the entity factory to add the entity components
-        entity.components.add(new IoComponent(this._spark));
-        entity.components.add(new PhysicsComponent(body, this._room.world));
-        entity.components.add(new AttackComponent());
-        entity.components.add(new InputComponent());
-        entity.components.add(new HealthComponent());
-        entity.components.add(new PlayerComponent(team));
+        var entity = EntityFactory.createPlayer(this._spark);
 
         // add the player to the team, the room and increase the player count
-        team.addPlayer(entity);
         this._room.entities.add(entity.id, entity);
         this._room.playerCount++;
 
-        console.log('  client %s joined %s team as player %s', this.id, team.name, entity.id);
+        console.log('  client %s joined as player %s', this.id, entity.id);
 
         // let the client know that it can now create the player
         this._spark.emit('player.create', entity.serialize());

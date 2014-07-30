@@ -67,6 +67,7 @@ AttackComponent = utils.inherit(ComponentBase, {
             , halfWidth = dimensions.width / 2
             , halfHeight = dimensions.height / 2;
 
+        // move the target on top of the attacker
         target.x += halfWidth;
         target.y += halfHeight;
 

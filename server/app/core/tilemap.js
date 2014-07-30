@@ -8,8 +8,6 @@ var _ = require('lodash')
     , List = require('../../../shared/utils/list')
     , Hashmap = require('../../../shared/utils/hashmap')
     , EntityFactory = require('./entityFactory')
-    , PhysicsComponent = require('../../../shared/components/physics')
-    , FlagComponent = require('../components/flag')
     , Tilemap;
 
 /**
@@ -130,69 +128,21 @@ Tilemap = utils.inherit(null, {
             body.y = wall.y;
             body.width = wall.width;
             body.height = wall.height;
-
             this.room.world.add(body);
             this._walls.add(wall);
         }, this);
-        /*
-        var x, y, tileX, tileY, tile, body, entity, attrs;
-
-        x = 0;
-        y = -1;
-
-        // loop through the layer data and create the necessary tiles
-        _.forOwn(layer.data, function(data, index) {
-            // make sure that the current position is occupied by a tile
-            // (zero stands for empty)
-            if (data > 0) {
-                tileX = x * this.tileWidth;
-                tileY = y * this.tileHeight;
-                tile = new Tile(tileX, tileY, this.tileWidth, this.tileHeight);
-
-                body = new Body('tile', tile);
-                body.x = tileX;
-                body.y = tileY;
-                body.width = this.tileWidth;
-                body.height = this.tileHeight;
-
-                this.room.world.add(body);
-
-                this._collisionTiles.add(tile);
-            }
-
-            if (index % this.width === 0) {
-                x = 0;
-                y++;
-            }
-            x++;
-        }, this);
-        */
     }
     /**
      * TODO
      */
     , parseFlagLayer: function(layer) {
-        var entity, body;
+        var entity;
 
         _.forOwn(layer.objects, function(object) {
             entity = EntityFactory.create(object.type);
-            entity.attrs.set({x: object.x, y: object.y - 32});
-
-            // TODO use the entity factory to create the entities
-            switch (object.type) {
-                case 'flag':
-                    body = new Body('flag', entity);
-
-                    entity.components.add(new PhysicsComponent(body, this.room.world));
-                    entity.components.add(new FlagComponent(this.room));
-
-                    this.room.flagCount++;
-                    break;
-                default:
-                    break;
-            }
-
+            entity.attrs.set({x: object.x, y: object.y});
             this.room.entities.add(entity.id, entity);
+            this.room.flagCount++;
         }, this);
     }
     /**
@@ -203,13 +153,11 @@ Tilemap = utils.inherit(null, {
 
         _.forOwn(layer.objects, function(object) {
             base = new Base(object.name, object.x, object.y, object.width, object.height);
-
             body = new Body('base', base);
             body.x = base.x;
             body.y = base.y;
             body.width = base.width;
             body.height = base.height;
-
             this._bases.set(object.name, base);
         }, this);
     }
