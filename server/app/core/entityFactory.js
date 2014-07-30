@@ -65,8 +65,6 @@ EntityFactory = {
         entity.components.add(new HealthComponent());
         entity.components.add(new PlayerComponent(team));
 
-        team.addPlayer(entity);
-
         return entity;
     }
     /**
@@ -80,7 +78,6 @@ EntityFactory = {
 
         entity.components.add(new PhysicsComponent(body, this.room.world));
         entity.components.add(new FlagComponent(this.room));
-        this.room.flagCount++;
 
         return entity;
     }

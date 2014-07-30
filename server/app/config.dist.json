@@ -4,14 +4,12 @@
     , "socketNamespace": "/game"
     , "canvasWidth": 1024
     , "canvasHeight": 640
-    , "gameWidth": 1600
-    , "gameHeight": 1600
     , "tickRate": 60
     , "syncRate": 60
     , "enableInterpolation": false
     , "enableExtrapolation": false
     , "gameName": "CAP THAT FLAG"
-    , "gameVersion": "v0.11.0"
+    , "gameVersion": "v0.13.0"
     , "gameLengthSec": 320
     , "gamePointsSec": 30
     , "gamePointsPerFlag": 100

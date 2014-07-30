@@ -414,7 +414,7 @@ function run(primus, config) {
             var text = '';
 
             _.forOwn(this._snapshot.teams, function(team) {
-                text += team.name + ' team: ' + team.score + '\n';
+                text += team.name + ' team: ' + team.points + '\n';
             });
 
             return text;

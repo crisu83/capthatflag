@@ -84,50 +84,39 @@ InputComponent = utils.inherit(ComponentBase, {
     , captureInput: function(elapsed) {
         var now = _.now()
             , alive = this.owner.attrs.get('alive')
-            , command = {sequence: null, arrows: [], direction: 'none', action: 'none'};
+            , command = {sequence: null, keys: []};
 
         // only take input from alive entities
         if (_.isUndefined(alive) || alive === true) {
             // check if arrow keys are pressed
             if (this._cursorKeys.up.isDown) {
-                command.arrows.push('up');
+                command.keys.push('arrowUp');
             } else if (this._cursorKeys.down.isDown) {
-                command.arrows.push('down');
+                command.keys.push('arrowDown');
             }
             if (this._cursorKeys.left.isDown) {
-                command.arrows.push('left');
+                command.keys.push('arrowLeft');
             } else if (this._cursorKeys.right.isDown) {
-                command.arrows.push('right');
+                command.keys.push('arrowRight');
             }
 
             // check if the attack key is pressed
             if (this._attackKey.isDown) {
-                command.action = 'attack';
-            }
-
-            // last arrow key determines the direction that entity will be facing
-            if (command.arrows.length) {
-                command.direction = command.arrows[command.arrows.length - 1];
+                command.keys.push('space');
             }
 
             // send the user commands with 10 ms interval
             // in order to prevent unnecessary network traffic.
             if (_.isUndefined(this._lastSyncAt) || (now - this._lastSyncAt) > 10) {
-                // check if any input was actually received.
-                if (command.arrows.length || command.direction !== this._lastDirection || command.action !== this._lastAction) {
-                    // add the command to the command history
-                    command.sequence = this._sequence++;
-                    this._commands.add(command);
+                // add the command to the command history
+                command.sequence = this._sequence++;
+                this._commands.add(command);
 
-                    // apply input prediction
-                    this.owner.attrs.set(this.processCommand(command));
+                // apply input prediction
+                this.owner.attrs.set(this.processCommand(command));
 
-                    // send the input to the server
-                    this._io.spark.emit('player.input', command);
-
-                    this._lastDirection = command.direction;
-                    this._lastAction = command.action;
-                }
+                // send the input to the server
+                this._io.spark.emit('player.input', command);
 
                 this._lastSyncAt = now;
             }
