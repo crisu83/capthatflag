@@ -32,7 +32,7 @@ AttackComponent = utils.inherit(ComponentBase, {
 
         var sprite = this._sprite.get('attack');
         sprite.animations.add('idle', [6]);
-        sprite.animations.add('slash', [0, 1, 2, 3, 4, 5, 6]);
+        sprite.animations.add('hit', [0, 1, 2, 3, 4, 5, 6]);
         sprite.animations.play('idle');
     }
     /**
@@ -41,10 +41,10 @@ AttackComponent = utils.inherit(ComponentBase, {
     , attack: function() {
         var now = _.now()
             , target = this.calculateTarget()
-            , position = {x: target.x - 16, y: target.y - 10};
+            , position = {x: target.x - 48, y: target.y - 48};
 
         this._sprite.setPosition('attack', position);
-        this._sprite.play('attack', 'slash', 30, false);
+        this._sprite.play('attack', 'hit', 30, false);
         this._sound.play('hit');
 
         this.setLastAttackAt(now);

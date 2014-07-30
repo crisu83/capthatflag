@@ -9,7 +9,7 @@ var _ = require('lodash')
  * Player component class.
  * @class client.components.PlayerComponent
  * @classdesc Component that adds player functionality.
- * @extends shared.core.Component
+ * @extends shared.components.Player
  */
 PlayerComponent = utils.inherit(ComponentBase, {
     /**
@@ -36,10 +36,10 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         playerSprite = this._sprite.get('player');
         playerSprite.animations.add('standStill', [0]);
-        playerSprite.animations.add('walkDown', [0, 1, 2, 3, 4, 5]);
-        playerSprite.animations.add('walkRight', [6, 7, 8, 9, 10, 11]);
-        playerSprite.animations.add('walkUp', [12, 13, 14, 15, 16, 17]);
-        playerSprite.animations.add('walkLeft', [18, 19, 20, 21, 22, 23]);
+        playerSprite.animations.add('walkDown', [0, 1, 2, 3]);
+        playerSprite.animations.add('walkLeft', [4, 5, 6, 7]);
+        playerSprite.animations.add('walkUp', [8, 9, 10, 11]);
+        playerSprite.animations.add('walkRight', [12, 13, 14, 15]);
         playerSprite.animations.play('standStill', 15, true);
 
         graveSprite = this._sprite.get('grave');
@@ -150,7 +150,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
                     break;
             }
 
-            this._sprite.play('player', animation, 10, true);
+            this._sprite.play('player', animation, 15, true);
             this._lastDirection = direction;
         }
     }

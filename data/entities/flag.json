@@ -1,15 +1,15 @@
 {
     "key": "flag"
     , "attrs": {
-        "width": 32
-        , "height": 64
+        "width": 96
+        , "height": 96
         , "image": "flag"
     }
     , "assets": {
         "spritesheets": {
             "flag": {
                 "src": "images/sprites/flag.png"
-                , "frames": 3
+                , "frames": 5
             }
         }
     }
