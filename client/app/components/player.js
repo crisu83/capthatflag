@@ -23,7 +23,9 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this._sprite = null;
         this._sound = null;
         this._text = null;
+        this._attack = null;
         this._lastDirection = 'none';
+        this._lastAction = 'none';
         this._lastAlive = true;
         this._respawnTime = null;
     }
@@ -35,12 +37,16 @@ PlayerComponent = utils.inherit(ComponentBase, {
         this._sound = this.owner.components.get('sound');
 
         playerSprite = this._sprite.get('player');
-        playerSprite.animations.add('standStill', [0]);
-        playerSprite.animations.add('walkDown', [0, 1, 2, 3]);
-        playerSprite.animations.add('walkLeft', [4, 5, 6, 7]);
-        playerSprite.animations.add('walkUp', [8, 9, 10, 11]);
-        playerSprite.animations.add('walkRight', [12, 13, 14, 15]);
-        playerSprite.animations.play('standStill', 15, true);
+        playerSprite.animations.add('idle', [0]);
+        playerSprite.animations.add('runDown', [0, 1, 2, 3]);
+        playerSprite.animations.add('runLeft', [4, 5, 6, 7]);
+        playerSprite.animations.add('runUp', [8, 9, 10, 11]);
+        playerSprite.animations.add('runRight', [12, 13, 14, 15]);
+        playerSprite.animations.add('attackDown', [16, 17, 18, 19]);
+        playerSprite.animations.add('attackLeft', [20, 21, 22, 23]);
+        playerSprite.animations.add('attackUp', [24, 25, 26, 27]);
+        playerSprite.animations.add('attackRight', [28, 29, 30, 31]);
+        playerSprite.animations.play('idle', 15, true);
 
         graveSprite = this._sprite.get('grave');
         graveSprite.animations.add('default', [0]);
@@ -88,7 +94,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
                 , lastDeadAt = this.owner.attrs.get('lastDeadAt');
 
             if (_.isNumber(respawnSec) && _.isNumber(lastDeadAt)) {
-                this._text.setPosition('respawn', {x: position.x + (width * 0.5), y: position.y + 10});
+                this._text.setPosition('respawn', {x: position.x + (width * 0.5), y: position.y + 32});
                 this._text.setText('respawn', respawnSec - Math.round((_.now() - lastDeadAt) / 1000));
             }
         }
@@ -102,19 +108,14 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         if (alive === false && this._lastAlive) {
             this._lastDeadAt = _.now();
-            this._sound.play('die');
             this._sprite.kill('player');
-            this._sprite.kill('attack');
             this._sprite.revive('grave');
             this._text.revive('respawn');
             this.owner.die();
         } else if (alive === true && !this._lastAlive) {
-            var position = this.owner.attrs.get(['spawnX', 'spawnY']);
             this._sprite.kill('grave');
             this._text.kill('respawn');
-            this.owner.attrs.set({x: position.spawnX, y: position.spawnY});
             this._sprite.revive('player');
-            this._sprite.revive('attack');
             this.owner.revive();
             this._lastDeadAt = null;
         }
@@ -126,33 +127,26 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @method client.components.PlayerComponent#updateAnimation
      */
     , updateAnimation: function() {
-        var direction = this.owner.attrs.get('direction');
+        var actions = this.owner.attrs.get('actions')
+            , facing = this.owner.attrs.get('facing')
+            , lastAttackAt = this.owner.attrs.get('lastAttackAt')
+            , cooldownMsec = this.owner.attrs.get('attackCooldownMsec');
 
-        if (direction !== this._lastDirection) {
-            var animation;
-
-            switch (direction) {
-                case 'left':
-                    animation = 'walkLeft';
-                    break;
-                case 'up':
-                    animation = 'walkUp';
-                    break;
-                case 'right':
-                    animation = 'walkRight';
-                    break;
-                case 'down':
-                    animation = 'walkDown';
-                    break;
-                default:
-                case 'none':
-                    animation = 'standStill';
-                    break;
+        if (_.indexOf(actions, 'attack') !== -1 && facing !== 'none') {
+            if (!_.isNumber(lastAttackAt) || (_.now() - lastAttackAt) > cooldownMsec) {
+                this._sprite.play('player', this.resolveActionAnimation('attack', facing), 15, false);
             }
-
-            this._sprite.play('player', animation, 15, true);
-            this._lastDirection = direction;
+        } else if (_.indexOf(actions, 'run') !== -1) {
+            this._sprite.play('player', this.resolveActionAnimation('run', facing), 15, true);
+        } else {
+            this._sprite.play('player', 'idle', 15, true);
         }
+    }
+    /**
+     * TODO
+     */
+    , resolveActionAnimation: function(action, facing) {
+        return action + facing.charAt(0).toUpperCase() + facing.slice(1);
     }
 });
 

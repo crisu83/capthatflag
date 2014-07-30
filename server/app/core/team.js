@@ -27,6 +27,10 @@ Team = utils.inherit(null, {
          * @property {string} color - Team color.
          */
         this.color = data.color;
+        /**
+         * @property {number} points - Team points.
+         */
+        this.points = 0;
 
         // internal properties
         this._base = base;
@@ -68,20 +72,8 @@ Team = utils.inherit(null, {
      */
     , awardPointsToPlayers: function(points) {
         this._players.each(function(player) {
-            player.trigger('player.awardPoints', points);
+            player.trigger('player.receivePoints', points);
         }, this);
-    }
-    /**
-     * TODO
-     */
-    , calculateScore: function() {
-        var points = 0;
-
-        this._players.each(function(player) {
-            points += player.attrs.get('points');
-        }, this);
-
-        return points;
     }
     /**
      * Removes all the players from the team.
@@ -105,7 +97,7 @@ Team = utils.inherit(null, {
         return {
             name: this.name
             , color: this.color
-            , score: this.calculateScore()
+            , points: this.points
             , playerCount: this._players.size()
         };
     }

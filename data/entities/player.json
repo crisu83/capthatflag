@@ -5,10 +5,9 @@
         , "height": 96
         , "runSpeed": 800
         , "attackCooldownMsec": 500
-        , "attackRange": 24
+        , "attackRange": 96
         , "attackAoe": 20
-        , "minDamage": 1
-        , "maxDamage": 1
+        , "damage": 1
         , "maxHealth": 1
         , "respawnSec": 10
     }
@@ -16,23 +15,19 @@
         "spritesheets": {
             "knight-green": {
                 "src": "images/sprites/knight-green.png"
-                , "frames": 16
+                , "frames": 32
             }
             , "knight-blue": {
                 "src": "images/sprites/knight-blue.png"
-                , "frames": 16
+                , "frames": 32
             }
             , "knight-orange": {
                 "src": "images/sprites/knight-orange.png"
-                , "frames": 16
+                , "frames": 32
             }
             , "knight-purple": {
                 "src": "images/sprites/knight-purple.png"
-                , "frames": 16
-            }
-            , "attack": {
-                "src": "images/sprites/attack.png"
-                , "frames": 7
+                , "frames": 32
             }
             , "grave": {
                 "src": "images/sprites/grave.png"

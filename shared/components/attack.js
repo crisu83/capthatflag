@@ -30,11 +30,17 @@ AttackComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , update: function() {
-        var action = this.owner.attrs.get('action');
+        var now = _.now()
+            , actions = this.owner.attrs.get('actions');
 
-        if (!_.isUndefined('action') && action === 'attack' && this.canAttack()) {
+        if (_.indexOf(actions, 'attack') !== -1 && this.canAttack()) {
             this.attack();
+            this._lastAttackAt = now;
         }
+
+        this.owner.attrs.set({
+            lastAttackAt: this._lastAttackAt
+        });
     }
     /**
      * Returns whether the entity can attack.
@@ -42,10 +48,8 @@ AttackComponent = utils.inherit(ComponentBase, {
      * @return {boolean} The result.
      */
     , canAttack: function() {
-        var now = _.now()
-            , cooldownMsec = this.owner.attrs.get('attackCooldownMsec');
-
-        return _.isUndefined(this._lastAttackAt) || (now - this._lastAttackAt) > cooldownMsec;
+        var cooldownMsec = this.owner.attrs.get('attackCooldownMsec');
+        return _.isUndefined(this._lastAttackAt) || (_.now() - this._lastAttackAt) > cooldownMsec;
     }
     /**
      * Performs an attack.
@@ -89,14 +93,6 @@ AttackComponent = utils.inherit(ComponentBase, {
         }
 
         return target;
-    }
-    /**
-     * Sets the last attack at property.
-     * @method shared.components.AttackComponent#setLastAttackAt
-     * @param {number} timestamp - Timestamp.
-     */
-    , setLastAttackAt: function(timestamp) {
-        this._lastAttackAt = timestamp;
     }
 });
 

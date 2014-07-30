@@ -32,6 +32,8 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @override
      */
     , init: function() {
+        this._team.addPlayer(this.owner);
+
         this._respawnSec = this.owner.attrs.get('respawnSec');
 
         // set initial entity attributes
@@ -45,7 +47,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         this.owner.on('entity.kill', this.onEntityKill.bind(this));
         this.owner.on('entity.die', this.onEntityDeath.bind(this));
-        this.owner.on('player.awardPoints', this.onPlayerAwardPoints.bind(this));
+        this.owner.on('player.receivePoints', this.onPlayerReceivePoints.bind(this));
     }
     /**
      * Event handler for when the entity kills another entity.
@@ -53,7 +55,7 @@ PlayerComponent = utils.inherit(ComponentBase, {
      */
     , onEntityKill: function(other) {
         this._kills++;
-        this._points += 10;
+        this.addPoints(10);
     }
     /**
      * Event handler for when the entity dies.
@@ -67,8 +69,15 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * Event handler for when awarding player points.
      * @method server.components.PlayerComponent#onPlayerAwardPoints
      */
-    , onPlayerAwardPoints: function(points) {
-        this._points += points;
+    , onPlayerReceivePoints: function(points) {
+        this.addPoints(points);
+    }
+    /**
+     * TODO
+     */
+    , addPoints: function(amount) {
+        this._points += amount;
+        this._team.points += amount;
     }
     /**
      * Spawns the player in the team base.

@@ -32,43 +32,59 @@ InputComponent = utils.inherit(ComponentBase, {
      * @return {object} Resulting attributes.
      */
     , processCommand: function(command, attrs) {
+        // TODO clean up the code in this method
         attrs = attrs || this.owner.attrs.get();
         attrs.inputSequence = command.sequence;
-        attrs.direction = command.direction;
-        attrs.action = command.action;
+        attrs.actions = [];
+        attrs.facing = 'none';
 
         var step = attrs.runSpeed / 100
-            , arrows = new List(command.arrows)
-            , diagonal = arrows.size() > 1;
+            , keys = new List(command.keys)
+            , arrows = new List();
 
-        // compensate step size for diagonal movement
-        if (diagonal) {
-            step /= Math.sqrt(2);
-        }
-
-        // apply the change to the position
-        arrows.each(function(key) {
-            switch (key) {
-                case 'up':
-                    attrs.y -= step;
-                    break;
-                case 'down':
-                    attrs.y += step;
-                    break;
-                case 'left':
-                    attrs.x -= step;
-                    break;
-                case 'right':
-                    attrs.x += step;
-                    break;
-                default:
-                    break;
+        keys.each(function(key) {
+            if (key.indexOf('arrow') !== -1) {
+                arrows.add(key);
+            } else if (key === 'space') {
+                attrs.actions.push('attack');
             }
         }, this);
 
-        // round the values for
-        attrs.x = Math.round(attrs.x);
-        attrs.y = Math.round(attrs.y);
+        // compensate step size for diagonal movement (Pythagora's theorem)
+        if (arrows.size() > 1) {
+            step /= Math.sqrt(2);
+        }
+
+        if (!arrows.isEmpty()) {
+            arrows.each(function(arrow) {
+                switch (arrow) {
+                    case 'arrowUp':
+                        attrs.y -= step;
+                        attrs.facing = 'up';
+                        break;
+                    case 'arrowDown':
+                        attrs.y += step;
+                        attrs.facing = 'down';
+                        break;
+                    case 'arrowLeft':
+                        attrs.x -= step;
+                        attrs.facing = 'left';
+                        break;
+                    case 'arrowRight':
+                        attrs.x += step;
+                        attrs.facing = 'right';
+                        break;
+                    default:
+                        break;
+                }
+            }, this);
+
+            // round the values for
+            attrs.x = Math.round(attrs.x);
+            attrs.y = Math.round(attrs.y);
+
+            attrs.actions.push('run');
+        }
 
         return attrs;
     }

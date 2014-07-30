@@ -57,7 +57,6 @@ EntityFactory = {
         sprites = {
             player: this.state.entityGroup.create(data.attrs.x, data.attrs.y, data.attrs.image)
             , grave: this.state.entityGroup.create(data.attrs.x, data.attrs.y, 'grave')
-            , attack: this.state.effectGroup.create(data.attrs.x, data.attrs.y, 'attack')
         };
 
         sounds = {
@@ -66,8 +65,8 @@ EntityFactory = {
         };
 
         texts = {
-            name: this.state.add.text(0, 0, '', {font: "10px Courier", stroke: "#000", strokeThickness: 5, fill: data.attrs.teamColor || '#aaa'})
-            , respawn: this.state.add.text(0, 0, '', {font: "12px Courier", stroke: "#000", strokeThickness: 5, fill: '#aaa'})
+            name: this.state.add.text(0, 0, '', {font: "14px Courier", stroke: "#000", strokeThickness: 5, fill: data.attrs.teamColor || '#aaa'})
+            , respawn: this.state.add.text(0, 0, '', {font: "18px Courier", stroke: "#000", strokeThickness: 5, fill: '#fff'})
         };
 
         body = new Body(data.key, entity);
@@ -78,7 +77,6 @@ EntityFactory = {
         entity.components.add(new TextComponent(texts));
         entity.components.add(new PlayerComponent());
         entity.components.add(new IoComponent(this.state.primus));
-        entity.components.add(new AttackComponent());
         entity.components.add(new InputComponent(this.state.input));
 
         this.state.camera.follow(sprites.player);
@@ -97,7 +95,6 @@ EntityFactory = {
         sprites = {
             player: this.state.entityGroup.create(data.attrs.x, data.attrs.y, data.attrs.image)
             , grave: this.state.entityGroup.create(data.attrs.x, data.attrs.y, 'grave')
-            , attack: this.state.effectGroup.create(data.attrs.x, data.attrs.y, 'attack')
         };
 
         sounds = {
@@ -106,8 +103,8 @@ EntityFactory = {
         };
 
         texts = {
-            name: this.state.add.text(0, 0, '', {font: "10px Courier", stroke: "#000", strokeThickness: 5, fill: data.attrs.teamColor || '#aaa'})
-            , respawn: this.state.add.text(0, 0, '', {font: "12px Courier", stroke: "#000", strokeThickness: 5, fill: '#aaa'})
+            name: this.state.add.text(0, 0, '', {font: "14px Courier", stroke: "#000", strokeThickness: 5, fill: data.attrs.teamColor || '#aaa'})
+            , respawn: this.state.add.text(0, 0, '', {font: "18px Courier", stroke: "#000", strokeThickness: 5, fill: '#fff'})
         };
 
         body = new Body(data.key, entity);
@@ -118,7 +115,6 @@ EntityFactory = {
         entity.components.add(new TextComponent(texts));
         entity.components.add(new PlayerComponent());
         entity.components.add(new IoComponent(this.state.primus));
-        entity.components.add(new AttackComponent());
         entity.components.add(new SyncComponent());
 
         return entity;

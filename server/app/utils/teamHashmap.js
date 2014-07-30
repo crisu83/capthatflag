@@ -34,7 +34,7 @@ TeamHashmap = utils.inherit(BaseHashmap, {
         var scores = [];
 
         this.each(function(team) {
-            scores.push({team: team.name, points: team.calculateScore()});
+            scores.push({team: team.name, points: team.points});
         }, this);
 
         return scores;
