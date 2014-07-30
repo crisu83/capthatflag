@@ -183,6 +183,20 @@ Tilemap = utils.inherit(null, {
     , getBase: function(key) {
         return this._bases.get(key);
     }
+    /**
+     * Returns the width of the tilemap in pixels.
+     * @return {number} Map width.
+     */
+    , calculateWidth: function() {
+        return this.width * this.tileWidth;
+    }
+    /**
+     * Returns the height of the tilemap in pixels.
+     * @return {number} Map height.
+     */
+    , calculateHeight: function() {
+        return this.height * this.tileHeight;
+    }
 });
 
 module.exports = Tilemap;

@@ -61,8 +61,8 @@ Client = utils.inherit(Node, {
             // viewport configuration
             , canvasWidth: config.canvasWidth
             , canvasHeight: config.canvasHeight
-            , gameWidth: config.gameWidth
-            , gameHeight: config.gameHeight
+            , gameWidth: this._room.tilemap.calculateWidth()
+            , gameHeight: this._room.tilemap.calculateHeight()
             // map configuration
             , mapKey: this._room.tilemap.key
             , mapData: this._room.tilemap.data

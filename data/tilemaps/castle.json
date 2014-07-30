@@ -1,0 +1,19 @@
+{
+    "key": "castle"
+    , "data": "tiled/castle/castle.json"
+    , "type": 1
+    , "image": "castle"
+    , "music": "8-bit-rebel"
+    , "layers": ["Ground", "Walls"]
+    , "collision": "Collision"
+    , "flags": "Flags"
+    , "bases": "Bases"
+    , "assets": {
+        "images": {
+            "castle": "images/tilesets/castle.png"
+        }
+        , "audio": {
+            "8-bit-rebel": ["audio/music/8-bit-rebel.mp3", "audio/music/8-bit-rebel.ogg"]
+        }
+    }
+}

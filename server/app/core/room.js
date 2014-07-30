@@ -52,7 +52,7 @@ Room = utils.inherit(Node, {
         /**
          * @property {server.core.Tilemap} tilemap - Tilemap instance.
          */
-        this.tilemap = TilemapFactory.create('forrest');
+        this.tilemap = TilemapFactory.create('castle');
         /**
          * @property {shared.EntityHashmap} entities - Map of entities in the room.
          */
@@ -60,7 +60,7 @@ Room = utils.inherit(Node, {
         /**
          * @property {shared.physics.World} world - Physical world.
          */
-        this.world = new World(config.gameWidth, config.gameHeight);
+        this.world = new World(this.tilemap.calculateWidth(), this.tilemap.calculateHeight());
         /**
          * @property {number} flagCount - Number of available banners.
          */

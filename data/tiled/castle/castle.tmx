@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="50" height="50" tilewidth="96" tileheight="96">
+ <tileset firstgid="1" name="castle" tilewidth="96" tileheight="96">
+  <image source="../../../assets/images/tilesets/castle.png" trans="ff00ff" width="1923" height="960"/>
+ </tileset>
+ <layer name="Ground" width="50" height="50">
+  <data encoding="base64" compression="zlib">
+   eJzdmE2ywzAIg50c593/gK+LLjIe9ElZYbrw5G+KJRAYeq21rs+6v9fr8by/27/dwW/Vle6TbxW2e2l87r6yUfFVtskW+UH5MPU14aP9K385fzusapG/VMwotsrHZCexq2L+Rp+kh0T/FMNES2nM3b5Omwn2RAcudqRnF+sUT5LP1d6pvigu+/3foSvJ+SefbryOh8v1CfFw+forPKbkB2lqMg+qe9141UrO+Of3brwUD6epCfGgGlvx68ZLuqp6NFW/uvE6XdGZMaFeUX86iUfaj5zOg2aDqgZ34yUeb2aKbryOh5tXJujKzVUTznOXH1POQZpnq/rVjTfRleutTs5z6qum8aBau1+78b6JR5Xrp+eHm2un9CVJvzuBhzq/VQ3rxpvwcDPIyTyqWkv50o034aFq1RQe1Fft77rxquVye8pc62aOSX2J63Gn8KA+ZMr84erslLlW/S8yrS+p/F/lyen54c4MmkVUXlF/pvSq5tGkF1d7uXdu7+RcVXXS5aiy6fxEulM+ox5H8SXbxFP50MWJfEM6TONGuFKOrvaSL8neWy2reDuOle1/aLXzCw==
+  </data>
+ </layer>
+ <layer name="Walls" width="50" height="50">
+  <data encoding="base64" compression="zlib">
+   eJztmckNwCAMBGknRaT/ttIAOfB6pU0yI/mHDfPBMowBAPButoZw1K147GLMUOpVPdLAIws8ssAjC5eHow+qZ6rk3PXKGUqfc3p0goeWg0et3p89zu6b1TWde3bvt4IyAyWBRxZ3/R2e8ZV7F486eGg5eNTqMdde43jfVc/UkeMGjyzwyAKPLKoeajjqrqL+cTr+OZkpAf7NAd7nNqk=
+  </data>
+ </layer>
+ <objectgroup name="Collision" width="50" height="50">
+  <object name="Wall1" type="wall" x="576" y="576" width="96" height="1536"/>
+  <object name="Wall2" type="wall" x="672" y="576" width="1536" height="96"/>
+  <object name="Wall3" type="wall" x="2688" y="576" width="1440" height="96"/>
+  <object name="Wall4" type="wall" x="4128" y="576" width="96" height="1536"/>
+  <object name="Wall5" type="wall" x="576" y="2688" width="96" height="1536"/>
+  <object name="Wall6" type="wall" x="653" y="4221"/>
+  <object name="Wall7" type="wall" x="672" y="4128" width="1536" height="96"/>
+  <object name="Wall8" type="wall" x="2688" y="4128" width="1440" height="96"/>
+  <object name="Wall9" type="wall" x="4149" y="4211" width="26"/>
+  <object name="Wall10" type="wall" x="4128" y="2688" width="96" height="1536"/>
+  <object name="Wall11" type="wall" x="1440" y="1440" width="96" height="672"/>
+  <object name="Wall12" type="wall" x="1536" y="1440" width="672" height="96"/>
+  <object name="Wall13" type="wall" x="2688" y="1440" width="672" height="96"/>
+  <object name="Wall14" type="wall" x="3360" y="1440" width="96" height="672"/>
+  <object name="Wall15" type="wall" x="1440" y="2688" width="96" height="672"/>
+  <object name="Wall16" type="wall" x="1536" y="3264" width="672" height="96"/>
+  <object name="Wall17" type="wall" x="2688" y="3264" width="672" height="96"/>
+  <object name="Wall18" type="wall" x="3360" y="2688" width="96" height="672"/>
+  <object name="Wall19" type="wall" x="2304" y="2208" width="288" height="288"/>
+ </objectgroup>
+ <objectgroup name="Bases" width="50" height="50">
+  <object name="Base1" type="base" x="0" y="0" width="480" height="480"/>
+  <object name="Base2" type="base" x="4320" y="4320" width="480" height="480"/>
+  <object name="Base3" type="base" x="4320" y="0" width="480" height="480"/>
+  <object name="Base4" type="base" x="0" y="4320" width="480" height="480"/>
+ </objectgroup>
+ <objectgroup name="Flags" width="50" height="50">
+  <object name="Flag1" type="flag" x="1056" y="1056" width="96" height="96"/>
+  <object name="Flag2" type="flag" x="1920" y="1056" width="96" height="96"/>
+  <object name="Flag3" type="flag" x="2880" y="1056" width="96" height="96"/>
+  <object name="Flag4" type="flag" x="3744" y="1056" width="96" height="96"/>
+  <object name="Flag8" type="flag" x="3744" y="1920" width="96" height="96"/>
+  <object name="Flag5" type="flag" x="1056" y="1920" width="96" height="96"/>
+  <object name="Flag7" type="flag" x="2880" y="1920" width="96" height="96"/>
+  <object name="Flag6" type="flag" x="1920" y="1920" width="96" height="96"/>
+  <object name="Flag12" type="flag" x="3744" y="2880" width="96" height="96"/>
+  <object name="Flag9" type="flag" x="1056" y="2880" width="96" height="96"/>
+  <object name="Flag11" type="flag" x="2880" y="2880" width="96" height="96"/>
+  <object name="Flag12" type="flag" x="1920" y="2880" width="96" height="96"/>
+  <object name="Flag16" type="flag" x="3744" y="3744" width="96" height="96"/>
+  <object name="Flag13" type="flag" x="1056" y="3744" width="96" height="96"/>
+  <object name="Flag15" type="flag" x="2880" y="3744" width="96" height="96"/>
+  <object name="Flag14" type="flag" x="1920" y="3744" width="96" height="96"/>
+ </objectgroup>
+</map>

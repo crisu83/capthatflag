@@ -3,7 +3,7 @@
     , "attrs": {
         "width": 96
         , "height": 96
-        , "runSpeed": 400
+        , "runSpeed": 800
         , "attackCooldownMsec": 500
         , "attackRange": 24
         , "attackAoe": 20
