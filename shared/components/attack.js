@@ -38,6 +38,7 @@ AttackComponent = utils.inherit(ComponentBase, {
             this._lastAttackAt = now;
         }
 
+        // update entity attributes
         this.owner.attrs.set({
             lastAttackAt: this._lastAttackAt
         });

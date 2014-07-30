@@ -93,6 +93,12 @@ Team = utils.inherit(null, {
     /**
      * TODO
      */
+    , resetPoints: function() {
+        this.points = 0;
+    }
+    /**
+     * TODO
+     */
     , serialize: function() {
         return {
             name: this.name

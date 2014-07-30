@@ -73,10 +73,13 @@ PlayerComponent = utils.inherit(ComponentBase, {
      * @method client.components.PlayerComponent#updateSprites
      */
     , updateSprites: function() {
-        var position = this.owner.attrs.get(['x', 'y']);
+        var position = this.owner.attrs.get(['x', 'y'])
+            , alive = this.owner.attrs.get('alive');
 
-        this._sprite.setPosition('player', position);
-        this._sprite.setPosition('grave', position);
+        if (_.isUndefined(alive) || alive === true) {
+            this._sprite.setPosition('player', position);
+            this._sprite.setPosition('grave', position);
+        }
     }
     /**
      * Updates the associated texts.
@@ -89,13 +92,17 @@ PlayerComponent = utils.inherit(ComponentBase, {
 
         if (_.isUndefined(alive) || alive === true) {
             this._text.setPosition('name', {x: position.x + (width * 0.5), y: position.y});
-        } else {
+        } else if (alive === false) {
             var respawnSec = this.owner.attrs.get('respawnSec')
                 , lastDeadAt = this.owner.attrs.get('lastDeadAt');
 
             if (_.isNumber(respawnSec) && _.isNumber(lastDeadAt)) {
+                var respawnTime = respawnSec - Math.round((_.now() - lastDeadAt) / 1000);
                 this._text.setPosition('respawn', {x: position.x + (width * 0.5), y: position.y + 32});
-                this._text.setText('respawn', respawnSec - Math.round((_.now() - lastDeadAt) / 1000));
+                if (respawnTime < 0) {
+                    respawnTime = 0;
+                }
+                this._text.setText('respawn', respawnTime);
             }
         }
     }
