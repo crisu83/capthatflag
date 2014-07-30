@@ -138,9 +138,11 @@ Room = utils.inherit(Node, {
      * @param {Primus.Spark} spark - Spark instance.
      */
     , onConnection: function(spark) {
-        var client = new Client(spark, this);
-        client.init();
-        this._clients.add(client);
+        if (this._running) {
+            var client = new Client(spark, this);
+            client.init();
+            this._clients.add(client);
+        }
     }
     /**
      * Updates the logic for this room.
@@ -289,6 +291,7 @@ Room = utils.inherit(Node, {
 
         this.teams.each(function(team) {
             team.removePlayers();
+            team.resetPoints();
         }, this);
 
         this._clients.each(function(client) {

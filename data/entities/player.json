@@ -6,7 +6,7 @@
         , "runSpeed": 800
         , "attackCooldownMsec": 500
         , "attackRange": 96
-        , "attackAoe": 20
+        , "attackAoe": 32
         , "damage": 1
         , "maxHealth": 1
         , "respawnSec": 10
