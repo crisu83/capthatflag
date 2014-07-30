@@ -188,6 +188,7 @@ Client = utils.inherit(Node, {
      */
     , disconnect: function() {
         this.removePlayer();
+        this.resetGame();
 
         console.log('  client %s disconnected from room %s', this.id, this._room.id);
         this.trigger('client.disconnect', this);
