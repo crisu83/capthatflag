@@ -54,7 +54,10 @@ SpriteComponent = utils.inherit(ComponentBase, {
      *
      */
     , play: function(key, animation, framesPerSec, loop) {
-        this._sprites.get(key).animations.play(animation, framesPerSec, loop);
+        var sprite = this._sprites.get(key);
+        if (sprite) {
+            sprite.animations.play(animation, framesPerSec, loop);
+        }
     }
     /**
      * Kills a specific sprite.
@@ -62,7 +65,10 @@ SpriteComponent = utils.inherit(ComponentBase, {
      * @param {string} key - Sprite key.
      */
     , kill: function(key) {
-        this._sprites.get(key).kill();
+        var sprite = this._sprites.get(key);
+        if (sprite) {
+            sprite.kill();
+        }
     }
     /**
      * Revives a specific sprite.
@@ -70,7 +76,10 @@ SpriteComponent = utils.inherit(ComponentBase, {
      * @param {string} key - Sprite key.
      */
     , revive: function(key) {
-        this._sprites.get(key).revive();
+        var sprite = this._sprites.get(key);
+        if (sprite) {
+            sprite.revive();
+        }
     }
     /**
      * Sets the position of a specific sprite.
@@ -80,8 +89,10 @@ SpriteComponent = utils.inherit(ComponentBase, {
      */
     , setPosition: function(key, position) {
         var sprite = this._sprites.get(key);
-        sprite.x = position.x;
-        sprite.y = position.y;
+        if (sprite) {
+            sprite.x = position.x;
+            sprite.y = position.y;
+        }
     }
     /**
      * Returns the sprite associated with the given key.
