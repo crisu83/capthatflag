@@ -48,10 +48,13 @@ TextComponent = utils.inherit(ComponentBase, {
      * Sets the text for a specific text.
      * @method client.components.TextComponent#setText
      * @param {string} key - Text key.
-     * @param {string} text - New text.
+     * @param {string} string - New text.
      */
-    , setText: function(key, text) {
-        this._texts.get(key).text = text;
+    , setText: function(key, string) {
+        var text = this._texts.get(key);
+        if (text) {
+            text.text = string;
+        }
     }
     /**
      * Kills a specific text.
@@ -59,7 +62,10 @@ TextComponent = utils.inherit(ComponentBase, {
      * @param {string} key - Text key.
      */
     , kill: function(key) {
-        this._texts.get(key).visible = false;
+        var text = this._texts.get(key);
+        if (text) {
+            text.visible = false;
+        }
     }
     /**
      * Revives a specific text.
@@ -67,7 +73,10 @@ TextComponent = utils.inherit(ComponentBase, {
      * @param {string} key - Text key.
      */
     , revive: function(key) {
-        this._texts.get(key).visible = true;
+        var text = this._texts.get(key);
+        if (text) {
+            text.visible = true;
+        }
     }
     /**
      * Sets the position of a specific text.
@@ -77,8 +86,10 @@ TextComponent = utils.inherit(ComponentBase, {
      */
     , setPosition: function(key, position) {
         var text = this._texts.get(key);
-        text.x = position.x;
-        text.y = position.y;
+        if (text) {
+            text.x = position.x;
+            text.y = position.y;
+        }
     }
     /**
      * Returns the text associated with the given key.

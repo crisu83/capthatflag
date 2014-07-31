@@ -47,8 +47,13 @@ function run(primus, config) {
              * @property {shared.physics.World} foo - World instance.
              */
             this.foo = new World(config.gameWidth, config.gameHeight);
-
+            /**
+             * @property {Phaser.Group} entityGroup - Entity group instance.
+             */
             this.entityGroup = null;
+            /**
+             * @property {Phaser.Group} effectGroup - Effect group instance.
+             */
             this.effectGroup = null;
 
             // internal properties
@@ -61,6 +66,7 @@ function run(primus, config) {
             this._snapshots = new SnapshotHistory(1000);
             this._snapshot = new Snapshot();
             this._texts = new TextManager();
+            this._entityIds = new List();
 
             // add the first snapshot manually and set it as the active snapshot
             this.addSnapshot(config.gameSnapshot);
@@ -182,7 +188,7 @@ function run(primus, config) {
             map.addTilesetImage(config.mapKey, config.mapImage);
             _.forOwn(config.mapLayer, function(layerData) {
                 layer = map.createLayer(layerData);
-                if (layer) {
+                if (!_.isUndefined(layer)) {
                     layer.resizeWorld();
                 }
             }, this);
@@ -205,11 +211,7 @@ function run(primus, config) {
          * @method client.PlayState#createMusic
          */
         , createMusic: function() {
-            this._music = this.add.audio(
-                config.mapMusic
-                , 0.1/* volume */
-                , true/* loop */
-            );
+            this._music = this.add.audio(config.mapMusic, 0.1/* volume */, true/* loop */);
             this._music.play();
         }
         /**
@@ -319,11 +321,6 @@ function run(primus, config) {
          */
         , onPlayerLeave: function (entityId) {
             this.log('player left', entityId);
-
-            var entity = this.entities.get(entityId);
-            if (entity) {
-                entity.remove();
-            }
         }
         /**
          * Updates the logic for this game.
@@ -335,21 +332,12 @@ function run(primus, config) {
                 , elapsed = (now - this._lastTickAt) / 1000;
 
             this.updateWorldState();
-            this.updateEntities(elapsed);
             this.updateTexts();
+            this.entities.update(elapsed);
 
             this.entityGroup.sort('y', Phaser.Group.SORT_ASCENDING);
 
             this._lastTickAt = now;
-        }
-        /**
-         * Updates the entities in the state.
-         * @method client.PlayState#updateEntities
-         */
-        , updateEntities: function(elapsed) {
-            this.entities.each(function(entity, id) {
-                entity.update(elapsed);
-            }, this);
         }
         /**
          * Updates the game text.
@@ -412,11 +400,9 @@ function run(primus, config) {
          */
         , createTeamScoreText: function() {
             var text = '';
-
             _.forOwn(this._snapshot.teams, function(team) {
                 text += team.name + ' team: ' + team.points + '\n';
             });
-
             return text;
         }
         /**
@@ -455,6 +441,10 @@ function run(primus, config) {
 
             var state, entity, sprites, texts, body;
 
+            this.entities.each(function(entity, entityId) {
+                this._entityIds.add(entityId);
+            }, this);
+
             _.forOwn(this._snapshot.entities, function(data, entityId) {
                 entity = this.entities.get(entityId);
 
@@ -469,7 +459,17 @@ function run(primus, config) {
                 }
 
                 entity.sync(data.attrs);
+
+                this._entityIds.remove(entityId);
             }, this);
+
+            // remove all entities that were not included in the last snapshot
+            this._entityIds.each(function(entityId) {
+                entity = this.entities.get(entityId);
+                entity.remove();
+            }, this);
+
+            this._entityIds.clear();
         }
         /**
          * Calculates an interpolation factor based on the two given snapshots.
@@ -590,7 +590,7 @@ function run(primus, config) {
          * Logs the a message to the console.
          */
         , log: function() {
-             if (DEBUG && typeof console !== 'undefined') {
+             if (DEBUG && !_.isUndefined(console)) {
                  console.log.apply(console, arguments);
              }
          }

@@ -78,7 +78,7 @@ Hashmap = utils.inherit(null, {
      * @return {boolean} Whether the item was removed.
      */
     , remove: function(key) {
-        if (this._items[key]) {
+        if (this.exists(key)) {
             delete this._items[key];
             return true;
         } else {
