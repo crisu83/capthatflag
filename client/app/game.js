@@ -292,7 +292,6 @@ function run(primus, config) {
          * TODO
          */
         , onGameEnd: function(winner) {
-            this.player.remove();
             this._texts.changeText('gameResult', winner.toUpperCase() + ' TEAM WON\nGame will restart shortly');
         }
         /**
