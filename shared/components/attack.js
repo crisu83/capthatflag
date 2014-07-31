@@ -49,8 +49,10 @@ AttackComponent = utils.inherit(ComponentBase, {
      * @return {boolean} The result.
      */
     , canAttack: function() {
-        var cooldownMsec = this.owner.attrs.get('attackCooldownMsec');
-        return _.isUndefined(this._lastAttackAt) || (_.now() - this._lastAttackAt) > cooldownMsec;
+        var alive = this.owner.attrs.get('alive')
+            , cooldownMsec = this.owner.attrs.get('attackCooldownMsec');
+            
+        return alive === true && _.isUndefined(this._lastAttackAt) || (_.now() - this._lastAttackAt) > cooldownMsec;
     }
     /**
      * Performs an attack.
