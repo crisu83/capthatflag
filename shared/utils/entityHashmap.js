@@ -30,6 +30,14 @@ EntityHashmap = utils.inherit(HashmapBase, {
     /**
      * TODO
      */
+    , update: function(elapsed) {
+        this.each(function(entity) {
+            entity.update(elapsed);
+        }, this);
+    }
+    /**
+     * TODO
+     */
     , serialize: function() {
         var entities = {};
         this.each(function(entity, entityId) {
